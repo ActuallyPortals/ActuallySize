@@ -1,0 +1,49 @@
+package actually.portals.ActuallySize.mixin;
+
+import actually.portals.ActuallySize.ActuallySizeInteractions;
+import actually.portals.ActuallySize.netcode.ASIClientsidePacketHandler;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.client.multiplayer.ClientPacketListener;
+import net.minecraft.network.protocol.game.*;
+import net.minecraft.world.entity.Entity;
+import org.spongepowered.asm.mixin.Final;
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+
+/**
+ * Fires the Hotbar Swap event from the client side, for use only of client-side logic.
+ *
+ * @since 1.0.0
+ */
+@Mixin(ClientPacketListener.class)
+public abstract class ClientPacketListenerMixin {
+
+    @Shadow private ClientLevel level;
+
+    @Shadow @Final private Minecraft minecraft;
+
+    @Inject(method = "handleSetEquipment", at = @At("RETURN"))
+    protected void onHandleSetEquipmentReturn(ClientboundSetEquipmentPacket pPacket, CallbackInfo ci) {
+        Entity ent = this.level.getEntity(pPacket.getEntity());
+        if (ent == null) { return; }
+
+        // This will also attempt to resolve enqueued duality activations :based:
+        ASIClientsidePacketHandler.resolveEnqueuedDualityActivationsFor(ent.getUUID());
+    }
+
+    /*      // Superseded by the clock version in ASIEventExecutionListener.OnEverySecond()
+    @Inject(method = "handleContainerSetSlot", at = @At("RETURN"))
+    protected void onHandleContainerSetSlotReturn(ClientboundContainerSetSlotPacket pPacket, CallbackInfo ci) {
+        if (this.minecraft.player == null) { return; }
+
+        ActuallySizeInteractions.Log("Resolving Enqueued Duality Activations - BUT IT WAS COMMENTED! TEST IF THIS IS NEEDED");
+
+        // ASI Start
+        ASIClientsidePacketHandler.resolveEnqueuedDualityActivationsFor(this.minecraft.player.getUUID());
+    }
+     //*/
+}

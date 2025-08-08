@@ -1,0 +1,7 @@
+{
+  "loader": "actuallysize:held_entity_loader",
+  "parent": "item/generated",
+  "textures": {
+    "layer0": "actuallysize:item/held_nonliving_entity"
+  }
+}

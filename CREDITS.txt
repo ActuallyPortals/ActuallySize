@@ -1,0 +1,11 @@
+[Actually Size Interactions], by Actually Portals (?)
+
+
+Thanks to the modding community which helped indirectly this project by providing open-source examples, libraries, answers in forums, etc:
+
+Kaupenjoe for their free modding tutorials in YouTube
+Kudos to the [Forge] mod loader team
+Kudos to the [Pehkui] mod team
+Thanks to Lumin3ra [Pehkui Resizer], for guidance in hooking onto Pehkui
+Thanks to Bailey Hollingsworth [Ars Nouveau], the Containment Ritual proved a valuable example about serializing entities as Compound Tags.
+Thanks to modmuss50 [Chunk-in-a-Globe], the Item Model renderer proved a valuable example for working with rendering.

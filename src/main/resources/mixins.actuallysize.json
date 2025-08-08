@@ -1,0 +1,34 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "actually.portals.ActuallySize.mixin",
+  "compatibilityLevel": "JAVA_17",
+  "refmap": "mixins.actuallysize.refmap.json",
+  "mixinextras": {
+    "minVersion": "0.5.0-rc.2"
+  },
+  "client": [
+    "ClientLevelMixin",
+    "ClientPacketListenerMixin",
+    "EntityRenderDispatcherMixin",
+    "InventoryScreenMixin$Pehkui",
+    "LocalPlayerMixin"
+  ],
+  "mixins": [
+    "AbstractContainerMenuMixin",
+    "ConnectionMixin",
+    "ContainerSynchronizerMixin",
+    "EntityMixin",
+    "ItemStackMixin",
+    "LivingEntityMixin",
+    "PersistentEntitySectionManagerMixin",
+    "PlayerListMixin",
+    "PlayerMixin",
+    "ServerEntityMixin",
+    "ServerGamePacketListenerMixin",
+    "ServerLevelMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

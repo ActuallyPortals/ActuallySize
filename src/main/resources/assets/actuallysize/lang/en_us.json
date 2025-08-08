@@ -1,0 +1,7 @@
+{
+  "item.actuallysizeinteractions.held_living_entity": "Held Entity",
+  "item.actuallysizeinteractions.held_nonliving_entity": "Held Mob",
+  "item.actuallysizeinteractions.held_player": "Held Tiny",
+
+  "tooltip.actuallysizeinteractions.invalid": "Invalid Held Entity"
+}
