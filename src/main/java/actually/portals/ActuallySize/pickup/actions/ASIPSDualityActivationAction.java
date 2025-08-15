@@ -16,6 +16,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.MinecraftForge;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -485,9 +486,14 @@ public class ASIPSDualityActivationAction extends ASIPSDualityAction {
 
         } else {
 
+            //todo HELD-RIDE Maybe someday allow riding of held entities
+
             // Spawn entity
             /*HDA*/ActuallySizeInteractions.Log("ASI &6 HDA &r Entity counterpart spawn. ");
-            entityCounterpart.setPos(stackLocation.getHolder().position());
+            if (holdPoint != null) {
+                holdPoint.positionHeldEntity(dualityHolder, entityDuality);
+            } else {
+                entityCounterpart.setPos(stackLocation.getHolder().position()); }
             entityCounterpart.revive();
             if (world.addFreshEntity(entityCounterpart)) {
 

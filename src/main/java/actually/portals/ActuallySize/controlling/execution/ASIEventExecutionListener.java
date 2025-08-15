@@ -5,14 +5,20 @@ import actually.portals.ActuallySize.pickup.actions.ASIPSDualityActivationAction
 import actually.portals.ActuallySize.pickup.actions.ASIPSDualityDeactivationAction;
 import actually.portals.ActuallySize.netcode.ASIClientsidePacketHandler;
 import actually.portals.ActuallySize.pickup.ASIPickupSystemManager;
+import actually.portals.ActuallySize.pickup.actions.ASIPSHoldingSyncAction;
 import actually.portals.ActuallySize.pickup.events.ASIPSPickupToInventoryEvent;
+import actually.portals.ActuallySize.pickup.holding.ASIPSHoldPoint;
+import actually.portals.ActuallySize.pickup.mixininterfaces.EntityDualityCounterpart;
+import actually.portals.ActuallySize.pickup.mixininterfaces.HoldPointConfigurable;
 import actually.portals.ActuallySize.pickup.mixininterfaces.ItemEntityDualityHolder;
 import gunging.ootilities.GungingOotilitiesMod.events.extension.ServersideEntityEquipmentChangeEvent;
 import gunging.ootilities.GungingOotilitiesMod.scheduling.SCHTenTicksEvent;
 import gunging.ootilities.GungingOotilitiesMod.scheduling.SCHTwentyTicksEvent;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.event.entity.EntityTeleportEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -29,6 +35,40 @@ import org.jetbrains.annotations.NotNull;
  */
 @Mod.EventBusSubscriber(modid = ActuallySizeInteractions.MODID, bus = Mod.EventBusSubscriber.Bus.FORGE)
 public class ASIEventExecutionListener {
+
+    @SubscribeEvent
+    public static void OnTeleportationHold(@NotNull EntityTeleportEvent event) {
+
+        /*
+         * If the entity is held, teleporting away will make it stop being
+         * held (normally, unless like, enchanted or something who knows).
+         */
+        EntityDualityCounterpart entityDuality = (EntityDualityCounterpart) event.getEntity();
+        if (!entityDuality.actuallysize$isHeld()) { return; }
+
+        //noinspection DataFlowIssue
+        if (entityDuality.actuallysize$getHoldPoint().canBeEscapedByTeleporting(entityDuality.actuallysize$getItemEntityHolder(), entityDuality, event)) {
+
+            // If it can be escaped by teleporting, escape the duality
+            entityDuality.actuallysize$escapeDuality();
+        }
+    }
+
+    @SubscribeEvent
+    public static void OnDimensionalTravel(@NotNull PlayerEvent.PlayerChangedDimensionEvent event) {
+        if (!(event.getEntity() instanceof ServerPlayer)) { return; }
+
+        // Transfer server-side hold point configuration
+        HoldPointConfigurable asConfigurableOld = (HoldPointConfigurable) event.getEntity();
+        /*HDA*/ActuallySizeInteractions.Log("ASI &6 EMX-HDA &7 (" + event.getEntity().getClass().getSimpleName() + ") Copied over hold points &e x" + asConfigurableOld.actuallysize$getLocalHoldPoints().getRegisteredPoints().size());
+        //asConfigurableOld.actuallysize$getLocalHoldPoints().log();
+
+        // Sync hold point configurations to client
+        ASIPSHoldingSyncAction syncing = new ASIPSHoldingSyncAction(event.getEntity());
+        syncing.withConfigurables();
+        syncing.withBroadcast(asConfigurableOld.actuallysize$getLocalHoldPoints().getRegisteredPoints());
+        syncing.resolve();
+    }
 
     @SubscribeEvent
     public static void OnDualityFluxResolution(@NotNull TickEvent.ServerTickEvent event) {

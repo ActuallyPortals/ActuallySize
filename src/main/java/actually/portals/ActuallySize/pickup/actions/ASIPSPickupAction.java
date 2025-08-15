@@ -9,6 +9,8 @@ import actually.portals.ActuallySize.pickup.holding.ASIPSHoldPoint;
 import actually.portals.ActuallySize.pickup.mixininterfaces.EntityDualityCounterpart;
 import actually.portals.ActuallySize.pickup.mixininterfaces.ItemEntityDualityHolder;
 import gunging.ootilities.GungingOotilitiesMod.exploring.ItemStackLocation;
+import gunging.ootilities.GungingOotilitiesMod.exploring.entities.ISEEntityLocation;
+import gunging.ootilities.GungingOotilitiesMod.exploring.entities.ISEExplorerStatements;
 import gunging.ootilities.GungingOotilitiesMod.exploring.players.ISPExplorerStatements;
 import gunging.ootilities.GungingOotilitiesMod.exploring.players.ISPPlayerLocation;
 import gunging.ootilities.GungingOotilitiesMod.ootilityception.APIFriendlyProcess;
@@ -53,13 +55,13 @@ public class ASIPSPickupAction implements APIFriendlyProcess {
      *
      * @since 1.0.0
      */
-    @NotNull Player beeg;
+    @NotNull Entity beeg;
 
     /**
      * @since 1.0.0
      * @author Actually Portals
      */
-    @NotNull public Player getBeeg() { return beeg; }
+    @NotNull public Entity getBeeg() { return beeg; }
 
     /**
      * @since 1.0.0
@@ -85,7 +87,6 @@ public class ASIPSPickupAction implements APIFriendlyProcess {
      * @author Actually Portals
      */
     public void setTiny(@NotNull Entity who) { this.tiny = who; }
-
 
     /**
      * The slot where the entity is picked up to
@@ -143,9 +144,21 @@ public class ASIPSPickupAction implements APIFriendlyProcess {
 
         // Build Item Stack Location corresponding to hand
         this.stackLocation = switch (event.getHand()) {
-            case OFF_HAND -> new ISPPlayerLocation(beeg, ISPExplorerStatements.OFFHAND);
-            case MAIN_HAND -> new ISPPlayerLocation(beeg, ISPExplorerStatements.MAINHAND);
+            case OFF_HAND -> new ISEEntityLocation(beeg, ISEExplorerStatements.OFFHAND);
+            case MAIN_HAND -> new ISEEntityLocation(beeg, ISEExplorerStatements.MAINHAND);
         };
+    }
+
+    /**
+     * @since 1.0.0
+     * @author Actually Portals
+     */
+    public ASIPSPickupAction(@NotNull ItemStackLocation<? extends Entity> location, @NotNull Entity tiny) {
+
+        // Identify entities and location
+        this.tiny = tiny;
+        this.beeg = location.getHolder();
+        this.stackLocation = location;
     }
 
     /**
@@ -218,10 +231,12 @@ public class ASIPSPickupAction implements APIFriendlyProcess {
 
         //double relativeScale = ASIUtilities.inverseRelativeScale(caster, victim);
         //ActuallySizeInteractions.Log("&b&l Relativity: x" + (0.01 * Math.round((relativeScale * 100))));
+        ItemEntityDualityHolder holder = (ItemEntityDualityHolder) beeg;
+        ASIPSHoldPoint holdPoint = holder.actuallysize$getHoldPoint(stackLocation);
 
-        // Must be big enough to pick up
-        if (!ASIUtilities.meetsScaleRequirement(getBeeg(), getTiny(), ActuallyServerConfig.scaleReqOneHandedPickup)) {
-            //ActuallySizeInteractions.Log("&c&l Too small :pleading eyes:?");
+        // Must be big enough to pick up in the hold point
+        if (holdPoint != null && !holdPoint.canSustainHold(holder, (EntityDualityCounterpart) tiny)) {
+            //ActuallySizeInteractions.Log("&c&l Too small to pick up this tiny :pleading eyes:?");
             return false; }
 
         // Sanity check for range yes

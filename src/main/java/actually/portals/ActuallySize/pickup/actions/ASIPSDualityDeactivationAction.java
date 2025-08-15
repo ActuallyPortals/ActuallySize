@@ -335,6 +335,8 @@ public class ASIPSDualityDeactivationAction extends ASIPSDualityAction {
             /*HDA*/ActuallySizeInteractions.Log("ASI &9 HDD &r Unregistering - Server");
             entityCounterpart.remove(Entity.RemovalReason.UNLOADED_WITH_PLAYER);
 
+            //todo HELD-RIDE Maybe someday allow riding of held entities
+
             /*
              * #9 Unregister from Item-Entity duality kitty
              */

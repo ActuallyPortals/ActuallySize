@@ -47,9 +47,9 @@ public class ActuallyServerConfig {
      * 
      * @since 1.0.0
      */
-    @NotNull private static final ForgeConfigSpec.DoubleValue SCALE_REQUIREMENT_ONE_HANDED_PICKUP = CONFIG_BUILDER
-            .comment("The relative scale (ex. 4x) required to pickup entities with one hand. ")
-            .defineInRange("scaleReqOneHandedPickup", 4D, 0D, Double.MAX_VALUE);
+    @NotNull private static final ForgeConfigSpec.DoubleValue SCALE_LIMIT_RIDE = CONFIG_BUILDER
+            .comment("The relative scale (ex. 2x) upper limit to riding another entity. Basically, if you are this much bigger, you won't be able to ride the other. ")
+            .defineInRange("scaleLimitRider", 2D, 0D, Double.MAX_VALUE);
 
     /**
      * The config builder itself
@@ -62,7 +62,7 @@ public class ActuallyServerConfig {
     //region Config Object
     public static boolean enableEntityPickup;
     public static boolean usePracticalSize;
-    public static double scaleReqOneHandedPickup;
+    public static double scaleLimitRider;
 
     /**
      * Reads the values specified in the config and loads them
@@ -80,7 +80,7 @@ public class ActuallyServerConfig {
 
         enableEntityPickup = ENABLE_ENTITY_PICKUP.get();
         usePracticalSize = USE_PRACTICAL_SIZE.get();
-        scaleReqOneHandedPickup = SCALE_REQUIREMENT_ONE_HANDED_PICKUP.get();
+        scaleLimitRider = SCALE_LIMIT_RIDE.get();
     }
     //endregion
 }

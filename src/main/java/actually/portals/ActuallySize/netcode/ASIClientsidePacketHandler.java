@@ -43,6 +43,7 @@ public class ASIClientsidePacketHandler {
         // Kinda need a reference to the server
         LocalPlayer local = Minecraft.getInstance().player;
         if (local == null) { return; }
+        ActuallySizeInteractions.Log("ASI &dPS REG &7 Received Hold points configuration for &3 #" + packet.getPlayerIndex() + " &b (local #" + local.getId() + ")");
 
         // Look for this player
         Entity byID = local.level().getEntity(packet.getPlayerIndex());
@@ -52,7 +53,7 @@ public class ASIClientsidePacketHandler {
         HoldPointConfigurable config = (HoldPointConfigurable) byID;
         config.actuallysize$setLocalHoldPoints(packet.produceRegistry());
 
-        ActuallySizeInteractions.Log("ASI &dPS REG&7 Accepted for REMOTE: ");
+        ActuallySizeInteractions.Log("ASI &dPS REG&7 Accepted for REMOTE" + (local.getId() == packet.getPlayerIndex() ? " (except it is actually LOCAL)" : "") + ": ");
         config.actuallysize$getLocalHoldPoints().log();
     }
 

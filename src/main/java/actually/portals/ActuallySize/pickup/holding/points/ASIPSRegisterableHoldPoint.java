@@ -58,7 +58,7 @@ public abstract class ASIPSRegisterableHoldPoint implements ASIPSHoldPoint {
      */
     @Override
     public boolean equals(Object o) {
-        if (!(o instanceof ASIPSRegisterableHoldPoint)) {return false;}
+        if (!(o instanceof ASIPSRegisterableHoldPoint)) { return false; }
         ASIPSRegisterableHoldPoint that = (ASIPSRegisterableHoldPoint) o;
         return ordinal == that.ordinal;
     }

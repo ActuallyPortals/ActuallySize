@@ -1,30 +1,33 @@
 package actually.portals.ActuallySize.mixin;
 
 import actually.portals.ActuallySize.ASIUtilities;
+import actually.portals.ActuallySize.ActuallyServerConfig;
 import actually.portals.ActuallySize.ActuallySizeInteractions;
 import actually.portals.ActuallySize.pickup.ASIPickupSystemManager;
-import actually.portals.ActuallySize.pickup.actions.ASIPSDualityDeactivationAction;
-import actually.portals.ActuallySize.pickup.actions.ASIPSDualityEscapeAction;
+import actually.portals.ActuallySize.pickup.actions.*;
 import actually.portals.ActuallySize.pickup.holding.ASIPSHoldPoint;
 import actually.portals.ActuallySize.pickup.holding.points.ASIPSHoldPointRegistry;
 import actually.portals.ActuallySize.pickup.holding.points.ASIPSRegisterableHoldPoint;
-import actually.portals.ActuallySize.pickup.item.ASIPSHeldEntityItem;
 import actually.portals.ActuallySize.pickup.mixininterfaces.*;
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+import gunging.ootilities.GungingOotilitiesMod.exploring.ItemExplorerElaborator;
+import gunging.ootilities.GungingOotilitiesMod.exploring.ItemStackExplorer;
 import gunging.ootilities.GungingOotilitiesMod.exploring.ItemStackLocation;
+import gunging.ootilities.GungingOotilitiesMod.scheduling.SchedulingManager;
 import net.minecraft.commands.CommandSource;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Nameable;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.entity.EntityAccess;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.fml.DistExecutor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
@@ -33,6 +36,7 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -56,6 +60,16 @@ public abstract class EntityMixin extends net.minecraftforge.common.capabilities
 
     @Shadow public abstract String getScoreboardName();
 
+    @Shadow public abstract void setSwimming(boolean pSwimming);
+
+    @Shadow public abstract boolean isSwimming();
+
+    @Shadow public abstract boolean isPassenger();
+
+    @Shadow @javax.annotation.Nullable public abstract Entity getVehicle();
+
+    @Shadow public abstract void unRide();
+
     protected EntityMixin(Class<Entity> baseClass) { super(baseClass); }
 
     @Unique
@@ -65,6 +79,86 @@ public abstract class EntityMixin extends net.minecraftforge.common.capabilities
 
     @Unique
     @Nullable Double actuallysize$preNormalizedScale = null;
+
+    @WrapOperation(method = "handleNetherPortal", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/Entity;isPassenger()Z"))
+    public boolean onRidePreventPortal(Entity instance, Operation<Boolean> original) {
+
+        // When held, we cannot nether-portal
+        if (((EntityDualityCounterpart) instance).actuallysize$isHeld()) { return true; }
+
+        // Otherwise, ASI has no business with this operation
+        return original.call(instance);
+    }
+
+    @Inject(method = "updateSwimming", at = @At("HEAD"), cancellable = true)
+    public void onUpdateSwimming(CallbackInfo ci) {
+        //actuallysize.Log("ASI &3 ORE &7 Base Tick for " + getScoreboardName() + ", Active? " + actuallysize$isActive() + ", Held? " + actuallysize$isHeld());
+
+        // When held, dangling means swimming
+        EntityDualityCounterpart dualityEntity = this;
+        ASIPSHoldPoint hold = dualityEntity.actuallysize$getHoldPoint();
+        ItemEntityDualityHolder holder = dualityEntity.actuallysize$getItemEntityHolder();
+        if (hold != null && holder != null) {
+
+            // Swimming state is controlled by slot
+            boolean shouldSwim = hold.isDangling(holder, dualityEntity);
+            if (isSwimming() != shouldSwim) {
+                setSwimming(hold.isDangling(holder, dualityEntity)); }
+
+            // Swim state controlled by hold
+            ci.cancel();
+        }
+    }
+
+    @Inject(method = "restoreFrom", at = @At("RETURN"))
+    public void onRestoreEntity(Entity pEntity, CallbackInfo ci) {
+
+        // Only server handles held entity flux
+        Level world = level();
+        if (!(world instanceof ServerLevel)) { return; }
+        /*HDA*/ActuallySizeInteractions.Log("ASI &6 EMX-HDA &7 (" + getClass().getSimpleName() + ") &5 Restoring in server after dimension change");
+
+        // Players get force-synced, they will request active dualities themselves
+        Entity restoredEntity = (Entity) (Object) this;
+        if (restoredEntity instanceof ServerPlayer) {
+
+            // Transfer server-side hold point configuration
+            HoldPointConfigurable asConfigurableOld = (HoldPointConfigurable) pEntity;
+            HoldPointConfigurable asConfigurableNew = (HoldPointConfigurable) restoredEntity;
+            asConfigurableNew.actuallysize$setLocalHoldPoints(asConfigurableOld.actuallysize$getLocalHoldPoints());
+            /*HDA*/ActuallySizeInteractions.Log("ASI &6 EMX-HDA &7 (" + getClass().getSimpleName() + ") Copied over hold points &e x" + asConfigurableNew.actuallysize$getLocalHoldPoints().getRegisteredPoints().size());
+
+            // Sync hold point configurations to client
+            ASIPSHoldingSyncAction syncing = new ASIPSHoldingSyncAction((ServerPlayer) restoredEntity);
+            syncing.withConfigurables();
+            syncing.withBroadcast(asConfigurableOld.actuallysize$getLocalHoldPoints().getRegisteredPoints());
+            syncing.resolve();
+        }
+
+        // Copy over held entities
+        ItemEntityDualityHolder oldAsHolder = (ItemEntityDualityHolder) pEntity;
+        for (Map.Entry<ASIPSHoldPoint, EntityDualityCounterpart> held : oldAsHolder.actuallysize$getHeldEntityDualities().entrySet()) {
+
+            // What location of my inventory is the item?
+            ItemStackLocation oldLocation = held.getValue().actuallysize$getItemStackLocation();
+            Entity heldAsEntity = (Entity) held.getValue();
+            if (oldLocation == null) { continue; }
+            /*HDA*/ActuallySizeInteractions.Log("ASI &6 EMX-HDA &7 (" + getClass().getSimpleName() + ") Transmigrating held entity &e " + oldLocation.getStatement());
+
+            // Rebuild the item stack location
+            ItemExplorerElaborator elaborator = oldLocation.getStatement().prepareElaborator(this);
+            ItemStackExplorer explorer = oldLocation.getStatement().prepareExplorer();
+            ItemStackLocation newLocation = explorer.realize(elaborator);
+
+            // Change held entity dimension
+            Entity reprepared = heldAsEntity.changeDimension((ServerLevel) world);
+            held.getValue().actuallysize$deactivateDuality();
+
+            // Activate in new dimension
+            ASIPSDualityActivationAction transfer = new ASIPSDualityActivationAction(newLocation, newLocation.getItemStack(), reprepared);
+            transfer.tryResolve();
+        }
+    }
 
     @Override
     public @Nullable ItemStack actuallysize$getItemCounterpart() {
@@ -104,6 +198,23 @@ public abstract class EntityMixin extends net.minecraftforge.common.capabilities
     @Inject(method = "baseTick", at = @At("HEAD"))
     public void onRideEscape(CallbackInfo ci) {
         //actuallysize.Log("ASI &3 ORE &7 Base Tick for " + getScoreboardName() + ", Active? " + actuallysize$isActive() + ", Held? " + actuallysize$isHeld());
+
+        // Server-sided ticks only
+        if (level.isClientSide) { return; }
+
+        // Tick size of entity vs ridden
+        if (SchedulingManager.getServerTicks() % 10 == 0) {
+
+            // Too big for my vehicle? Dismount
+            if (isPassenger()) {
+                if (ASIUtilities.meetsScaleRequirement((Entity) (Object) this, getVehicle(), ActuallyServerConfig.scaleLimitRider)) { unRide(); } }
+
+            // Same thing for being held, too big? Escape
+            EntityDualityCounterpart dualityEntity = this;
+            ASIPSHoldPoint hold = dualityEntity.actuallysize$getHoldPoint();
+            ItemEntityDualityHolder holder = dualityEntity.actuallysize$getItemEntityHolder();
+            if (hold != null && holder != null && !hold.canSustainHold(holder, dualityEntity)) { dualityEntity.actuallysize$escapeDuality(); }
+        }
 
         // If I am being held
         ItemEntityDualityHolder holder = actuallysize$getItemEntityHolder();
@@ -390,21 +501,45 @@ public abstract class EntityMixin extends net.minecraftforge.common.capabilities
     @WrapMethod(method = "canRide")
     public boolean onTryRide(Entity pVehicle, Operation<Boolean> original) {
 
+        //todo HELD-RIDE Maybe someday allow riding of held entities
+
+        // Riding held entities is unsupported
+        EntityDualityCounterpart dualityEntity = (EntityDualityCounterpart) pVehicle;
+        if (dualityEntity.actuallysize$isHeld()) { return false; }
+
+        // If it exceeds the riding scale limit... then no lol
+        if (ASIUtilities.meetsScaleRequirement((Entity) (Object) this, pVehicle, ActuallyServerConfig.scaleLimitRider)) { return false; }
+
+        // Not held not our business
+        return original.call(pVehicle);
+    }
+    @WrapMethod(method = "isPushable")
+    public boolean whenPushed(Operation<Boolean> original) {
+
+        // While held, you cannot be pushed
+        if (actuallysize$isHeld()) { return false; }
+
+        // Not held not our business
+        return original.call();
+    }
+
+    @Inject(method = "startRiding(Lnet/minecraft/world/entity/Entity;Z)Z", at = @At(value = "HEAD"), cancellable = true)
+    public void onStartRiding(Entity pVehicle, boolean pForce, CallbackInfoReturnable<Boolean> cir) {
+
+        // Riding held entities is unsupported
+        EntityDualityCounterpart dualityEntity = (EntityDualityCounterpart) pVehicle;
+        if (dualityEntity.actuallysize$isHeld()) { cir.setReturnValue(false); cir.cancel(); return; }
+
+        //todo HELD-RIDE Maybe someday allow riding of held entities
+
         // Ask the hold point if this slot can be escaped this way
         ASIPSHoldPoint hold = actuallysize$getHoldPoint();
         ItemEntityDualityHolder holder = actuallysize$getItemEntityHolder();
-        if (hold == null || holder == null || hold.canBeEscapedByRiding(holder, this)) { return original.call(pVehicle); }
+        if (hold == null || holder == null || hold.canBeEscapedByRiding(holder, this)) { return; }
 
-        // Hold point says you cannot ride away!
-        return false;
-    }
-
-    @WrapOperation(method = "startRiding(Lnet/minecraft/world/entity/Entity;Z)Z", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/Entity;stopRiding()V"))
-    public void onStartRiding(Entity instance, Operation<Void> original) {
-
-        // Stop riding and escape are called here
-        actuallysize$escapeDuality();
-        original.call(instance);
+        // We cannot escape while riding
+        cir.setReturnValue(false);
+        cir.cancel();
     }
 
     @WrapOperation(method = "move", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/Entity;isPassenger()Z"))
@@ -415,5 +550,25 @@ public abstract class EntityMixin extends net.minecraftforge.common.capabilities
 
         // Otherwise just call the original
         return original.call(instance);
+    }
+
+    @WrapMethod(method = "isIgnoringBlockTriggers")
+    public boolean onBlockTriggers(Operation<Boolean> original) {
+
+        // When held, block triggers are ignored
+        if (actuallysize$isHeld()) { return true; }
+
+        // Otherwise, ASI has no business with this operation
+        return original.call();
+    }
+
+    @WrapMethod(method = "isInWall")
+    public boolean onSuffocate(Operation<Boolean> original) {
+
+        // When held, we are never in walls
+        if (actuallysize$isHeld()) { return false; }
+
+        // Otherwise, ASI has no business with this operation
+        return original.call();
     }
 }

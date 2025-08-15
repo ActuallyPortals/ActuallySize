@@ -3,6 +3,7 @@ package actually.portals.ActuallySize.controlling.execution;
 import actually.portals.ActuallySize.ActuallySizeInteractions;
 import actually.portals.ActuallySize.netcode.ASINetworkManager;
 import actually.portals.ActuallySize.netcode.packets.serverbound.ASINSEntityDualitySyncRequest;
+import actually.portals.ActuallySize.pickup.actions.ASIPSHoldingSyncAction;
 import gunging.ootilities.GungingOotilitiesMod.scheduling.SchedulingManager;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
@@ -32,22 +33,24 @@ public class ASIClientsideRequests {
         if (me.getId() == event.getEntity().getId()) {
 
             // Identify world
-            Level world = me.level();
             //HDA//ActuallySizeInteractions.Log("ASI OWL &ePLAYER JOINED WORLD FOR THE FIRST TIME");
 
             SchedulingManager.scheduleTask(() -> {
 
-                // Iterate entities within like 32 chunks, should be enough
-                List<Entity> found = world.getEntities(me, me.getBoundingBox().inflate(512, 512, 512));
-                //HDA//ActuallySizeInteractions.Log("ASI OWL &6 Waited 10 ticks, requesting sync for x" + found.size());
+                // Resolve without asking
+                ASIPSHoldingSyncAction syncing = new ASIPSHoldingSyncAction(me);
+                syncing.withActiveDualities();
+                syncing.resolve();;
 
+                /*/ Iterate entities within like 32 chunks, should be enough
+                Level world = me.level();
+                List<Entity> found = world.getEntities(me, me.getBoundingBox().inflate(512, 512, 512));
                 for (Entity anon : found) {
-                    //HDA//ActuallySizeInteractions.Log("ASI OWL &6 + &7 Requesting data on &e " + anon.getScoreboardName());
 
                     // Request Entity
                     ASINSEntityDualitySyncRequest request = new ASINSEntityDualitySyncRequest(anon);
                     ASINetworkManager.playerToServer(request);
-                }
+                }   //*/
 
                 }, 5, true);
         }

@@ -259,7 +259,9 @@ public class ASIPickupSystemManager {
     public static void stripEntity(@NotNull Entity targetEntity) {
 
         // Remove passengers
-        //for (var passenger : targetEntity.getPassengers()) { passenger.stopRiding(); }
+        for (var passenger : targetEntity.getPassengers()) { passenger.stopRiding(); }
+
+        //todo HELD-RIDE Maybe someday allow riding of held entities
 
         // Remove vehicle
         targetEntity.stopRiding();

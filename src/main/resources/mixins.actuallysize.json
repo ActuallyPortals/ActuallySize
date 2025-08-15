@@ -16,17 +16,31 @@
   ],
   "mixins": [
     "AbstractContainerMenuMixin",
+    "AmphibiousPathNavigationMixin",
+    "AnimalMixin",
+    "CamelMixin",
+    "ChickenMixin",
     "ConnectionMixin",
     "ContainerSynchronizerMixin",
     "EntityMixin",
+    "FlyingPathNavigationMixin",
+    "FollowOwnerGoalMixin",
+    "GroundPathNavigationMixin",
+    "HorseMixin",
     "ItemStackMixin",
     "LivingEntityMixin",
+    "MobMixin",
+    "ParrotMixin",
     "PersistentEntitySectionManagerMixin",
     "PlayerListMixin",
     "PlayerMixin",
     "ServerEntityMixin",
     "ServerGamePacketListenerMixin",
-    "ServerLevelMixin"
+    "ServerLevelMixin",
+    "ServerPlayerMixin",
+    "SleepInBedMixin",
+    "SnifferMixin",
+    "WaterPathNavigationMixin"
   ],
   "injectors": {
     "defaultRequire": 1

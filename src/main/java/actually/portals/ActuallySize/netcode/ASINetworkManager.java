@@ -2,10 +2,7 @@ package actually.portals.ActuallySize.netcode;
 
 import actually.portals.ActuallySize.ActuallySizeInteractions;
 import actually.portals.ActuallySize.netcode.packets.clientbound.*;
-import actually.portals.ActuallySize.netcode.packets.serverbound.ASINSHoldPointsConfigurationSync;
-import actually.portals.ActuallySize.netcode.packets.serverbound.ASINSHoldPointsSyncRequest;
-import actually.portals.ActuallySize.netcode.packets.serverbound.ASINSPreferredSize;
-import actually.portals.ActuallySize.netcode.packets.serverbound.ASINSEntityDualitySyncRequest;
+import actually.portals.ActuallySize.netcode.packets.serverbound.*;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
@@ -95,6 +92,11 @@ public class ASINetworkManager {
                 .encoder(ASINCHoldPointsConfigurationBroadcast::encode)
                 .decoder(ASINCHoldPointsConfigurationBroadcast::new)
                 .consumerMainThread(ASINCHoldPointsConfigurationBroadcast::handle).add();
+
+        MAIN_CHANNEL.messageBuilder(ASINSHoldingSyncRequest.class, i++, NetworkDirection.PLAY_TO_SERVER)
+                .encoder(ASINSHoldingSyncRequest::encode)
+                .decoder(ASINSHoldingSyncRequest::new)
+                .consumerMainThread(ASINSHoldingSyncRequest::handle).add();
     }
 
     /**

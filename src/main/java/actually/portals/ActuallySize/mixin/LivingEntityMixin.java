@@ -1,11 +1,15 @@
 package actually.portals.ActuallySize.mixin;
 
-import actually.portals.ActuallySize.ActuallySizeInteractions;
 import actually.portals.ActuallySize.netcode.ASINetworkManager;
 import actually.portals.ActuallySize.netcode.packets.clientbound.ASINCItemEntityActivationPacket;
+import actually.portals.ActuallySize.pickup.mixininterfaces.EntityDualityCounterpart;
 import actually.portals.ActuallySize.pickup.mixininterfaces.ItemDualityCounterpart;
+import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import gunging.ootilities.GungingOotilitiesMod.exploring.ItemStackLocation;
 import gunging.ootilities.GungingOotilitiesMod.exploring.entities.ISEEquipmentSlotted;
+import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -22,8 +26,37 @@ import java.util.UUID;
 @Mixin(LivingEntity.class)
 public abstract class LivingEntityMixin extends Entity implements Attackable, net.minecraftforge.common.extensions.IForgeLivingEntity {
 
-    public LivingEntityMixin(EntityType<?> pEntityType, Level pLevel) {
-        super(pEntityType, pLevel);
+    public LivingEntityMixin(EntityType<?> pEntityType, Level pLevel) { super(pEntityType, pLevel); }
+
+    @WrapMethod(method = "pushEntities")
+    public void onPushEntities(Operation<Void> original) {
+
+        // If the animal is held, it cannot mate
+        EntityDualityCounterpart dualityEntity = (EntityDualityCounterpart) this;
+        if (dualityEntity.actuallysize$isHeld()) { return; }
+
+        // Not held not our business
+        original.call();
+    }
+
+    @Inject(method = "startSleeping", at = @At("HEAD"))
+    public void onSleeping(BlockPos pPos, CallbackInfo ci) {
+
+        //todo Somehow allow you to sleep in certain slots
+
+        // If currently held, force-sleeping allows you to escape
+        EntityDualityCounterpart dualityEntity = (EntityDualityCounterpart) this;
+        if (dualityEntity.actuallysize$isHeld()) { dualityEntity.actuallysize$escapeDuality(); }
+    }
+
+    @WrapOperation(method = "updateFallFlying", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/LivingEntity;isPassenger()Z"))
+    public boolean onRidePreventGlide(LivingEntity instance, Operation<Boolean> original) {
+
+        // When held, we cannot elytra glide
+        if (((EntityDualityCounterpart) instance).actuallysize$isHeld()) { return true; }
+
+        // Otherwise, ASI has no business with this operation
+        return original.call(instance);
     }
 
     @Inject(method = "handleEquipmentChanges", at = @At("RETURN"))

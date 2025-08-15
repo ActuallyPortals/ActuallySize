@@ -51,7 +51,9 @@ public class ASINCHoldPointsConfigurationBroadcast extends ASINSHoldPointsConfig
 
     /**
      * @param bits The list of statement-hold to sync over the network
-     * @param yay Throwaway boolean to differentiate HashMap constructors after Type Erasure
+     * @param yay Throwaway boolean to differentiate HashMap constructors after Type Erasure,
+     *            this constructor is used when rebuilding the network packet so you probably
+     *            do not want to use this one.
      *
      * @since 1.0.0
      * @author Actually Portals

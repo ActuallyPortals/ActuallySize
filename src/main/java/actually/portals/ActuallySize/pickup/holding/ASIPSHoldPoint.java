@@ -1,7 +1,10 @@
 package actually.portals.ActuallySize.pickup.holding;
 
+import actually.portals.ActuallySize.ASIUtilities;
 import actually.portals.ActuallySize.pickup.mixininterfaces.EntityDualityCounterpart;
 import actually.portals.ActuallySize.pickup.mixininterfaces.ItemEntityDualityHolder;
+import net.minecraft.world.entity.Entity;
+import net.minecraftforge.event.entity.EntityTeleportEvent;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -56,6 +59,19 @@ public interface ASIPSHoldPoint {
     default boolean canBeEscapedByRiding(@NotNull ItemEntityDualityHolder holder, @NotNull EntityDualityCounterpart entityDuality) { return false; }
 
     /**
+     * @param holder The entity doing the holding
+     * @param entityDuality The entity being held
+     *
+     * @return If the tiny held in this slot can escape it by riding
+     *         a nearby entity, such as a boat. If this is set to false,
+     *         riding of entities will be blocked.
+     *
+     * @author Actually Portals
+     * @since 1.0.0
+     */
+    default boolean canBeEscapedByTeleporting(@NotNull ItemEntityDualityHolder holder, @NotNull EntityDualityCounterpart entityDuality, @NotNull EntityTeleportEvent event) { return true; }
+
+    /**
      * It is convention that server operators and admins should be able
      * to always yoink people off others. That's because it is funny that
      * an admin should be able to grab players out of other players' pockets.
@@ -84,4 +100,52 @@ public interface ASIPSHoldPoint {
      * @since 1.0.0
      */
     default boolean isVirtualHoldPoint() { return false; }
+
+    /**
+     * Some entities have a special falling or agitated animation, or
+     * maybe it is funny to hold them upside down or something. The
+     * point is that this will visually hold entities in a more precarious
+     * manner than a secure/relaxed hold.
+     *
+     * @return If this hold point dangles the tiny haphazardly
+     *
+     * @param holder The entity doing the holding
+     * @param entityDuality The entity being held
+     *
+     * @author Actually Portals
+     * @since 1.0.0
+     */
+    default boolean isDangling(@NotNull ItemEntityDualityHolder holder, @NotNull EntityDualityCounterpart entityDuality) { return false; }
+
+    /**
+     * Fascinatingly, we can make it so that you can glide off a slot with ease just
+     * by using an elytra and attempting "fall-flying" which is pretty cool mechanic.
+     *
+     * @return If attempting to use an elytra from this slot will immediately release you
+     *
+     * @param holder The entity doing the holding
+     * @param entityDuality The entity being held
+     *
+     * @author Actually Portals
+     * @since 1.0.0
+     */
+    default boolean canBeGlidedOff(@NotNull ItemEntityDualityHolder holder, @NotNull EntityDualityCounterpart entityDuality) { return false; }
+
+    /**
+     * This method is evaluated twice per second, and will immediately
+     * stop the hold status if when it returns false. For example, consider
+     * the held tiny growing too big and breaking free from the grip of
+     * the beeg.
+     *
+     * @return If the holder can keep holding the held entity
+     *
+     * @param holder The entity doing the holding
+     * @param entityDuality The entity being held
+     *
+     * @author Actually Portals
+     * @since 1.0.0
+     */
+    default boolean canSustainHold(@NotNull ItemEntityDualityHolder holder, @NotNull EntityDualityCounterpart entityDuality) {
+        return !ASIUtilities.meetsScaleRequirement((Entity) entityDuality, (Entity) holder, 0.25);
+    }
 }

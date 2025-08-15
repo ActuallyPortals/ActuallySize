@@ -1,7 +1,6 @@
 package actually.portals.ActuallySize.mixin;
 
 import actually.portals.ActuallySize.pickup.mixininterfaces.EntityDualityCounterpart;
-import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.mojang.authlib.GameProfile;
@@ -10,12 +9,34 @@ import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.client.player.LocalPlayer;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(LocalPlayer.class)
 public abstract class LocalPlayerMixin extends AbstractClientPlayer {
 
     public LocalPlayerMixin(ClientLevel pClientLevel, GameProfile pGameProfile) {
         super(pClientLevel, pGameProfile);
+    }
+
+    @WrapOperation(method = "canAutoJump", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/player/LocalPlayer;isPassenger()Z"))
+    public boolean onRidePreventAutoJump(LocalPlayer instance, Operation<Boolean> original) {
+
+        // When held, we cannot elytra glide
+        if (((EntityDualityCounterpart) instance).actuallysize$isHeld()) { return true; }
+
+        // Otherwise, ASI has no business with this operation
+        return original.call(instance);
+    }
+
+    @Inject(method = "canStartSprinting", at = @At(value = "HEAD"), cancellable = true)
+    public void onRidePreventSprint(CallbackInfoReturnable<Boolean> cir) {
+
+        // When held, we cannot sprint
+        if (((EntityDualityCounterpart) this).actuallysize$isHeld()) {
+            cir.setReturnValue(false);
+            cir.cancel();
+        }
     }
 
     /*      Despite it being disabled when passenger, there is no problem when held

@@ -117,7 +117,8 @@ public class ASIPSDualityFluxAction implements APIFriendlyProcess, ASINetworkDel
 
         if (!getTo().getEntityCounterpart().equals(getFrom().getEntityCounterpart())) {
             /*HDA*/ActuallySizeInteractions.Log("ASI &1 HDF &c Entity Estranged");
-            return false; }
+            return false;
+        }
 
         if (!getTo().isVerified()) {
             /*HDA*/ActuallySizeInteractions.Log("ASI &1 HDF &c Destination Unverified");
