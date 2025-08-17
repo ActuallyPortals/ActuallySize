@@ -2,13 +2,13 @@ package actually.portals.ActuallySize.controlling.execution;
 
 import actually.portals.ActuallySize.ActuallyServerConfig;
 import actually.portals.ActuallySize.ActuallySizeInteractions;
+import actually.portals.ActuallySize.netcode.packets.serverbound.ASINSPreferredSize;
 import actually.portals.ActuallySize.pickup.actions.ASIPSDualityActivationAction;
 import actually.portals.ActuallySize.pickup.actions.ASIPSDualityDeactivationAction;
 import actually.portals.ActuallySize.netcode.ASIClientsidePacketHandler;
 import actually.portals.ActuallySize.pickup.ASIPickupSystemManager;
 import actually.portals.ActuallySize.pickup.actions.ASIPSHoldingSyncAction;
 import actually.portals.ActuallySize.pickup.events.ASIPSPickupToInventoryEvent;
-import actually.portals.ActuallySize.pickup.holding.ASIPSHoldPoint;
 import actually.portals.ActuallySize.pickup.mixininterfaces.EntityDualityCounterpart;
 import actually.portals.ActuallySize.pickup.mixininterfaces.HoldPointConfigurable;
 import actually.portals.ActuallySize.pickup.mixininterfaces.ItemEntityDualityHolder;
@@ -37,6 +37,28 @@ import org.jetbrains.annotations.NotNull;
 @Mod.EventBusSubscriber(modid = ActuallySizeInteractions.MODID, bus = Mod.EventBusSubscriber.Bus.FORGE)
 public class ASIEventExecutionListener {
 
+    /**
+     * @since 1.0.0
+     * @author Actually Portals
+     */
+    @SubscribeEvent
+    public static void OnPlayerRespawn(@NotNull PlayerEvent.PlayerRespawnEvent event) {
+
+        // Only runs on server
+        if (!(event.getEntity() instanceof ServerPlayer)) { return; }
+
+        // Get prefs
+        ASINSPreferredSize prefs = ASINSPreferredSize.GetPreferredSize((ServerPlayer) event.getEntity());
+        if (prefs == null) { return; }
+
+        // Apply prefs
+        prefs.applyTo((ServerPlayer) event.getEntity());
+    }
+
+    /**
+     * @since 1.0.0
+     * @author Actually Portals
+     */
     @SubscribeEvent
     public static void OnTeleportationHold(@NotNull EntityTeleportEvent event) {
 
@@ -55,6 +77,10 @@ public class ASIEventExecutionListener {
         }
     }
 
+    /**
+     * @since 1.0.0
+     * @author Actually Portals
+     */
     @SubscribeEvent
     public static void OnDimensionalTravel(@NotNull PlayerEvent.PlayerChangedDimensionEvent event) {
         if (!(event.getEntity() instanceof ServerPlayer)) { return; }
@@ -71,6 +97,10 @@ public class ASIEventExecutionListener {
         syncing.resolve();
     }
 
+    /**
+     * @since 1.0.0
+     * @author Actually Portals
+     */
     @SubscribeEvent
     public static void OnDualityFluxResolution(@NotNull TickEvent.ServerTickEvent event) {
 
@@ -78,6 +108,10 @@ public class ASIEventExecutionListener {
         if (event.phase == TickEvent.Phase.START) { ASIPickupSystemManager.resolveDualityFlux(); }
     }
 
+    /**
+     * @since 1.0.0
+     * @author Actually Portals
+     */
     @SubscribeEvent(priority = EventPriority.LOW)
     public static void OnEquipmentChange(@NotNull ServersideEntityEquipmentChangeEvent event) {
         if (!ActuallyServerConfig.enableEntityHolding) { return; }
@@ -135,6 +169,10 @@ public class ASIEventExecutionListener {
         }
     }
 
+    /**
+     * @since 1.0.0
+     * @author Actually Portals
+     */
     @SubscribeEvent
     public static void OnPlayerLogout(@NotNull PlayerEvent.PlayerLoggedOutEvent event) {
         //ActuallySizeInteractions.Log("ASI OCU &a PLAYER LOGOUT?! " + event.getEntity().getScoreboardName());
@@ -143,6 +181,10 @@ public class ASIEventExecutionListener {
         ((ItemEntityDualityHolder) event.getEntity()).actuallysize$deactivateAllDualities();
     }
 
+    /**
+     * @since 1.0.0
+     * @author Actually Portals
+     */
     @SubscribeEvent
     public static void OnEveryTick(@NotNull SCHTenTicksEvent event) {
 
@@ -152,6 +194,10 @@ public class ASIEventExecutionListener {
         }
     }
 
+    /**
+     * @since 1.0.0
+     * @author Actually Portals
+     */
     @SubscribeEvent
     public static void OnEverySecond(@NotNull SCHTwentyTicksEvent event) {
 

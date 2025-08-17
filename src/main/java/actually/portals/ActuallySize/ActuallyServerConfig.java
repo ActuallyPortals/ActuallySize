@@ -30,15 +30,15 @@ public class ActuallyServerConfig {
      * @since 1.0.0
      */
     @NotNull private static final ForgeConfigSpec.BooleanValue USE_PRACTICAL_SIZE = CONFIG_BUILDER
-            .comment("")
-            .comment("#### --------------------------------------------------")
-            .comment("#### Global Systems - General ASI Configuration")
-            .comment("#### --------------------------------------------------")
-            .comment("")
-            .comment("#### ----|    Practical Size    |----")
-            .comment("Some entities are already small, and some are pretty big. For example,")
-            .comment("a ravager VS a chicken. For size calculations, it feels better to use")
-            .comment("bigger numbers for massive entities, I call this their 'practical size.'")
+            .comment(" ")
+            .comment(" #### --------------------------------------------------")
+            .comment(" #### Global Systems - General ASI Configuration")
+            .comment(" #### --------------------------------------------------")
+            .comment(" ")
+            .comment(" #### ----|    Practical Size    |----")
+            .comment(" Some entities are already small, and some are pretty big. For example,")
+            .comment(" a ravager VS a chicken. For size calculations, it feels better to use")
+            .comment(" bigger numbers for massive entities, I call this their 'practical size.'")
             .define("usePracticalSize", true);
 
     /**
@@ -47,11 +47,11 @@ public class ActuallyServerConfig {
      * @since 1.0.0
      */
     @NotNull private static final ForgeConfigSpec.BooleanValue ENABLE_ENTITY_PICKUP = CONFIG_BUILDER
-            .comment("")
-            .comment("#### ----|    Allow Pickup    |----")
-            .comment("Enables the ability to pick up entities as items, if you")
-            .comment("are big enough to hold them in your mainhand or offhand.")
-            .comment("To pick up players, the Allow Hold must also be enabled.")
+            .comment(" ")
+            .comment(" #### ----|    Allow Pickup    |----")
+            .comment(" Enables the ability to pick up entities as items, if you")
+            .comment(" are big enough to hold them in your mainhand or offhand.")
+            .comment(" To pick up players, the Allow Hold must also be enabled.")
             .define("allowPickup", true);
 
     /**
@@ -60,11 +60,11 @@ public class ActuallyServerConfig {
      * @since 1.0.0
      */
     @NotNull private static final ForgeConfigSpec.BooleanValue ENABLE_ENTITY_HOLDING = CONFIG_BUILDER
-            .comment("")
-            .comment("#### ----|    Allow Hold    |----")
-            .comment("When holding an entity item picked up via the pickup system,")
-            .comment("they will also be alive in the world and able to interact live.")
-            .comment("Required to pickup players.")
+            .comment(" ")
+            .comment(" #### ----|    Allow Hold    |----")
+            .comment(" When holding an entity item picked up via the pickup system,")
+            .comment(" they will also be alive in the world and able to interact live.")
+            .comment(" Required to pickup players.")
             .define("allowHold", true);
 
     /**
@@ -73,15 +73,15 @@ public class ActuallyServerConfig {
      * @since 1.0.0
      */
     @NotNull private static final ForgeConfigSpec.DoubleValue BEEG_SIZE = CONFIG_BUILDER
-            .comment("")
-            .comment("#### --------------------------------------------------")
-            .comment("#### Client Services - These affect players' client configs")
-            .comment("#### --------------------------------------------------")
-            .comment("")
-            .comment("#### ----|    Beeg Size    |----")
-            .comment("Players may indicate they prefer to be beeg, this is the")
-            .comment("size they will have by default when joining and respawning.")
-            .comment("Set to '1' to disable this feature.")
+            .comment(" ")
+            .comment(" #### --------------------------------------------------")
+            .comment(" #### Client Services - These affect players' client configs")
+            .comment(" #### --------------------------------------------------")
+            .comment(" ")
+            .comment(" #### ----|    Beeg Size    |----")
+            .comment(" Players may indicate they prefer to be beeg, this is the")
+            .comment(" size they will have by default when joining and respawning.")
+            .comment(" Set to '1' to disable this feature.")
             .defineInRange("beegSize", 8, 0.05, 25);
 
     /**
@@ -90,11 +90,11 @@ public class ActuallyServerConfig {
      * @since 1.0.0
      */
     @NotNull private static final ForgeConfigSpec.DoubleValue TINY_SIZE = CONFIG_BUILDER
-            .comment("")
-            .comment("#### ----|    Tiny Size    |----")
-            .comment("Players may indicate they prefer to be tiny, this is the")
-            .comment("size they will have by default when joining and respawning.")
-            .comment("Set to '1' to disable this feature.")
+            .comment(" ")
+            .comment(" #### ----|    Tiny Size    |----")
+            .comment(" Players may indicate they prefer to be tiny, this is the")
+            .comment(" size they will have by default when joining and respawning.")
+            .comment(" Set to '1' to disable this feature.")
             .defineInRange("tinySize", 0.13, 0.05, 25);
 
     /**
@@ -103,10 +103,10 @@ public class ActuallyServerConfig {
      * @since 1.0.0
      */
     @NotNull private static final ForgeConfigSpec.BooleanValue FREE_SIZE = CONFIG_BUILDER
-            .comment("")
-            .comment("#### ----|    Allow Free Size    |----")
-            .comment("Gives players the option to freely choose whatever scale they want")
-            .comment("between 0.05x and 25x, to have as their default scale when joining.")
+            .comment(" ")
+            .comment(" #### ----|    Allow Free Size    |----")
+            .comment(" Gives players the option to freely choose whatever scale they want")
+            .comment(" between 0.05x and 25x, to have as their default scale when joining.")
             .define("allowFreeSize", false);
 
     /**
@@ -115,15 +115,15 @@ public class ActuallyServerConfig {
      * @since 1.0.0
      */
     @NotNull private static final ForgeConfigSpec.BooleanValue BEEGS_ARE_TANKY = CONFIG_BUILDER
-            .comment("")
-            .comment("#### --------------------------------------------------")
-            .comment("#### Combat Settings - Rampage of beegs over tinies lol")
-            .comment("#### --------------------------------------------------")
-            .comment("")
-            .comment("#### ----|    Tanky Beegs    |----")
-            .comment("Beegs will receive less damage from most sources the bigger they are. ")
-            .comment("In combat damage, larger attackers suffer less damage reduction. ")
-            .comment("Knockback is also reduced just for the fact of being beeg. ")
+            .comment(" ")
+            .comment(" #### --------------------------------------------------")
+            .comment(" #### Combat Settings - Rampage of beegs over tinies lol")
+            .comment(" #### --------------------------------------------------")
+            .comment(" ")
+            .comment(" #### ----|    Tanky Beegs    |----")
+            .comment(" Beegs will receive less damage from most sources the bigger they are. ")
+            .comment(" In combat damage, larger attackers suffer less damage reduction. ")
+            .comment(" Knockback is also reduced just for the fact of being beeg. ")
             .define("beegsAreTanky", true);
 
     /**
@@ -132,11 +132,11 @@ public class ActuallyServerConfig {
      * @since 1.0.0
      */
     @NotNull private static final ForgeConfigSpec.BooleanValue BEEGS_ARE_STRONG = CONFIG_BUILDER
-            .comment("")
-            .comment("#### ----|    Strong Beegs    |----")
-            .comment("Beegs will deal more damage in melee attacks to entities smaller than them. ")
-            .comment("You may crouch while punching unarmed to disable this for that one punch, so it will be a normal vanilla punch. ")
-            .comment("Also affects knockback between different-sized combatants. ")
+            .comment(" ")
+            .comment(" #### ----|    Strong Beegs    |----")
+            .comment(" Beegs will deal more damage in melee attacks to entities smaller than them. ")
+            .comment(" You may crouch while punching unarmed to disable this for that one punch, so it will be a normal vanilla punch. ")
+            .comment(" Also affects knockback between different-sized combatants. ")
             .define("beegsAreStrong", true);
 
     /**
@@ -145,12 +145,12 @@ public class ActuallyServerConfig {
      * @since 1.0.0
      */
     @NotNull private static final ForgeConfigSpec.BooleanValue TINIES_ARE_DELICATE = CONFIG_BUILDER
-            .comment("")
-            .comment("#### ----|    Delicate Tinies    |----")
-            .comment("Tinies will receive more damage from most sources the smaller they are. ")
-            .comment("In combat damage, smaller attackers get less damage amplification. ")
-            .comment("When punched by a player, if that player is crouching, their damage is not amplified at all. ")
-            .comment("The [beegsAreStrong] takes precedence in combat (so that only [beegsAreStrong] is applied). ")
+            .comment(" ")
+            .comment(" #### ----|    Delicate Tinies    |----")
+            .comment(" Tinies will receive more damage from most sources the smaller they are. ")
+            .comment(" In combat damage, smaller attackers get less damage amplification. ")
+            .comment(" When punched by a player, if that player is crouching, their damage is not amplified at all. ")
+            .comment(" The [beegsAreStrong] option takes precedence in combat (so that only [beegsAreStrong] is applied). ")
             .define("tiniesAreDelicate", true);
 
     /**
@@ -159,10 +159,10 @@ public class ActuallyServerConfig {
      * @since 1.0.0
      */
     @NotNull private static final ForgeConfigSpec.DoubleValue SIZE_DAMAGE_LIMIT = CONFIG_BUILDER
-            .comment("")
-            .comment("#### ----|    Size Damage Amplifier    |----")
-            .comment("If you would take more damage because you are small, the maximum multiplier. ")
-            .comment("If you would deal bonus damage due to being beeg, the maximum multiplier. ")
+            .comment(" ")
+            .comment(" #### ----|    Size Damage Amplifier    |----")
+            .comment(" If you would take more damage because you are small, the maximum multiplier. ")
+            .comment(" If you would deal bonus damage due to being beeg, the maximum multiplier. ")
             .defineInRange("sizeDamageAmplifier", 25D, 1D, Double.MAX_VALUE);
 
     /**
@@ -171,16 +171,16 @@ public class ActuallyServerConfig {
      * @since 1.0.0
      */
     @NotNull private static final ForgeConfigSpec.DoubleValue SCALE_LIMIT_RIDE = CONFIG_BUILDER
-            .comment("")
-            .comment("#### --------------------------------------------------")
-            .comment("#### Miscellaneous Settings - Minor systems and fixes")
-            .comment("#### --------------------------------------------------")
-            .comment("")
-            .comment("#### ----|    Riding Scale Limit    |----")
-            .comment("The relative scale (ex. 2x) upper limit to riding another entity.")
-            .comment("If you are this much bigger, you won't be able to ride the other.")
-            .comment("Prevents giants from riding normal horses and such, but there will")
-            .comment("be no problem riding giant horses. Size matters!")
+            .comment(" ")
+            .comment(" #### --------------------------------------------------")
+            .comment(" #### Miscellaneous Settings - Minor systems and fixes")
+            .comment(" #### --------------------------------------------------")
+            .comment(" ")
+            .comment(" #### ----|    Riding Scale Limit    |----")
+            .comment(" The relative scale (ex. 2x) upper limit to riding another entity.")
+            .comment(" If you are this much bigger, you won't be able to ride the other.")
+            .comment(" Prevents giants from riding normal horses and such, but there will")
+            .comment(" be no problem riding giant horses. Size matters!")
             .defineInRange("ridingScaleLimit", 2D, 0D, Double.MAX_VALUE);
 
     /**

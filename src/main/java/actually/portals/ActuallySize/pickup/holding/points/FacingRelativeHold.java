@@ -206,7 +206,7 @@ public class FacingRelativeHold extends ASIPSRegisterableHoldPoint implements AS
         double beegScale = ASIUtilities.getEffectiveSize(holderEntity);
         double tinyScale = ASIUtilities.getEffectiveSize(entityCounterpart);
         double gauss = OotilityNumbers.gaussianRev(0, 2, (beegScale / tinyScale));
-        double strength = 3.8 * ASIUtilities.beegBalanceEnhance(beegScale, 15, 0.3);
+        double strength = 3.8 * ASIUtilities.beegBalanceEnhance(beegScale, 5, 0.1);
 
         /*
          * Full strength at relative size 5x and forth (asymptotic)
@@ -217,7 +217,7 @@ public class FacingRelativeHold extends ASIPSRegisterableHoldPoint implements AS
          * but then it tapers off so that it is 10 at 100x scale
          * and asymptotic never exceeding 10
          */
-        /*THR*/ActuallySizeInteractions.Log("ASI &6 HDA [" + getNamespacedKey() + "] &7 Thrown at &b " + strength + " STR &f x &3 " + gauss + " = " + (gauss * strength) + ", SZ " + (beegScale / tinyScale));
+        //THR//ActuallySizeInteractions.Log("ASI &6 HDA [" + getNamespacedKey() + "] &7 Thrown at &b " + strength + " STR &f x &3 " + gauss + " = " + (gauss * strength) + ", SZ " + (beegScale / tinyScale));
 
         // Add forward force
         entityCounterpart.setDeltaMovement(OotilityVectors.entityForward(holderEntity).scale(gauss * strength));

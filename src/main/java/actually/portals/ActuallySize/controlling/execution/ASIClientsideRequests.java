@@ -1,9 +1,12 @@
 package actually.portals.ActuallySize.controlling.execution;
 
+import actually.portals.ActuallySize.ActuallyClientConfig;
 import actually.portals.ActuallySize.ActuallySizeInteractions;
 import actually.portals.ActuallySize.netcode.ASINetworkManager;
 import actually.portals.ActuallySize.netcode.packets.serverbound.ASINSEntityDualitySyncRequest;
+import actually.portals.ActuallySize.netcode.packets.serverbound.ASINSPreferredSize;
 import actually.portals.ActuallySize.pickup.actions.ASIPSHoldingSyncAction;
+import gunging.ootilities.GungingOotilitiesMod.instants.GOOMClientsidePlayerLoginEvent;
 import gunging.ootilities.GungingOotilitiesMod.scheduling.SchedulingManager;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
@@ -11,8 +14,10 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.event.entity.EntityJoinLevelEvent;
+import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.network.NetworkEvent;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -26,6 +31,27 @@ import java.util.List;
 @Mod.EventBusSubscriber(modid = ActuallySizeInteractions.MODID, bus = Mod.EventBusSubscriber.Bus.FORGE, value = Dist.CLIENT)
 public class ASIClientsideRequests {
 
+    /**
+     * @since 1.0.0
+     * @author Actually Portals
+     */
+    @SubscribeEvent
+    public static void OnServerJoin(@NotNull GOOMClientsidePlayerLoginEvent event) {
+
+        /*
+         * Send a preferred size packet
+         *
+         * Ideally this would happen when logging in the server rather than
+         * joining the world, but there is no event readily accessible for that
+         */
+        ASINSPreferredSize prefs = new ASINSPreferredSize(ActuallyClientConfig.preferredScale, ActuallyClientConfig.isPreferBeeg, ActuallyClientConfig.isPreferTiny);
+        ASINetworkManager.playerToServer(prefs);
+    }
+
+    /**
+     * @since 1.0.0
+     * @author Actually Portals
+     */
     @SubscribeEvent
     public static void OnWorldLoad(@NotNull EntityJoinLevelEvent event) {
         LocalPlayer me = Minecraft.getInstance().player;
