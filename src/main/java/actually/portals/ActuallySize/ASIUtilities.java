@@ -2,6 +2,7 @@ package actually.portals.ActuallySize;
 
 import actually.portals.ActuallySize.pickup.mixininterfaces.RenderNormalizable;
 import actually.portals.ActuallySize.pehkui.ASIPehkuiCompatibility;
+import gunging.ootilities.GungingOotilitiesMod.ootilityception.OotilityNumbers;
 import gunging.ootilities.GungingOotilitiesMod.ootilityception.OotilityVectors;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
@@ -78,10 +79,10 @@ public class ASIUtilities {
     }
 
     /**
-     * @param caster The POV entity, who is considered "normal size"
-     * @param target The target entity who you are comparing against this
+     * @param caster The POV entity, who is considered scaled
+     * @param target The target entity who is considered "normal size"
      *
-     * @return If you are looking at a player 20x bigger than you, then '20'
+     * @return If you are 20x bigger than the target, then '20'
      *
      * @since 1.0.0
      * @author Actually Portals
@@ -91,13 +92,13 @@ public class ASIUtilities {
     }
 
     /**
-     * @param caster The POV entity, who is considered "normal size"
-     * @param target The target entity who you are comparing against this
+     * @param caster The POV entity, who is considered scaled
+     * @param target The target entity who is considered "normal size"
      *
      * @param functionalCaster See {@link #getEntityScale(Entity, boolean)} description
      * @param functionalTarget See {@link #getEntityScale(Entity, boolean)} description
      *
-     * @return If you are looking at a player 20x bigger than you, then '20'
+     * @return If you are 20x bigger than the target, then '20'
      *
      * @since 1.0.0
      * @author Actually Portals
@@ -153,7 +154,6 @@ public class ASIUtilities {
      * a good 3x bigger than a chicken just by existing.
      *
      * @since 1.0.0
-     * @author Actually Portals
      */
     public static double PRACTICAL_SIZE = 4.52D;
 
@@ -194,6 +194,7 @@ public class ASIUtilities {
     public static double getEntityScale(@NotNull Entity entity) {
         return getEntityScale(entity, true);
     }
+
     /**
      * Pehkui, for example, changes the effective scale of the player to 1.0
      * every time it is rendered in the inventory, and only during this instant.
@@ -239,6 +240,20 @@ public class ASIUtilities {
         }
 
         return ASIPehkuiCompatibility.GetEntityScale(entity);
+    }
+
+    /**
+     * Changes the scale of the target entity using the scale
+     * provider (presumably Pehkui mod) that is currently in use.
+     *
+     * @param entity The entity to resize
+     * @param scale The scale to give it
+     *
+     * @since 1.0.0
+     * @author Actually Portals
+     */
+    public static void setEntityScale(@NotNull Entity entity, double scale) {
+        ASIPehkuiCompatibility.SetEntityScaleInstant(entity, scale);
     }
 
     /**
@@ -308,5 +323,101 @@ public class ASIUtilities {
         if (!(level instanceof ServerLevel)) { return; }
         ServerLevel world = (ServerLevel) level;
         world.sendParticles(ParticleTypes.END_ROD, pos.x, pos.y, pos.z, 10, 0, 0, 0, 0.2);
+    }
+
+    /**
+     * Suppose being punched, the smaller you are the more damage.
+     * <br> (1) It tends to 1 when the relative scale tends to 1
+     * <br> (2) It increases the smaller you are = the closer the relative scale gets to zero
+     * <br> (3) It decreases the bigger you are = the closer the relative scale gets to infinity
+     *
+     * @param relativeScale My scale relative to the other, essentially, if I am double their size then 2
+     * @param asymptoteBuff The maximum multiplier obtained when passing a relative scale of zero = being infinitely smaller, and maximally nerfed
+     * @param asymptoteNerf The minimum multiplier obtained when passing a relative scale of infinity = being maximally buffed
+     *
+     * @return An amplification factor buffing beegs and nerfing tinies, within reason.
+     *
+     * @since 1.0.0
+     * @author Actually Portals
+     */
+    public static double beegBalanceResist(double relativeScale, double asymptoteBuff, double asymptoteNerf) {
+
+        // When beeg
+        if (relativeScale > 1) {
+
+            double gaussian = OotilityNumbers.gaussian(1, 3, relativeScale);
+            return gaussian * (1 - asymptoteNerf) + asymptoteNerf;
+
+        // When smol
+        } else if (relativeScale < 1) {
+
+            // Prepare polynomials
+            double m = asymptoteBuff - 1;
+            double p = relativeScale - 1;
+            double p4 = p * p * p * p;
+            double p12 = p4 * p4 * p4;
+
+            // Calculate polynomials
+            double E4 = m * p4 + 1;
+            double E12 = m * p12 + 1;
+
+            /*
+             * Linear combination, the fourth degree polynomial
+             * contributes a bit in small scale differences, while
+             * the twelve degree polynomial is a sharp increase in
+             * high size difference.
+             */
+            return (0.5 * E4) + (0.5 * E12);
+
+        // Same size? no change
+        } else { return 1; }
+    }
+
+    /**
+     * Suppose being punched, the bigger you are the less damage.
+     * <br> (1) It tends to 1 when the relative scale tends to 1
+     * <br> (2) It decreases the smaller you are = the closer the relative scale gets to zero
+     * <br> (3) It increases the bigger you are = the closer the relative scale gets to infinity
+     *
+     * @param relativeScale My scale relative to the other, essentially, if I am double their size then 2
+     * @param asymptoteBuff The maximum multiplier obtained when passing a relative scale of infinity = being maximally buffed
+     * @param asymptoteNerf The minimum multiplier obtained when passing a relative scale of zero = being infinitely smaller, and maximally nerfed
+     *
+     * @return An amplification factor buffing beegs and nerfing tinies, within reason.
+     *
+     * @since 1.0.0
+     * @author Actually Portals
+     */
+    public static double beegBalanceEnhance(double relativeScale, double asymptoteBuff, double asymptoteNerf) {
+
+        // When beeg
+        if (relativeScale > 1) {
+
+            double gaussian = OotilityNumbers.gaussianRev(1, 3, relativeScale);
+            return gaussian * (asymptoteBuff - 1) + 1;
+
+        // When smol
+        } else if (relativeScale < 1) {
+
+            // Prepare polynomials
+            double m = asymptoteNerf - 1;
+            double p = relativeScale - 1;
+            double p4 = p * p * p * p;
+            double p12 = p4 * p4 * p4;
+
+            // Calculate polynomials
+            double E4 = m * p4 + 1;
+            double E12 = m * p12 + 1;
+
+            /*
+             * Linear combination, the fourth degree polynomial
+             * contributes a bit in small scale differences, while
+             * the twelve degree polynomial is a sharp increase in
+             * high size difference.
+             */
+            return (0.5 * E4) + (0.5 * E12);
+
+        // Same size? no change
+        } else { return 1; }
     }
 }

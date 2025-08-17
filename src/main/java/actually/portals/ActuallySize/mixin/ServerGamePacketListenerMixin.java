@@ -2,9 +2,12 @@ package actually.portals.ActuallySize.mixin;
 
 import actually.portals.ActuallySize.ASIUtilities;
 import actually.portals.ActuallySize.pickup.mixininterfaces.EntityDualityCounterpart;
+import actually.portals.ActuallySize.pickup.mixininterfaces.GraceImpulsable;
 import com.llamalad7.mixinextras.expression.Definition;
 import com.llamalad7.mixinextras.expression.Expression;
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.network.ServerGamePacketListenerImpl;
 import net.minecraft.world.entity.Entity;
@@ -45,6 +48,28 @@ public abstract class ServerGamePacketListenerMixin {
 
         // Increase rubber-banding distance
         return original * scale;
+    }
+
+    @WrapOperation(method = "handleMoveVehicle", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/network/ServerGamePacketListenerImpl;isSingleplayerOwner()Z"))
+    public boolean canBypassCheaterVehicleCheck(ServerGamePacketListenerImpl instance, Operation<Boolean> original) {
+
+        // Bypass through Grace Impulse
+        if (this.player != null) {
+            GraceImpulsable imp = (GraceImpulsable) this.player;
+            if (imp.actuallysize$isInGraceImpulse()) { return true; } }
+
+        return original.call(instance);
+    }
+
+    @WrapOperation(method = "handleMovePlayer", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/network/ServerGamePacketListenerImpl;isSingleplayerOwner()Z"))
+    public boolean canBypassCheaterMoveCheck(ServerGamePacketListenerImpl instance, Operation<Boolean> original) {
+
+        // Bypass through Grace Impulse
+        if (this.player != null) {
+            GraceImpulsable imp = (GraceImpulsable) this.player;
+            if (imp.actuallysize$isInGraceImpulse()) { return true; } }
+
+        return original.call(instance);
     }
 
     @ModifyExpressionValue(method = "handleMovePlayer", at = @At(value = "CONSTANT", args = "floatValue=100.0"))

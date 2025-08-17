@@ -1,6 +1,7 @@
 package actually.portals.ActuallySize.controlling.input;
 
 import actually.portals.ActuallySize.ASIUtilities;
+import actually.portals.ActuallySize.ActuallyServerConfig;
 import actually.portals.ActuallySize.ActuallySizeInteractions;
 import actually.portals.ActuallySize.pickup.actions.ASIPSPickupAction;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
@@ -32,7 +33,7 @@ public class ASIServerInteractionListener {
         if (event.isCancelable()) { if (event.isCanceled()) { return; } }
 
         // Attempt to interpret this as a "Pickup Entity" event
-        if ((new ASIPSPickupAction(event).tryResolve())) { event.setCanceled(true); return; }
+        if (ActuallyServerConfig.enableEntityPickup && (new ASIPSPickupAction(event).tryResolve())) { event.setCanceled(true); return; }
 
         //todo Presumably check for other systems like feed or idk
     }

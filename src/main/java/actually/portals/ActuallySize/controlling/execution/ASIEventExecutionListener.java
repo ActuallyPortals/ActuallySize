@@ -1,5 +1,6 @@
 package actually.portals.ActuallySize.controlling.execution;
 
+import actually.portals.ActuallySize.ActuallyServerConfig;
 import actually.portals.ActuallySize.ActuallySizeInteractions;
 import actually.portals.ActuallySize.pickup.actions.ASIPSDualityActivationAction;
 import actually.portals.ActuallySize.pickup.actions.ASIPSDualityDeactivationAction;
@@ -79,6 +80,7 @@ public class ASIEventExecutionListener {
 
     @SubscribeEvent(priority = EventPriority.LOW)
     public static void OnEquipmentChange(@NotNull ServersideEntityEquipmentChangeEvent event) {
+        if (!ActuallyServerConfig.enableEntityHolding) { return; }
         /*HDA*/ActuallySizeInteractions.Log("ASI &3 IED 1 &7 Intercepted &f " + event.getReason() + " &b " + event.getStackLocation().getStatement() + " &e Player " + event.getEntity().getScoreboardName() + " &r Item " + event.getCurrentItemStack().getDisplayName().getString() + ", VERIFYING...");
 
         // Create an action and try to resolve it :based:

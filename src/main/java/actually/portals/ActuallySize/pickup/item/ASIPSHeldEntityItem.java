@@ -7,8 +7,11 @@ import actually.portals.ActuallySize.pickup.actions.ASIPSDualityEscapeAction;
 import actually.portals.ActuallySize.pickup.holding.ASIPSHoldPoint;
 import actually.portals.ActuallySize.pickup.holding.ASIPSHoldPoints;
 import actually.portals.ActuallySize.pickup.mixininterfaces.EntityDualityCounterpart;
+import actually.portals.ActuallySize.pickup.mixininterfaces.GraceImpulsable;
 import actually.portals.ActuallySize.pickup.mixininterfaces.ItemDualityCounterpart;
 import actually.portals.ActuallySize.pickup.mixininterfaces.ItemEntityDualityHolder;
+import gunging.ootilities.GungingOotilitiesMod.instants.GOOMPlayerMomentumSync;
+import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionResult;
@@ -171,48 +174,97 @@ public class ASIPSHeldEntityItem extends Item {
     /**
      * Attempts to place down this mob at the location you are looking at
      *
-     * @param pContext The context by which the item is being used
+     * @param useContext The context by which the item is being used
      * @return The result of this interaction
      *
      * @author Actually Portals
      * @since 1.0.0
      */
     @Override
-    public @NotNull InteractionResult useOn(@NotNull UseOnContext pContext) {
+    public @NotNull InteractionResult useOn(@NotNull UseOnContext useContext) {
 
         // Need to have a count
-        if (pContext.getItemInHand().getCount() < 1) { return InteractionResult.PASS; }
+        if (useContext.getItemInHand().getCount() < 1) { return InteractionResult.PASS; }
 
         // Only works server side
-        if (pContext.getLevel().isClientSide) { return InteractionResult.PASS; }
+        if (useContext.getLevel().isClientSide) { return InteractionResult.PASS; }
 
-        // No idea how this could be
-        Player player = pContext.getPlayer();
-        if (player == null) {
-            //ActuallySizeInteractions.Log("PS USE-ON Null player");
-            return InteractionResult.PASS; }
+        // Must be out of grab cooldown
+        ItemStack itemCounterpart = useContext.getItemInHand();
+        if (itemCounterpart.getPopTime() > 0) { return InteractionResult.PASS; }
 
-        // Also strange situation
-        ItemStack item = pContext.getItemInHand();
-        if (item.getPopTime() > 0) {
-            //ActuallySizeInteractions.Log("PS USE-ON In cooldown");
-            return InteractionResult.PASS; }
+        // Only makes sense when used by a player
+        Player holderPlayer = useContext.getPlayer();
+        if (holderPlayer == null) { return InteractionResult.PASS; }
 
-        // Obtain the entity associated with this entity
-        Level level = pContext.getLevel();
-        Entity rebuilt = counterpartOrRebuild(level, item, player.isCreative(), true);
-        if (rebuilt == null) {
-            //ActuallySizeInteractions.Log("PS USE-ON Rebuild Failure");
-            return InteractionResult.PASS; }
+        // Fetch the entity to be placed down
+        ItemDualityCounterpart itemDuality = (ItemDualityCounterpart) (Object) itemCounterpart;
+        EntityDualityCounterpart entityDuality = (EntityDualityCounterpart) itemDuality.actuallysize$getEntityCounterpart();
+        if (entityDuality != null) {
 
-        /*
-         * Actually place down the entity yay
-         *
-         * But we don't want it to suffocate, so place it a comfortable
-         * distance away from the solid block so that they are good.
-         */
+            // Find its hold point
+            ASIPSHoldPoint holdPoint = entityDuality.actuallysize$getHoldPoint();
+            if (holdPoint == null) { holdPoint = ASIPSHoldPoints.MAINHAND; }
+
+            // Force new if creative (unless players, players cannot be duped)
+            if (holderPlayer.isCreative() && !isPlayer()) {
+                Level level = holderPlayer.level();
+                Entity rebuilt = counterpartOrRebuild(level, itemCounterpart, true, true);
+                if (rebuilt != null) { entityDuality = (EntityDualityCounterpart) rebuilt; } }
+
+            Entity entityCounterpart = (Entity) entityDuality;
+
+            // Set position, and nullify momentum, and escape
+            entityCounterpart.setDeltaMovement(Vec3.ZERO);
+            entityCounterpart.setPos(entityPlaceOn(entityCounterpart, useContext.getClickedFace(), useContext.getClickLocation()));
+            entityCounterpart.fallDistance = 0;
+            entityDuality.actuallysize$escapeDuality();
+            if (entityDuality instanceof Player) {
+
+                // If player, they must be momentum-notified
+                GOOMPlayerMomentumSync sync = new GOOMPlayerMomentumSync((Player) entityDuality);
+                sync.tryResolve();
+            }
+
+            // Rebuild entity and throw
+        } else {
+
+            // Rebuild entity
+            Level level = holderPlayer.level();
+            Entity rebuilt = counterpartOrRebuild(level, itemCounterpart, holderPlayer.isCreative(), true);
+            if (rebuilt == null) {
+                //ActuallySizeInteractions.Log("PS USE Rebuild Failure");
+                return InteractionResult.PASS; }
+
+            // Set position, and nullify momentum
+            rebuilt.setDeltaMovement(Vec3.ZERO);
+            rebuilt.setPos(entityPlaceOn(rebuilt, useContext.getClickedFace(), useContext.getClickLocation()));
+            rebuilt.fallDistance = 0;
+
+            // Deploy (added to world before slot adjusts position)
+            if (!rebuilt.isAddedToWorld()) { level.addFreshEntity(rebuilt); }
+        }
+
+        // Item count decrease
+        if (!holderPlayer.isCreative()) { itemCounterpart.shrink(1); }
+
+        return InteractionResult.CONSUME;
+    }
+
+    /**
+     * But we don't want it to suffocate, so place it a comfortable
+     * distance away from the solid block so that they are good.
+     *
+     * @return The position to place this entity down
+     *
+     * @author Actually Portals
+     * @since 1.0.0
+     */
+    public Vec3 entityPlaceOn(@NotNull Entity rebuilt, @NotNull Direction clickedFace, @NotNull Vec3 clickLocation) {
+
+        // Must check the size of the entity as well as the face
         double margin = ASIUtilities.getEffectiveSize(rebuilt) * 0.2, mx = 0, my = 0, mz = 0, width = 0;
-        switch (pContext.getClickedFace()) {
+        switch (clickedFace) {
 
             case EAST:
             case WEST:
@@ -224,8 +276,8 @@ public class ASIPSHeldEntityItem extends Item {
                  * means half of the width is to be used for in the margin
                  */
                 width = (rebuilt.getBbWidth() * 0.5) + margin;
-                mx = width * pContext.getClickedFace().getNormal().getX();
-                mz = width * pContext.getClickedFace().getNormal().getZ();
+                mx = width * clickedFace.getNormal().getX();
+                mz = width * clickedFace.getNormal().getZ();
                 break;
 
             case DOWN:
@@ -249,17 +301,9 @@ public class ASIPSHeldEntityItem extends Item {
                 my = margin;
                 break;
         }
-        Vec3 entitySpawnPosition = pContext.getClickLocation().add(mx, my, mz);
-        rebuilt.setPos(entitySpawnPosition);
-        rebuilt.fallDistance = 0;
 
-        // Deploy
-        if (!rebuilt.isAddedToWorld()) { level.addFreshEntity(rebuilt); }
-
-        // Item count decrease
-        if (!player.isCreative()) { item.shrink(1); }
-
-        return InteractionResult.CONSUME;
+        // Done
+        return clickLocation.add(mx, my, mz);
     }
 
     /**
@@ -277,8 +321,8 @@ public class ASIPSHeldEntityItem extends Item {
     /**
      * Attempts to throw this held entity forward
      *
-     * @param stack The actual existing ItemStack
-     * @param entity The entity swinging the item.
+     * @param itemCounterpart The actual existing ItemStack
+     * @param holderEntity The entity swinging the item.
      *
      * @return If this entity was thrown forward (and thus swinging is not an attack)
      *
@@ -286,35 +330,59 @@ public class ASIPSHeldEntityItem extends Item {
      * @since 1.0.0
      */
     @Override
-    public boolean onEntitySwing(ItemStack stack, LivingEntity entity) {
+    public boolean onEntitySwing(ItemStack itemCounterpart, LivingEntity holderEntity) {
 
         // Need to have a count
-        if (stack.getCount() < 1) {return false;}
+        if (itemCounterpart.getCount() < 1) {return false;}
 
         // Only runs on server
-        if (entity.level().isClientSide) {return false;}
+        if (holderEntity.level().isClientSide) {return false;}
 
-        // Poptime Cooldown
-        if (stack.getPopTime() > 0) {
-            //ActuallySizeInteractions.Log("PS SWING In cooldown");
-            return false;
-        }
+        // Pop-time Cooldown
+        if (itemCounterpart.getPopTime() > 0) { return false; }
 
-        if (!(entity instanceof Player)) {return false;}
-        Player player = (Player) entity;
+        // Only makes sense when used by a player
+        if (!(holderEntity instanceof Player)) { return false; }
+        Player holderPlayer = (Player) holderEntity;
 
-        // Obtain the entity associated with this entity
-        Level level = player.level();
-        Entity rebuilt = counterpartOrRebuild(level, stack, player.isCreative(), true);
-        if (rebuilt == null) {
-            //ActuallySizeInteractions.Log("PS SWING Rebuild Failure");
-            return false;
-        }
-
-        // The entity will be thrown from its current hold point if it exits
-        ItemDualityCounterpart itemDuality = (ItemDualityCounterpart) (Object) stack;
+        // Throw active entity duality
+        ItemDualityCounterpart itemDuality = (ItemDualityCounterpart) (Object) itemCounterpart;
         EntityDualityCounterpart entityDuality = (EntityDualityCounterpart) itemDuality.actuallysize$getEntityCounterpart();
-        if (entityDuality == null || !entityDuality.actuallysize$isHeld()) {
+        if (entityDuality != null) {
+
+            // Find its hold point
+            ASIPSHoldPoint holdPoint = entityDuality.actuallysize$getHoldPoint();
+            if (holdPoint == null) { holdPoint = ASIPSHoldPoints.MAINHAND; }
+
+            // Force new if creative (unless players, players cannot be duped)
+            if (holderPlayer.isCreative() && !isPlayer()) {
+                Level level = holderPlayer.level();
+                Entity rebuilt = counterpartOrRebuild(level, itemCounterpart, true, true);
+                if (rebuilt != null) { entityDuality = (EntityDualityCounterpart) rebuilt; } }
+
+            // Throw from the hold point and escape
+            holdPoint.throwHeldEntity((ItemEntityDualityHolder) holderEntity, entityDuality);
+            entityDuality.actuallysize$escapeDuality();
+            if (entityDuality instanceof Player) {
+
+                // Add ticks of grace impulse
+                GraceImpulsable imp = (GraceImpulsable) entityDuality;
+                imp.actuallysize$addGraceImpulse(40);
+
+                // If player, they must be momentum-notified
+                GOOMPlayerMomentumSync sync = new GOOMPlayerMomentumSync((Player) entityDuality);
+                sync.tryResolve();
+            }
+
+        // Rebuild entity and throw
+        } else {
+
+            // Rebuild entity
+            Level level = holderPlayer.level();
+            Entity rebuilt = counterpartOrRebuild(level, itemCounterpart, holderPlayer.isCreative(), true);
+            if (rebuilt == null) {
+                //ActuallySizeInteractions.Log("PS SWING Rebuild Failure");
+                return false; }
 
             /*
              *  For whatever reason this item-entity is not active, even if
@@ -323,20 +391,14 @@ public class ASIPSHeldEntityItem extends Item {
              */
 
             ASIPSHoldPoint simulation = ASIPSHoldPoints.MAINHAND;
-            simulation.throwHeldEntity((ItemEntityDualityHolder) entity, (EntityDualityCounterpart) rebuilt);
+            simulation.throwHeldEntity((ItemEntityDualityHolder) holderEntity, (EntityDualityCounterpart) rebuilt);
 
-            // If the entity is currently held, use their hold point
-        } else {
-
-            // The hold point exists trust me
-            entityDuality.actuallysize$getHoldPoint().throwHeldEntity((ItemEntityDualityHolder) entity, (EntityDualityCounterpart) rebuilt);
+            // Deploy (added to world before slot adjusts position)
+            if (!rebuilt.isAddedToWorld()) { level.addFreshEntity(rebuilt); }
         }
 
-        // Deploy (added to world before slot adjusts position)
-        if (!rebuilt.isAddedToWorld()) { level.addFreshEntity(rebuilt); }
-
         // Item count decrease
-        if (!player.isCreative()) { stack.shrink(1); }
+        if (!holderPlayer.isCreative()) { itemCounterpart.shrink(1); }
 
         // Complete processing
         return true;

@@ -41,4 +41,32 @@ public class ASIPehkuiCompatibility {
         ScaleData scaleData = scaleType.getScaleData(mob);
         return scaleData.getScale();
     }
+
+    /**
+     * @param mob The entity to resize
+     * @param scale The value to change this to
+     *
+     * @see virtuoel.pehkui.api.ScaleTypes
+     *
+     * @since 1.0.0
+     * @author Actually Portals
+     */
+    public static void SetEntityScaleInstant(@NotNull Entity mob, double scale) {
+        SetEntityScaleInstant(mob, ScaleTypes.BASE, scale);
+    }
+
+    /**
+     * @param mob The entity to resize
+     * @param scaleType The type of scale to change
+     * @param scale The value to change this to
+     *
+     * @see virtuoel.pehkui.api.ScaleTypes
+     *
+     * @since 1.0.0
+     * @author Actually Portals
+     */
+    public static void SetEntityScaleInstant(@NotNull Entity mob, @NotNull ScaleType scaleType, double scale) {
+        ScaleData scaleData = scaleType.getScaleData(mob);
+        scaleData.setScale((float) scale);
+    }
 }

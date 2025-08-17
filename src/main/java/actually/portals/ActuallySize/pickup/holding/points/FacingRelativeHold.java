@@ -1,9 +1,11 @@
 package actually.portals.ActuallySize.pickup.holding.points;
 
 import actually.portals.ActuallySize.ASIUtilities;
+import actually.portals.ActuallySize.ActuallySizeInteractions;
 import actually.portals.ActuallySize.pickup.holding.ASIPSHoldPoint;
 import actually.portals.ActuallySize.pickup.mixininterfaces.EntityDualityCounterpart;
 import actually.portals.ActuallySize.pickup.mixininterfaces.ItemEntityDualityHolder;
+import gunging.ootilities.GungingOotilitiesMod.ootilityception.OotilityNumbers;
 import gunging.ootilities.GungingOotilitiesMod.ootilityception.OotilityVectors;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
@@ -203,12 +205,21 @@ public class FacingRelativeHold extends ASIPSRegisterableHoldPoint implements AS
         Entity holderEntity = (Entity) holder;
         double beegScale = ASIUtilities.getEffectiveSize(holderEntity);
         double tinyScale = ASIUtilities.getEffectiveSize(entityCounterpart);
-        double quota = (beegScale / tinyScale) + 1;
-        double asymptote = 1 - (1 / quota);
+        double gauss = OotilityNumbers.gaussianRev(0, 2, (beegScale / tinyScale));
+        double strength = 3.8 * ASIUtilities.beegBalanceEnhance(beegScale, 15, 0.3);
+
+        /*
+         * Full strength at relative size 5x and forth (asymptotic)
+         * Half strength at about 2.5x relative size
+         * Same size is a tenth of the strength
+         *
+         * Strength is 0.8 at base scale, about 4 at 10x scale,
+         * but then it tapers off so that it is 10 at 100x scale
+         * and asymptotic never exceeding 10
+         */
+        /*THR*/ActuallySizeInteractions.Log("ASI &6 HDA [" + getNamespacedKey() + "] &7 Thrown at &b " + strength + " STR &f x &3 " + gauss + " = " + (gauss * strength) + ", SZ " + (beegScale / tinyScale));
 
         // Add forward force
-        entityCounterpart.setDeltaMovement(
-                OotilityVectors.entityForward(holderEntity).scale(
-                        Math.max(asymptote * 0.8D * beegScale, 0)));
+        entityCounterpart.setDeltaMovement(OotilityVectors.entityForward(holderEntity).scale(gauss * strength));
     }
 }

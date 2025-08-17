@@ -283,6 +283,7 @@ public class ASIPSPickupAction implements APIFriendlyProcess {
      * @author Actually Portals
      */
     void resolveForPlayer(@NotNull Player tinyCast) {
+        if (!ActuallyServerConfig.enableEntityHolding) { return; }
         /*HDA*/ActuallySizeInteractions.Log("ASI &b HDP &7 Picking up player " + tiny.getScoreboardName());
 
         // Is it an entity duality? YOINK then? LMAO
@@ -361,6 +362,7 @@ public class ASIPSPickupAction implements APIFriendlyProcess {
      * @author Actually Portals
      */
     boolean chainIntoActivation(@NotNull ItemStack item) {
+        if (!ActuallyServerConfig.enableEntityHolding) { return false; }
 
         // Build the action
         ASIPSDualityActivationAction action = new ASIPSDualityActivationAction(stackLocation, item, tiny);

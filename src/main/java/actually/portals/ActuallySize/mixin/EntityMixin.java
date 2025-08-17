@@ -4,15 +4,22 @@ import actually.portals.ActuallySize.ASIUtilities;
 import actually.portals.ActuallySize.ActuallyServerConfig;
 import actually.portals.ActuallySize.ActuallySizeInteractions;
 import actually.portals.ActuallySize.pickup.ASIPickupSystemManager;
-import actually.portals.ActuallySize.pickup.actions.*;
+import actually.portals.ActuallySize.pickup.actions.ASIPSDualityActivationAction;
+import actually.portals.ActuallySize.pickup.actions.ASIPSDualityDeactivationAction;
+import actually.portals.ActuallySize.pickup.actions.ASIPSDualityEscapeAction;
+import actually.portals.ActuallySize.pickup.actions.ASIPSHoldingSyncAction;
 import actually.portals.ActuallySize.pickup.holding.ASIPSHoldPoint;
 import actually.portals.ActuallySize.pickup.holding.points.ASIPSHoldPointRegistry;
 import actually.portals.ActuallySize.pickup.holding.points.ASIPSRegisterableHoldPoint;
 import actually.portals.ActuallySize.pickup.mixininterfaces.*;
+import actually.portals.ActuallySize.world.mixininterfaces.AmountMatters;
+import com.llamalad7.mixinextras.expression.Definition;
+import com.llamalad7.mixinextras.expression.Expression;
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+import com.llamalad7.mixinextras.sugar.Local;
 import gunging.ootilities.GungingOotilitiesMod.exploring.ItemExplorerElaborator;
 import gunging.ootilities.GungingOotilitiesMod.exploring.ItemStackExplorer;
 import gunging.ootilities.GungingOotilitiesMod.exploring.ItemStackLocation;
@@ -22,12 +29,16 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Nameable;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.entity.EntityAccess;
 import net.minecraft.world.phys.Vec3;
+import net.minecraftforge.fluids.FluidType;
+import org.apache.commons.lang3.tuple.MutableTriple;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
@@ -70,6 +81,10 @@ public abstract class EntityMixin extends net.minecraftforge.common.capabilities
 
     @Shadow public abstract void unRide();
 
+    @Shadow public abstract float getBbHeight();
+
+    @Shadow public abstract boolean onGround();
+
     protected EntityMixin(Class<Entity> baseClass) { super(baseClass); }
 
     @Unique
@@ -79,6 +94,31 @@ public abstract class EntityMixin extends net.minecraftforge.common.capabilities
 
     @Unique
     @Nullable Double actuallysize$preNormalizedScale = null;
+
+    @WrapMethod(method = "isInvulnerableTo")
+    public boolean onTryInvulnerability(DamageSource pSource, Operation<Boolean> original) {
+
+        // If an amount is registered, invulnerable when too little
+        AmountMatters am = (AmountMatters) pSource;
+        Double amo = am.actuallysize$getAmount();
+        if (amo != null) {
+
+            // If it is a fight between two entities
+            if (pSource.getDirectEntity() != null) {
+                //ATT//ActuallySizeInteractions.Log("ASI &6 EMX-ATT &7 Invulnerability " + this.getScoreboardName() + " for &e " + amo + " &b x" + ASIUtilities.getRelativeScale((Entity) (Object) this, pSource.getDirectEntity()));
+
+                // When the direct attacker is smol
+                if (ASIUtilities.getRelativeScale((Entity) (Object) this, pSource.getDirectEntity()) < 0.5) {
+
+                    // Too little damage is just being immune :crpyawn:
+                    if (amo < 0.1) { return true; }
+                }
+            }
+        }
+
+        // Not held not our business
+        return original.call(pSource);
+    }
 
     @WrapOperation(method = "handleNetherPortal", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/Entity;isPassenger()Z"))
     public boolean onRidePreventPortal(Entity instance, Operation<Boolean> original) {
@@ -513,6 +553,7 @@ public abstract class EntityMixin extends net.minecraftforge.common.capabilities
         // Not held not our business
         return original.call(pVehicle);
     }
+
     @WrapMethod(method = "isPushable")
     public boolean whenPushed(Operation<Boolean> original) {
 
@@ -521,6 +562,86 @@ public abstract class EntityMixin extends net.minecraftforge.common.capabilities
 
         // Not held not our business
         return original.call();
+    }
+
+    @Unique
+    @Nullable Entity actuallysize$lastPushing;
+
+    @Inject(method = "push(Lnet/minecraft/world/entity/Entity;)V", at = @At(value = "HEAD"))
+    public void whenPushingCall(Entity pEntity, CallbackInfo ci) {
+        //PSH//ActuallySizeInteractions.Log("ASI &6 LEX-PSH &7 Pusher entity " + this.getScoreboardName() + " pushing " + pEntity.getScoreboardName());
+        actuallysize$lastPushing = pEntity;
+    }
+
+    @Definition(id = "isPushable", method = "Lnet/minecraft/world/entity/Entity;isPushable()Z")
+    @Expression("this.isPushable()")
+    @ModifyExpressionValue(method = "push(Lnet/minecraft/world/entity/Entity;)V", at = @At("MIXINEXTRAS:EXPRESSION"))
+    public boolean whenPushing(boolean original) {
+        if (actuallysize$lastPushing == null) { return original; }
+        //PSH//ActuallySizeInteractions.Log("ASI &6 LEX-PSH &7 Can pusher be pushed at &e x" + ASIUtilities.inverseRelativeScale((Entity) (Object) this, actuallysize$lastPushing));
+
+        // If I am much bigger, then I am not pushable
+        if (ASIUtilities.inverseRelativeScale((Entity) (Object) this, actuallysize$lastPushing) > 3) {
+            //PSH//ActuallySizeInteractions.Log("ASI &6 LEX-PSH &c Cannot be reverse-pushed. ");
+            return false; }
+
+        // Not held not our business
+        return original;
+    }
+
+    @Definition(id = "isPushable", method = "Lnet/minecraft/world/entity/Entity;isPushable()Z")
+    @Definition(id = "pEntity", local = @Local(type = Entity.class, argsOnly = true))
+    @Expression("pEntity.isPushable()")
+    @ModifyExpressionValue(method = "push(Lnet/minecraft/world/entity/Entity;)V", at = @At("MIXINEXTRAS:EXPRESSION"))
+    public boolean whenPushingOther(boolean original) {
+        if (actuallysize$lastPushing == null) { return original; }
+        //PSH//ActuallySizeInteractions.Log("ASI &6 LEX-PSH &7 Can target be pushed at &e x" + ASIUtilities.getRelativeScale((Entity) (Object) this, actuallysize$lastPushing));
+
+        // If the other is much bigger, then they are not pushable
+        if (ASIUtilities.getRelativeScale((Entity) (Object) this, actuallysize$lastPushing) > 3) {
+            //PSH//ActuallySizeInteractions.Log("ASI &6 LEX-PSH &c Cannot push target. ");
+            return false; }
+
+        // Not held not our business
+        return original;
+    }
+
+    @Unique @Nullable MutableTriple<Double, Vec3, Integer> actuallysize$interimFlow;
+
+    @Inject(method = "lambda$updateFluidHeightAndDoFluidPushing$29", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/Entity;setDeltaMovement(Lnet/minecraft/world/phys/Vec3;)V"))
+    public void whenPushedByFluid(FluidType fluidType, MutableTriple<Double, Vec3, Integer> interim, CallbackInfo ci) {
+        actuallysize$interimFlow = interim;
+
+        // If smol, we pretend  you are fully submerged in the liquid
+        double mySize = ASIUtilities.getEffectiveSize((Entity) (Object) this);
+        if (mySize < 1) {
+            double inverseAmplification = 1 / mySize;
+            double submerged = interim.getLeft();
+            if (submerged > getBbHeight()) { submerged = getBbHeight(); }
+            //FLW//ActuallySizeInteractions.Log("ASI &6 EMX-FLW &7 Flow submerged from " + interim.getLeft() + " to &6 " + submerged + " &r , Height = &e " + getBbHeight());
+
+            Vec3 multiflow = interim.getMiddle().normalize().scale(submerged);
+            double buff = ASIUtilities.beegBalanceResist(mySize, 5, 0);
+            if (((Object) this) instanceof LivingEntity) {
+                double depth = EnchantmentHelper.getDepthStrider((LivingEntity) (Object) this);
+                if (depth > 0) {
+                    if (!onGround()) { depth = depth * 0.5; }
+                    if (depth > 3) { depth = 3; }
+                    double nerf = (depth * 0.3 + 0.075) * buff;
+                    buff -= nerf;
+                }
+            }
+            //FLW//ActuallySizeInteractions.Log("ASI &6 EMX-FLW &7 Flow base from &3 " + interim.getMiddle().length() + " &r to &b " + multiflow.length() + " &f, buff &9 x" + buff);
+
+            interim.setMiddle(multiflow.scale(buff));
+        }
+    }
+
+    @WrapOperation(method = "lambda$updateFluidHeightAndDoFluidPushing$29", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/phys/Vec3;add(Lnet/minecraft/world/phys/Vec3;)Lnet/minecraft/world/phys/Vec3;"))
+    public Vec3 whenPushedByFluid(Vec3 instance, Vec3 pVec, Operation<Vec3> original) {
+        Vec3 cookedFlow = pVec;
+        if (actuallysize$interimFlow != null) { cookedFlow = actuallysize$interimFlow.getMiddle(); }
+        return original.call(instance, cookedFlow);
     }
 
     @Inject(method = "startRiding(Lnet/minecraft/world/entity/Entity;Z)Z", at = @At(value = "HEAD"), cancellable = true)
@@ -571,4 +692,5 @@ public abstract class EntityMixin extends net.minecraftforge.common.capabilities
         // Otherwise, ASI has no business with this operation
         return original.call();
     }
+
 }

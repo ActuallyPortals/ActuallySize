@@ -27,6 +27,50 @@ public class ActuallyClientConfig {
     private static final ForgeConfigSpec.Builder CONFIG_BUILDER = new ForgeConfigSpec.Builder();
 
     /**
+     * If this player prefers to be beeg
+     *
+     * @since 1.0.0
+     */
+    @NotNull private static final ForgeConfigSpec.BooleanValue PREFERRED_BEEG = CONFIG_BUILDER
+            .comment("")
+            .comment("#### --------------------------------------------------")
+            .comment("#### Global Preferences - General ASI Configuration")
+            .comment("#### --------------------------------------------------")
+            .comment("")
+            .comment("#### ----|    Prefers to be Big    |----")
+            .comment("For servers that have a beeg size configured, you will")
+            .comment("spawn beeg by default without having to do anything else.")
+            .comment("Also affects the size at which you respawn.")
+            .define("preferablyBeeg", false);
+
+    /**
+     * If this player prefers to be smol
+     *
+     * @since 1.0.0
+     */
+    @NotNull private static final ForgeConfigSpec.BooleanValue PREFERRED_TINY = CONFIG_BUILDER
+            .comment("")
+            .comment("#### ----|    Prefers to be Smol    |----")
+            .comment("For servers that have a tiny size configured, you will")
+            .comment("spawn tiny by default without having to do anything else.")
+            .comment("Also affects the size at which you respawn.")
+            .define("preferablySmol", false);
+
+    /**
+     * If this player prefers to be smol
+     *
+     * @since 1.0.0
+     */
+    @NotNull private static final ForgeConfigSpec.DoubleValue PREFERRED_SCALE = CONFIG_BUILDER
+            .comment("")
+            .comment("#### ----|    Preferred Scale    |----")
+            .comment("For servers that allow you to freely choose your")
+            .comment("size, what scale do you want to be by default?")
+            .comment("Also affects the size at which you respawn.")
+            .comment("Set to '1' to disable this feature.")
+            .defineInRange("preferredScale", 1, 0.05, 25);
+
+    /**
      * @since 1.0.0
      */
     @NotNull private static final ForgeConfigSpec.ConfigValue<String> HEAD_HOLD_POINT = CONFIG_BUILDER
@@ -41,6 +85,7 @@ public class ActuallyClientConfig {
             .comment("#### Change the 'offhandHold' option to 'actuallysize:right_shoulder'")
             .comment("#### --------------------------------------------------")
             .comment("")
+            .comment("#### ----|    Helmet Armor Slot    |----")
             .comment("When holding an entity in your head slot, where does it show up on your player? ")
             .define("headHold", "actuallysize:hat");
 
@@ -48,6 +93,8 @@ public class ActuallyClientConfig {
      * @since 1.0.0
      */
     @NotNull private static final ForgeConfigSpec.ConfigValue<String> CHEST_HOLD_POINT = CONFIG_BUILDER
+            .comment("")
+            .comment("#### ----|    Chestplate Armor Slot    |----")
             .comment("When holding an entity in your chestplate slot, where does it show up on your player? ")
             .define("chestHold", "actuallysize:right_shoulder");
 
@@ -55,6 +102,8 @@ public class ActuallyClientConfig {
      * @since 1.0.0
      */
     @NotNull private static final ForgeConfigSpec.ConfigValue<String> LEGS_HOLD_POINT = CONFIG_BUILDER
+            .comment("")
+            .comment("#### ----|    Leggings Armor Slot    |----")
             .comment("When holding an entity in your leggings slot, where does it show up on your player? ")
             .define("legsHold", "actuallysize:left_pocket");
 
@@ -62,6 +111,8 @@ public class ActuallyClientConfig {
      * @since 1.0.0
      */
     @NotNull private static final ForgeConfigSpec.ConfigValue<String> FEET_HOLD_POINT = CONFIG_BUILDER
+            .comment("")
+            .comment("#### ----|    Boots Armor Slot    |----")
             .comment("When holding an entity in your boots slot, where does it show up on your player? ")
             .define("bootsHold", "actuallysize:right_boot");
 
@@ -69,6 +120,8 @@ public class ActuallyClientConfig {
      * @since 1.0.0
      */
     @NotNull private static final ForgeConfigSpec.ConfigValue<String> MAINHAND_HOLD_POINT = CONFIG_BUILDER
+            .comment("")
+            .comment("#### ----|    Selected hotbar Slot    |----")
             .comment("When holding an entity in your main hand, where does it show up on your player? ")
             .define("mainhandHold", "actuallysize:mainhand");
 
@@ -76,6 +129,8 @@ public class ActuallyClientConfig {
      * @since 1.0.0
      */
     @NotNull private static final ForgeConfigSpec.ConfigValue<String> OFFHAND_HOLD_POINT = CONFIG_BUILDER
+            .comment("")
+            .comment("#### ----|    Offhand Slot    |----")
             .comment("When holding an entity in your offhand, where does it show up on your player? ")
             .define("offhandHold", "actuallysize:offhand");
 
@@ -83,6 +138,8 @@ public class ActuallyClientConfig {
      * @since 1.0.0
      */
     @NotNull private static final ForgeConfigSpec.ConfigValue<String> CURSOR_HOLD_POINT = CONFIG_BUILDER
+            .comment("")
+            .comment("#### ----|    GUI Cursor Slot    |----")
             .comment("While you move around an entity in your inventory, where does it show up on your player? ")
             .define("cursorHold", "actuallysize:pinch");
 
@@ -92,7 +149,10 @@ public class ActuallyClientConfig {
      * @since 1.0.0
      */
     @NotNull private static final ForgeConfigSpec.BooleanValue ONLY_PLAYERS = CONFIG_BUILDER
+            .comment("")
+            .comment("#### ----|    Only For Players    |----")
             .comment("When this is enabled, these custom hold points will only apply when holding other players. ")
+            .comment("All other mobs will be held in the default slots while this is enabled.")
             .define("onlyForPlayers", true);
 
     /**
@@ -110,6 +170,20 @@ public class ActuallyClientConfig {
      * @since 1.0.0
      */
     @Nullable public static ResourceLocation holdHead, holdChest, holdLegs, holdFeet, holdMainhand, holdOffhand, holdCursor;
+
+    /**
+     * The size preferences of this player
+     *
+     * @since 1.0.0
+     */
+    public static boolean isPreferBeeg, isPreferTiny;
+
+    /**
+     * The size preference of this player
+     *
+     * @since 1.0.0
+     */
+    public static double preferredScale;
 
     /**
      * If the special hold points are only used when holding players
@@ -139,6 +213,9 @@ public class ActuallyClientConfig {
         holdOffhand = tryRead(OFFHAND_HOLD_POINT.get());
         holdCursor = tryRead(CURSOR_HOLD_POINT.get());
         onlySpecialHoldPlayers = ONLY_PLAYERS.get();
+        preferredScale = PREFERRED_SCALE.get();
+        isPreferBeeg = PREFERRED_BEEG.get();
+        isPreferTiny = PREFERRED_TINY.get();
     }
 
     /**
