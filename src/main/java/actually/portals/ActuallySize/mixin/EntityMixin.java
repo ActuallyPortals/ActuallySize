@@ -11,6 +11,7 @@ import actually.portals.ActuallySize.pickup.actions.ASIPSHoldingSyncAction;
 import actually.portals.ActuallySize.pickup.holding.ASIPSHoldPoint;
 import actually.portals.ActuallySize.pickup.holding.points.ASIPSHoldPointRegistry;
 import actually.portals.ActuallySize.pickup.holding.points.ASIPSRegisterableHoldPoint;
+import actually.portals.ActuallySize.pickup.holding.model.ASIPSModelPartInfo;
 import actually.portals.ActuallySize.pickup.mixininterfaces.*;
 import actually.portals.ActuallySize.world.mixininterfaces.AmountMatters;
 import com.llamalad7.mixinextras.expression.Definition;
@@ -55,7 +56,7 @@ import java.util.Map;
 import java.util.UUID;
 
 @Mixin(Entity.class)
-public abstract class EntityMixin extends net.minecraftforge.common.capabilities.CapabilityProvider<Entity> implements Nameable, EntityAccess, CommandSource, net.minecraftforge.common.extensions.IForgeEntity, ItemEntityDualityHolder, EntityDualityCounterpart, SetLevelExt, RenderNormalizable, HoldTickable {
+public abstract class EntityMixin extends net.minecraftforge.common.capabilities.CapabilityProvider<Entity> implements Nameable, EntityAccess, CommandSource, net.minecraftforge.common.extensions.IForgeEntity, ItemEntityDualityHolder, EntityDualityCounterpart, SetLevelExt, RenderNormalizable, HoldTickable, ModelPartHoldable {
 
     @Shadow private Level level;
 
@@ -233,6 +234,10 @@ public abstract class EntityMixin extends net.minecraftforge.common.capabilities
     public void actuallysize$setItemEntityHolder(@Nullable ItemEntityDualityHolder who) {
         if (who == null) { actuallysize$holdPoint = null; }
         actuallysize$dualityHolderCounterpart = who;
+
+        // Begin tracking model part based in the parent's game object first, not model
+        if (who instanceof Entity) {
+            actuallysize$modelPartHold = new ASIPSModelPartInfo((Entity) who); }
     }
 
     @Inject(method = "baseTick", at = @At("HEAD"))
@@ -289,7 +294,12 @@ public abstract class EntityMixin extends net.minecraftforge.common.capabilities
         if (holdPoint == null || holder == null) { return; }
 
         // Position tick
-        holdPoint.positionHeldEntity(holder, this);
+        if (level.isClientSide) {
+            if (holdPoint.isClientsidePositionable()) {
+                holdPoint.clientsidePositionHeldEntity(holder, this); }
+        } else {
+            holdPoint.serversidePositionHeldEntity(holder, this);
+        }
     }
 
     @Override
@@ -483,7 +493,16 @@ public abstract class EntityMixin extends net.minecraftforge.common.capabilities
     public @Nullable ASIPSHoldPoint actuallysize$getHoldPoint() { return actuallysize$holdPoint; }
 
     @Override
-    public void actuallysize$setHoldPoint(@Nullable ASIPSHoldPoint point) { actuallysize$holdPoint = point; }
+    public void actuallysize$setHoldPoint(@Nullable ASIPSHoldPoint point) {
+        actuallysize$holdPoint = point; }
+
+    @Nullable @Unique
+    ASIPSModelPartInfo actuallysize$modelPartHold;
+
+    @Override
+    public @Nullable ASIPSModelPartInfo actuallysize$getHeldModelPart() {
+        return actuallysize$modelPartHold;
+    }
 
     @Override
     public @NotNull CompoundTag actuallysize$getEntityDualityTags() {
@@ -693,4 +712,16 @@ public abstract class EntityMixin extends net.minecraftforge.common.capabilities
         return original.call();
     }
 
+    @Inject(method = "isControlledByLocalInstance", at = @At("HEAD"), cancellable = true)
+    public void onLocalPlayerAuthority(CallbackInfoReturnable<Boolean> cir) {
+
+        // When held in a hold point, it becomes our business
+        if (this.actuallysize$isActive()) {
+            ASIPSHoldPoint hold = this.actuallysize$getHoldPoint();
+            if (hold != null && hold.isClientsidePositionable()) {
+                cir.setReturnValue(true);
+                cir.cancel();
+                return; }
+        }
+    }
 }

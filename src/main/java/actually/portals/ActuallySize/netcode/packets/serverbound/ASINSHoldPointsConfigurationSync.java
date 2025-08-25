@@ -173,8 +173,8 @@ public class ASINSHoldPointsConfigurationSync {
              */
             ((HoldPointConfigurable) player).actuallysize$setLocalHoldPoints(reg);
 
-            ActuallySizeInteractions.Log("ASI &dPS REG&7 Accepted for SERVER: ");
-            reg.log();
+            //HPC//ActuallySizeInteractions.Log("ASI &dPS REG&7 Accepted for SERVER: ");
+            //HPC//reg.log();
         });
         contextSupplier.get().setPacketHandled(true);
     }

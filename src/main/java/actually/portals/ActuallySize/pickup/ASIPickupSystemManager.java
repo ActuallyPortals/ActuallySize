@@ -7,18 +7,23 @@ import actually.portals.ActuallySize.pickup.actions.ASIPSDualityAction;
 import actually.portals.ActuallySize.pickup.actions.ASIPSDualityDeactivationAction;
 import actually.portals.ActuallySize.pickup.actions.ASIPSDualityEscapeAction;
 import actually.portals.ActuallySize.pickup.actions.ASIPSDualityFluxAction;
+import actually.portals.ActuallySize.pickup.events.ASIHoldPointRegistryEvent;
 import actually.portals.ActuallySize.pickup.events.ASIPSBuildLocalPlayerHoldPointsEvent;
+import actually.portals.ActuallySize.pickup.holding.ASIPSFluxProfile;
 import actually.portals.ActuallySize.pickup.holding.points.ASIPSHoldPointRegistry;
 import actually.portals.ActuallySize.pickup.holding.ASIPSHoldPoints;
 import actually.portals.ActuallySize.pickup.holding.points.ASIPSRegisterableHoldPoint;
 import actually.portals.ActuallySize.pickup.holding.points.ASIPSStaticHoldRegistry;
 import actually.portals.ActuallySize.pickup.item.ASIPSHeldEntityItem;
+import actually.portals.ActuallySize.pickup.mixininterfaces.Combinable;
 import actually.portals.ActuallySize.pickup.mixininterfaces.EntityDualityCounterpart;
 import actually.portals.ActuallySize.pickup.mixininterfaces.ItemDualityCounterpart;
+import com.mojang.datafixers.util.Pair;
 import gunging.ootilities.GungingOotilitiesMod.exploring.entities.ISEExplorerStatements;
 import gunging.ootilities.GungingOotilitiesMod.exploring.players.ISPExplorerStatements;
 import net.minecraft.nbt.*;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
@@ -73,7 +78,7 @@ public class ASIPickupSystemManager {
      * @since 1.0.0
      */
     public static final RegistryObject<Item> HELD_LIVING_ENTITY = ITEM_REGISTRY.register("held_living_entity",
-            () -> new ASIPSHeldEntityItem(new Item.Properties().stacksTo(1).food(new FoodProperties.Builder().alwaysEat().nutrition(2).saturationMod(2f).build())));
+            () -> new ASIPSHeldEntityItem(new Item.Properties().stacksTo(1).food(new FoodProperties.Builder().alwaysEat().build())));
 
     /**
      * An item that represents a non-living entity while being held as an item
@@ -89,7 +94,7 @@ public class ASIPickupSystemManager {
      * @since 1.0.0
      */
     public static final RegistryObject<Item> HELD_PLAYER = ITEM_REGISTRY.register("held_player",
-            () -> new ASIPSHeldEntityItem(new Item.Properties().stacksTo(1).food(new FoodProperties.Builder().alwaysEat().nutrition(2).saturationMod(2f).build())));
+            () -> new ASIPSHeldEntityItem(new Item.Properties().stacksTo(1).food(new FoodProperties.Builder().alwaysEat().build()), true));
 
     /**
      * An index of all active Item-Entity dualities.
@@ -154,7 +159,7 @@ public class ASIPickupSystemManager {
 
             // Skip player, those need no saving in the item
             if (entityCounterpart instanceof Player) {
-                /*HDA*/ActuallySizeInteractions.Log("ASI &4 HDM &r Ticking player duality " + entityCounterpart.getScoreboardName() + " held by " + ((Entity) dualityEntity.actuallysize$getItemEntityHolder()).getScoreboardName());
+                //HDA//ActuallySizeInteractions.Log("ASI &4 HDM &r Ticking player duality " + entityCounterpart.getScoreboardName() + " held by " + ((Entity) dualityEntity.actuallysize$getItemEntityHolder()).getScoreboardName());
                 continue; }
 
             // Save it
@@ -215,7 +220,11 @@ public class ASIPickupSystemManager {
      */
     public void OnModLoadInitialize(FMLJavaModLoadingContext context) {
         ITEM_REGISTRY.register(context.getModEventBus());
+
+        // Run the registered hold points event
         registerASIHoldPoints();
+        ASIHoldPointRegistryEvent event = new ASIHoldPointRegistryEvent(HOLD_POINT_REGISTRY);
+        MinecraftForge.EVENT_BUS.post(event);
     }
 
     /**
@@ -348,8 +357,11 @@ public class ASIPickupSystemManager {
                         new ItemStack(ASIPickupSystemManager.HELD_NONLIVING_ENTITY.get());
 
         // Inscribe entity
-        if (tiny instanceof Player) { ASIPickupSystemManager.inscribePlayerIntoItemNBT((Player) tiny, ret); }
-        else { ASIPickupSystemManager.saveNonPlayerIntoItemNBT(tiny, ret); }
+        if (tiny instanceof Player) {
+            ASIPickupSystemManager.inscribePlayerIntoItemNBT((Player) tiny, ret);
+
+        // Save entity
+        } else { ASIPickupSystemManager.saveNonPlayerIntoItemNBT(tiny, ret); }
 
         // Return
         return ret;
@@ -488,7 +500,7 @@ public class ASIPickupSystemManager {
      *
      * @since 1.0.0
      */
-    @NotNull static HashMap<Entity, ArrayList<ASIPSDualityAction>> dualityFlux = new HashMap<>();
+    @NotNull static HashMap<UUID, ASIPSFluxProfile> dualityFlux = new HashMap<>();
 
     /**
      * Sometimes, duality actions come in pairs - deactivate it somewhere only
@@ -515,15 +527,18 @@ public class ASIPickupSystemManager {
         // Duality flux operations only make sense while the Entity Counterpart exists in the world
         Entity entityCounterpart = action.getEntityCounterpart();
         if (entityCounterpart == null) {
-            /*HDA*/ActuallySizeInteractions.Log("ASI &3 IED 1F &7 Probable-Flux REJECTION: &c No Entity");
+            //HDA//ActuallySizeInteractions.Log("ASI &3 IED 1F &7 Probable-Flux REJECTION: &c No Entity");
+            return false; }
+        if (entityCounterpart.level().isClientSide) {
+            //HDA//ActuallySizeInteractions.Log("ASI &3 IED 1F &7 Probable-Flux REJECTION: &c No CLIENT-SIDE!");
             return false; }
 
         // Fetch the list of duality flux for this tick
-        ArrayList<ASIPSDualityAction> acts = dualityFlux.computeIfAbsent(entityCounterpart, k -> new ArrayList<>());
+        ASIPSFluxProfile acts = dualityFlux.computeIfAbsent(entityCounterpart.getUUID(), k -> new ASIPSFluxProfile(entityCounterpart));
 
         // Include this action
         acts.add(action);
-        /*HDA*/ActuallySizeInteractions.Log("ASI &3 IED 1F &7 Probable-Flux &a ACCEPTED " + entityCounterpart.getScoreboardName());
+        //HDA//ActuallySizeInteractions.Log("ASI &3 IED 1F &7 Probable-Flux &a ACCEPTED " + entityCounterpart.getScoreboardName() + " " + action.getClass().getSimpleName());
         return true;
     }
 
@@ -562,116 +577,39 @@ public class ASIPickupSystemManager {
     public static void resolveDualityFlux() {
         if (dualityFlux.isEmpty()) { return; }
         dualityFluxing = true;
+        //HDA//ActuallySizeInteractions.Log("ASI &a RDF &8 ~~~~~~ Flux Resolution Pass ~~~~~~");
 
         // Clear map
-        HashMap<Entity, ArrayList<ASIPSDualityAction>> fluxx = new HashMap<>();
+        HashMap<UUID, ASIPSFluxProfile> fluxx = new HashMap<>();
 
         // We simply resolve all the flux calculations for all the entities in flux
-        for (Map.Entry<Entity, ArrayList<ASIPSDualityAction>> flux : dualityFlux.entrySet()) {
-            ArrayList<ASIPSDualityAction> actions = flux.getValue();
+        for (ASIPSFluxProfile flux : dualityFlux.values()) {
+            ArrayList<ASIPSDualityAction> actions = flux.getActions();
             if (actions.isEmpty()) { continue; }
-            Entity entityCounterpart = flux.getKey();
-            ArrayList<ASIPSDualityAction> flex = new ArrayList<>();
+            Entity entityCounterpart = flux.getEntityCounterpart();
+            //HDA//ActuallySizeInteractions.Log("ASI &a RDF &8 >>> &7 " + entityCounterpart.getClass().getSimpleName() + " &f " + entityCounterpart.getUUID() + " &e x" + actions.size());
 
             // Results of flux
-            ASIPSDualityAction from = null;
-            ASIPSDualityAction to = null;
-
-            // Changes in flux
-            ASIPSDualityAction two = null;
-
-            // Calculate the ultimate changes
-            for (ASIPSDualityAction act : actions) {
-                boolean isFrom = (act instanceof ASIPSDualityDeactivationAction) || (act instanceof ASIPSDualityEscapeAction);
-
-                // This action is removing the entity from somewhere
-                if (isFrom) {
-
-                    /*
-                     * If this removes an immediate "to" of the same slot,
-                     * it's kinda silly that they ever were added to that
-                     * slot in the first place.
-                     */
-                    if (to != null && act.getStackLocation() != null && act.getStackLocation().equals(to.getStackLocation())) {
-
-                        // Restore "to" to its previous state and ignore this interaction completely
-                        to = two;
-                        continue;
-                    }
-
-                    // When we haven't decided where we are from
-                    if (from == null) { from = act; }
-
-                // This action is placing the entity somewhere (activating it)
-                } else {
-
-                    // Even if we know where we are going, the final destination gets overwritten
-                    two = to;
-                    to = act;
-                }
-            }
-
-            // There is no destination?
-            if (to == null) {
-
-                // At least resolve from if it exists
-                if (from != null) {
-
-                    // Give it one more pass and then let it resolve
-                    if (from.getAttempts() < 1) {
-                        /*HDA*/ActuallySizeInteractions.Log("ASI &a RDF &f Flux [From] Deferred: &e " + (from.getStackLocation() == null ? "UNKNOWN" : from.getStackLocation().getStatement()));
-                        flex.add(from); from.logAttempt(); } else { from.tryResolve();  }
-                }
-
-            // There is a destination
-            } else {
-
-                /*
-                 * Sometimes, an active entity duality swaps slot with another, then
-                 * both are registered to their [To] slots and no [From] slot. This
-                 * is undesirable, check if this entity is already active and thus
-                 * has a [From] slot.
-                 *
-                 * But also, this only makes sense if it will be allowed and verified.
-                 * Otherwise, we get a random deactivation event later on that is
-                 * extraneous.
-                 */
-                if (from == null && to.isVerified() && to.isAllowed()) {
-                    EntityDualityCounterpart entityDuality = (EntityDualityCounterpart) entityCounterpart;
-                    if (entityDuality.actuallysize$isActive()) { from = new ASIPSDualityDeactivationAction(entityDuality); }
-                }
-
-                // At least resolve to, since it existed
-                if (from == null) {
-
-                    // Give it one more pass and then let it resolve
-                    if (to.getAttempts() < 1) {
-                        /*HDA*/ActuallySizeInteractions.Log("ASI &a RDF &f Flux [To] Deferred: &e " + (to.getStackLocation() == null ? "UNKNOWN" : to.getStackLocation().getStatement()));
-                        flex.add(to); to.logAttempt(); } else { to.tryResolve();  }
-                } else {
-
-                    // Both to and from, turn this into a FLUX action and run it
-                    ASIPSDualityFluxAction action = new ASIPSDualityFluxAction(from, to);
-                    if (!action.tryResolve()) {
-
-                        // If the flux fails to resolve, resolve the two parts individually
-                        from.tryResolve();
-                        to.tryResolve();
-                    }
-                }
-            }
+            flux.computeFlux();
+            ArrayList<ASIPSDualityAction> flex = flux.resolveFlux();
 
             // Remember for next tick
-            if (!flex.isEmpty()) { fluxx.put(entityCounterpart, flex); }
+            if (!flex.isEmpty()) {
+                ASIPSFluxProfile residual = new ASIPSFluxProfile(entityCounterpart);
+                residual.addAll(flex);
+                fluxx.put(entityCounterpart.getUUID(), residual); }
 
             // For now, quote me the event
-            /*HDA*/ActuallySizeInteractions.Log("ASI &a RDF &7 Flux From: &e " + (from == null ? "null" : (from.getStackLocation() == null ? "UNKNOWN" : from.getStackLocation().getStatement())));
-            /*HDA*/ActuallySizeInteractions.Log("ASI &a RDF &7 Flux To: &6 " + (to == null ? "null" : (to.getStackLocation() == null ? "UNKNOWN" : to.getStackLocation().getStatement())));
+            //HDA//ASIPSDualityAction from = flux.getFrom();
+            //HDA//ASIPSDualityAction to = flux.getTo();
+            //HDA//ActuallySizeInteractions.Log("ASI &a RDF &7 Flux From: &e " + (from == null ? "null" : (from.getStackLocation() == null ? "UNKNOWN" : from.getStackLocation().getStatement())));
+            //HDA//ActuallySizeInteractions.Log("ASI &a RDF &7 Flux To: &6 " + (to == null ? "null" : (to.getStackLocation() == null ? "UNKNOWN" : to.getStackLocation().getStatement())));
         }
 
         // The duality flux of last tick is officially resolved
         dualityFlux = fluxx;
         dualityFluxing = false;
+        //HDA//ActuallySizeInteractions.Log("ASI &a RDF &8 ~~~~~~ Flux Resolution Conclusion ~~~~~~");
     }
 
     //region Hold Points
@@ -755,4 +693,25 @@ public class ASIPickupSystemManager {
         }
     }
     //endregion
+
+    /**
+     * @param props Any number of food properties to combine
+     *
+     * @return The linear combination of all these food properties
+     *
+     * @since 1.0.0
+     * @author Actually Portals
+     */
+    @NotNull public static FoodProperties prepareFoodProperties(@NotNull FoodProperties base, @Nullable FoodProperties... props) {
+        FoodProperties ret = base;
+
+        // Combine them
+        for (FoodProperties prop : props) {
+            if (prop == null) { continue; }
+            ret = ((Combinable<FoodProperties>) ret).actuallysize$combineWith(prop);
+        }
+
+        // Build
+        return ret;
+    }
 }

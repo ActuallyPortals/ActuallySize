@@ -184,6 +184,21 @@ public class ActuallyServerConfig {
             .defineInRange("ridingScaleLimit", 2D, 0D, Double.MAX_VALUE);
 
     /**
+     * The relative scale between a player and an entity so that the player can pick it up with one hand.
+     *
+     * @since 1.0.0
+     */
+    @NotNull private static final ForgeConfigSpec.BooleanValue BEEGS_ARE_HUNGRY = CONFIG_BUILDER
+            .comment(" ")
+            .comment(" #### ----|    Beegs are Hungry    |----")
+            .comment(" This will make food a lot less effective the bigger")
+            .comment(" you are, and feed and saturate more if you are small.")
+            .comment(" Also results in beegs eating faster and tinies taking")
+            .comment(" longer to eat, depending on the nutritional value of food.")
+            .comment(" (silly tinies will prefer berries, with low nutrition hehe)")
+            .define("beegsAreHungry", true);
+
+    /**
      * The config builder itself
      *
      * @since 1.0.0
@@ -200,6 +215,7 @@ public class ActuallyServerConfig {
     public static double scaleLimitRider;
     public static boolean tankyBeegs;
     public static boolean strongBeegs;
+    public static boolean hungryBeegs;
     public static boolean delicateTinies;
     public static double strongestBeeg;
     public static double beegSize, tinySize;
@@ -227,6 +243,7 @@ public class ActuallyServerConfig {
         strongBeegs = BEEGS_ARE_STRONG.get();
         delicateTinies = TINIES_ARE_DELICATE.get();
         strongestBeeg = SIZE_DAMAGE_LIMIT.get();
+        hungryBeegs = BEEGS_ARE_HUNGRY.get();
 
         enableFreeSize = FREE_SIZE.get();
         beegSize = BEEG_SIZE.get();

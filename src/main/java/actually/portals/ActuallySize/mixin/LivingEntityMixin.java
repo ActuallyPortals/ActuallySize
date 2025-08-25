@@ -4,21 +4,27 @@ import actually.portals.ActuallySize.ASIUtilities;
 import actually.portals.ActuallySize.ActuallyServerConfig;
 import actually.portals.ActuallySize.netcode.ASINetworkManager;
 import actually.portals.ActuallySize.netcode.packets.clientbound.ASINCItemEntityActivationPacket;
-import actually.portals.ActuallySize.pickup.mixininterfaces.EntityDualityCounterpart;
-import actually.portals.ActuallySize.pickup.mixininterfaces.ItemDualityCounterpart;
+import actually.portals.ActuallySize.pickup.mixininterfaces.*;
 import actually.portals.ActuallySize.world.ASIWorldSystemManager;
 import actually.portals.ActuallySize.world.mixininterfaces.AmountMatters;
+import com.llamalad7.mixinextras.expression.Definition;
+import com.llamalad7.mixinextras.expression.Expression;
+import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+import com.llamalad7.mixinextras.sugar.Local;
 import gunging.ootilities.GungingOotilitiesMod.exploring.ItemStackLocation;
 import gunging.ootilities.GungingOotilitiesMod.exploring.entities.ISEEquipmentSlotted;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.*;
+import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -29,11 +35,13 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Map;
 import java.util.UUID;
 
 @Mixin(LivingEntity.class)
-public abstract class LivingEntityMixin extends Entity implements Attackable, net.minecraftforge.common.extensions.IForgeLivingEntity {
+public abstract class LivingEntityMixin extends Entity implements Edacious, Attackable, net.minecraftforge.common.extensions.IForgeLivingEntity {
 
     @Shadow @Final public WalkAnimationState walkAnimation;
 
@@ -270,5 +278,87 @@ public abstract class LivingEntityMixin extends Entity implements Attackable, ne
         if (myScale > otherScale) {
             this.walkAnimation.setSpeed((float) (this.walkAnimation.speed() * otherScale / myScale));
         }
+    }
+
+    @Unique
+    boolean actuallysize$wasConsumed;
+
+    @Unique
+    @Nullable FoodProperties actuallysize$edaciousProperties;
+
+    @Override
+    public @Nullable FoodProperties actuallysize$getEdaciousProperties() { return actuallysize$edaciousProperties; }
+
+    @Override
+    public void actuallysize$setEdaciousProperties(@Nullable FoodProperties props) { }
+
+    @Override
+    public void actuallysize$setWasConsumed(boolean eda) {
+
+        // Changes in consumption reset these properties
+        actuallysize$edaciousProperties = null;
+        actuallysize$wasConsumed = eda;
+    }
+
+    @Override
+    public boolean actuallysize$wasConsumed() { return actuallysize$wasConsumed; }
+
+    @Definition(id = "drops", local = @Local(type = Collection.class))
+    @Expression("drops")
+    @ModifyExpressionValue(method = "dropAllDeathLoot", at = @At("MIXINEXTRAS:EXPRESSION"))
+    @NotNull Collection<ItemEntity> edaciousDrops(@NotNull Collection<ItemEntity> original) {
+
+        // Upon death, this stuff is reset
+        if (!actuallysize$wasConsumed()) { return original; }
+        LivingEntity thisEntity = (LivingEntity) (Object) this;
+
+        // If death from consumption, calculate the result of eating everything edible
+        ArrayList<ItemEntity> postFiltered = new ArrayList<>();
+        for (ItemEntity ori : original) {
+
+            // Immediately add non-edibles
+            ItemStack within = ori.getItem();
+            if (!within.isEdible()) {
+                postFiltered.add(ori);
+                continue;
+            }
+
+            // Okay now we can talk about obtaining food from the food items
+            for (int i = 0; i < within.getCount(); i++) {
+
+                // Simulate eating count amount of times
+                FoodProperties oriProperties = ori.getItem().getFoodProperties(thisEntity);
+                if (oriProperties == null) {continue;}
+                if (actuallysize$edaciousProperties == null) {
+                    actuallysize$edaciousProperties = oriProperties;
+
+                    // Combine with the previous
+                } else {
+                    actuallysize$edaciousProperties = ((Combinable<FoodProperties>) actuallysize$edaciousProperties)
+                            .actuallysize$combineWith(oriProperties);
+                }
+            }
+
+            //FOO//ActuallySizeInteractions.Log("ASI &1 LMX-FOO &r Edacious conserve &6 " + within.getDisplayName().getString() + "x" + within.getCount() + " &r to &e F" + actuallysize$edaciousProperties.getNutrition() + " &b S" + actuallysize$edaciousProperties.getSaturationModifier());
+
+            // Delete this item
+            within.setCount(0);
+            ori.remove(RemovalReason.DISCARDED);
+        }
+
+        //FOO//ActuallySizeInteractions.Log("ASI &1 LMX-FOO &r Edacious result &6 " + this.getClass().getSimpleName() + " &b " + (actuallysize$edaciousProperties == null ? "null" : "F" + actuallysize$edaciousProperties.getNutrition() + " S" + actuallysize$edaciousProperties.getSaturationModifier()));
+
+        // Return the resultant items
+        return postFiltered;
+    }
+
+    @WrapOperation(method = "startUsingItem", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/item/ItemStack;getUseDuration()I"))
+    public int resetItemUseCache(ItemStack instance, Operation<Integer> original) {
+
+        // Reset cache ticks
+        ((UseTimed) (Object) instance).actuallysize$setUseTimeTicks(0);
+
+        // Proceed
+        return original.call(instance);
     }
 }

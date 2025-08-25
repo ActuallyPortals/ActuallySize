@@ -1,15 +1,15 @@
 package actually.portals.ActuallySize.mixin;
 
-import actually.portals.ActuallySize.ActuallySizeInteractions;
-import actually.portals.ActuallySize.pickup.mixininterfaces.ItemDualityCounterpart;
-import actually.portals.ActuallySize.pickup.mixininterfaces.ItemEntityDualityHolder;
+import actually.portals.ActuallySize.pickup.mixininterfaces.*;
 import actually.portals.ActuallySize.pickup.ASIPickupSystemManager;
 import actually.portals.ActuallySize.pickup.item.ASIPSHeldEntityItem;
-import actually.portals.ActuallySize.pickup.mixininterfaces.SetLevelExt;
+import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import gunging.ootilities.GungingOotilitiesMod.exploring.ItemStackLocation;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -22,7 +22,7 @@ import org.spongepowered.asm.mixin.Unique;
 import java.util.UUID;
 
 @Mixin(ItemStack.class)
-public abstract class ItemStackMixin extends net.minecraftforge.common.capabilities.CapabilityProvider<ItemStack> implements net.minecraftforge.common.extensions.IForgeItemStack, ItemDualityCounterpart {
+public abstract class ItemStackMixin extends net.minecraftforge.common.capabilities.CapabilityProvider<ItemStack> implements net.minecraftforge.common.extensions.IForgeItemStack, ItemDualityCounterpart, Edacious, UseTimed {
 
     @Shadow public abstract Item getItem();
 
@@ -76,7 +76,7 @@ public abstract class ItemStackMixin extends net.minecraftforge.common.capabilit
         if (actuallysize$isDualityActive()) { return actuallysize$getEntityCounterpart(); }
         //NBT//ActuallySizeInteractions.Log("ASI &6 REC &r Generating from ItemStackMixin.actuallysize$readyEntityCounterpart(Level)");
 
-        // Otherwise, load
+        // Otherwise, generate an entity counterpart with a fresh UUID
         ItemStack asItem = (ItemStack) (Object) this;
         if (asItem.getCount() < 1) { return null; }
         if (!asItem.hasTag()) { return null; }
@@ -187,6 +187,15 @@ public abstract class ItemStackMixin extends net.minecraftforge.common.capabilit
             return actuallysize$enclosedEntity;
         }
 
+        // Get the one from the world
+        if (world instanceof ServerLevel) {
+            UUID uuid = actuallysize$getEnclosedEntityUUID();
+            if (uuid != null) {
+                actuallysize$enclosedEntity = ((ServerLevel) world).getEntity(uuid);
+                if (actuallysize$enclosedEntity != null) { return actuallysize$enclosedEntity; }
+            }
+        }
+
         // Otherwise, load
         ItemStack asItem = (ItemStack) (Object) this;
         if (asItem.getCount() < 1) { return null; }
@@ -209,5 +218,50 @@ public abstract class ItemStackMixin extends net.minecraftforge.common.capabilit
 
         // Must have an enclosed entity
         return actuallysize$getEnclosedEntity(world) != null;
+    }
+
+    /**
+     * @since 1.0.0
+     */
+    @Unique
+    @Nullable FoodProperties actuallysize$edaciousProperties;
+
+    @Override
+    public void actuallysize$setEdaciousProperties(@Nullable FoodProperties props) {
+        actuallysize$edaciousProperties = props;
+    }
+
+    @Override
+    public @Nullable FoodProperties actuallysize$getEdaciousProperties() {
+        return actuallysize$edaciousProperties;
+    }
+
+    @Override
+    public void actuallysize$setWasConsumed(boolean eda) { }
+
+    @Override public boolean actuallysize$wasConsumed() { return false; }
+
+    @WrapMethod(method = "getUseDuration")
+    public int onCalculateUseTime(Operation<Integer> original) {
+
+        // Use the one saved from last recalculation
+        if (actuallysize$overriddenUseTime > 0) {
+            return actuallysize$overriddenUseTime; }
+
+        // Default to original
+        return original.call();
+    }
+
+    @Unique
+    int actuallysize$overriddenUseTime;
+
+    @Override
+    public int actuallysize$getUseTimeTicks() {
+        return actuallysize$overriddenUseTime;
+    }
+
+    @Override
+    public void actuallysize$setUseTimeTicks(int ticks) {
+        actuallysize$overriddenUseTime = ticks;
     }
 }

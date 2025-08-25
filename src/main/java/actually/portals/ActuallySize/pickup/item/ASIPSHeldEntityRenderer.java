@@ -256,6 +256,7 @@ public class ASIPSHeldEntityRenderer extends BlockEntityWithoutLevelRenderer {
      *
      * @return The scale to return the held entity back to their original size
      *
+     * @author Actually Portals
      * @since 1.0.0
      */
     public static double getRestitutionScale(@NotNull Entity beeg, @NotNull Entity tiny) {
@@ -286,6 +287,7 @@ public class ASIPSHeldEntityRenderer extends BlockEntityWithoutLevelRenderer {
      *
      * @return A scale to normalize this entity's size
      *
+     * @author Actually Portals
      * @since 1.0.0
      */
     public static double getNormalizationScale(@NotNull Entity tiny) {
@@ -302,6 +304,7 @@ public class ASIPSHeldEntityRenderer extends BlockEntityWithoutLevelRenderer {
      *
      * @return A translation to sink this entity into the player hand
      *
+     * @author Actually Portals
      * @since 1.0.0
      */
     public static double getSinkingScalar(@NotNull Entity beeg, @NotNull Entity tiny) {

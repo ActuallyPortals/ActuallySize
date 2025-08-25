@@ -1,5 +1,6 @@
 package actually.portals.ActuallySize.controlling.execution;
 
+import actually.portals.ActuallySize.ASIUtilities;
 import actually.portals.ActuallySize.ActuallyServerConfig;
 import actually.portals.ActuallySize.ActuallySizeInteractions;
 import actually.portals.ActuallySize.netcode.packets.serverbound.ASINSPreferredSize;
@@ -8,18 +9,32 @@ import actually.portals.ActuallySize.pickup.actions.ASIPSDualityDeactivationActi
 import actually.portals.ActuallySize.netcode.ASIClientsidePacketHandler;
 import actually.portals.ActuallySize.pickup.ASIPickupSystemManager;
 import actually.portals.ActuallySize.pickup.actions.ASIPSHoldingSyncAction;
+import actually.portals.ActuallySize.pickup.events.ASIPSFoodPropertiesEvent;
 import actually.portals.ActuallySize.pickup.events.ASIPSPickupToInventoryEvent;
+import actually.portals.ActuallySize.pickup.item.ASIPSHeldEntityItem;
 import actually.portals.ActuallySize.pickup.mixininterfaces.EntityDualityCounterpart;
 import actually.portals.ActuallySize.pickup.mixininterfaces.HoldPointConfigurable;
 import actually.portals.ActuallySize.pickup.mixininterfaces.ItemEntityDualityHolder;
+import actually.portals.ActuallySize.pickup.mixininterfaces.UseTimed;
 import gunging.ootilities.GungingOotilitiesMod.events.extension.ServersideEntityEquipmentChangeEvent;
+import gunging.ootilities.GungingOotilitiesMod.ootilityception.OotilityNumbers;
 import gunging.ootilities.GungingOotilitiesMod.scheduling.SCHTenTicksEvent;
 import gunging.ootilities.GungingOotilitiesMod.scheduling.SCHTwentyTicksEvent;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.tags.EntityTypeTags;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.GlowSquid;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.MobType;
+import net.minecraft.world.entity.animal.AbstractGolem;
+import net.minecraft.world.entity.animal.Animal;
 import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.EntityTeleportEvent;
+import net.minecraftforge.event.entity.living.LivingEntityUseItemEvent;
+import net.minecraftforge.event.entity.living.MobEffectEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -42,17 +57,31 @@ public class ASIEventExecutionListener {
      * @author Actually Portals
      */
     @SubscribeEvent
-    public static void OnPlayerRespawn(@NotNull PlayerEvent.PlayerRespawnEvent event) {
+    public static void OnPlayerRespawn(@NotNull PlayerEvent.Clone event) {
 
         // Only runs on server
         if (!(event.getEntity() instanceof ServerPlayer)) { return; }
 
-        // Get prefs
-        ASINSPreferredSize prefs = ASINSPreferredSize.GetPreferredSize((ServerPlayer) event.getEntity());
-        if (prefs == null) { return; }
+        // On death, restore prefs
+        if (event.isWasDeath()) {
 
-        // Apply prefs
-        prefs.applyTo((ServerPlayer) event.getEntity());
+            // Get prefs
+            ASINSPreferredSize prefs = ASINSPreferredSize.GetPreferredSize((ServerPlayer) event.getEntity());
+            if (prefs == null) { return; }
+
+            // Apply prefs
+            prefs.applyTo((ServerPlayer) event.getEntity());
+        }
+
+        // Sync hold points and dualities to client
+        HoldPointConfigurable newer = (HoldPointConfigurable) event.getEntity();
+        ASIPSHoldingSyncAction syncing = new ASIPSHoldingSyncAction(event.getEntity());
+        syncing.withActiveDualities();
+        syncing.withConfigurables();
+        syncing.withBroadcast(newer.actuallysize$getLocalHoldPoints().getRegisteredPoints());
+        syncing.resolve();
+
+        //HDA//ActuallySizeInteractions.Log("ASI &6 DTR &7 (" + event.getEntity().getClass().getSimpleName() + ") Respawn copied over hold points &e x" + newer.actuallysize$getLocalHoldPoints().getRegisteredPoints().size());
     }
 
     /**
@@ -74,6 +103,35 @@ public class ASIEventExecutionListener {
 
             // If it can be escaped by teleporting, escape the duality
             entityDuality.actuallysize$escapeDuality();
+        } else {
+            event.setCanceled(true);
+        }
+    }
+
+    /**
+     * @since 1.0.0
+     * @author Actually Portals
+     */
+    @SubscribeEvent(priority = EventPriority.LOWEST)
+    public static void OnTeleportation(@NotNull EntityTeleportEvent event) {
+
+        // Only for server players
+        if (!(event.getEntity() instanceof ServerPlayer)) { return; }
+
+        // We don't care if it was cancelled
+        if (event.isCanceled()) { return; }
+
+        // Travelling more than 10 chunks? Request dualities
+        if (!event.getPrev().closerThan(event.getTarget(), 160)) {
+            HoldPointConfigurable asConfigurable = (HoldPointConfigurable) event.getEntity();
+
+            // Sync hold points and dualities to client
+            ASIPSHoldingSyncAction syncing = new ASIPSHoldingSyncAction((Player) event.getEntity());
+            syncing.withActiveDualities();
+            syncing.withBroadcast(asConfigurable.actuallysize$getLocalHoldPoints().getRegisteredPoints());
+            syncing.resolve();
+
+            //HDA//ActuallySizeInteractions.Log("ASI &6 DTR &7 (" + event.getEntity().getClass().getSimpleName() + ") Teleportation requested dualities");
         }
     }
 
@@ -87,7 +145,7 @@ public class ASIEventExecutionListener {
 
         // Transfer server-side hold point configuration
         HoldPointConfigurable asConfigurableOld = (HoldPointConfigurable) event.getEntity();
-        /*HDA*/ActuallySizeInteractions.Log("ASI &6 EMX-HDA &7 (" + event.getEntity().getClass().getSimpleName() + ") Copied over hold points &e x" + asConfigurableOld.actuallysize$getLocalHoldPoints().getRegisteredPoints().size());
+        //HDA//ActuallySizeInteractions.Log("ASI &6 DTR &7 (" + event.getEntity().getClass().getSimpleName() + ") Dimensional copied over hold points &e x" + asConfigurableOld.actuallysize$getLocalHoldPoints().getRegisteredPoints().size());
         //asConfigurableOld.actuallysize$getLocalHoldPoints().log();
 
         // Sync hold point configurations to client
@@ -115,12 +173,12 @@ public class ASIEventExecutionListener {
     @SubscribeEvent(priority = EventPriority.LOW)
     public static void OnEquipmentChange(@NotNull ServersideEntityEquipmentChangeEvent event) {
         if (!ActuallyServerConfig.enableEntityHolding) { return; }
-        /*HDA*/ActuallySizeInteractions.Log("ASI &3 IED 1 &7 Intercepted &f " + event.getReason() + " &b " + event.getStackLocation().getStatement() + " &e Player " + event.getEntity().getScoreboardName() + " &r Item " + event.getCurrentItemStack().getDisplayName().getString() + ", VERIFYING...");
+        //HDA//ActuallySizeInteractions.Log("ASI &3 IED 1 &7 Intercepted &f " + event.getReason() + " &b " + event.getStackLocation().getStatement() + " &e Player " + event.getEntity().getScoreboardName() + " &r Item " + event.getCurrentItemStack().getDisplayName().getString() + ", VERIFYING...");
 
         // Create an action and try to resolve it :based:
         ASIPSDualityActivationAction action = new ASIPSDualityActivationAction(event.getStackLocation());
         if (!action.isVerified()) {
-            /*HDA*/ActuallySizeInteractions.Log("ASI &3 IED 1 &7 Unverified, registering [FROM] into Probable-Flux: " + event.getStackLocation().getStatement());
+            //HDA//ActuallySizeInteractions.Log("ASI &3 IED 1 &7 Unverified, registering [FROM] into Probable-Flux: " + event.getStackLocation().getStatement());
 
             /*
              * So we failed to verify a new Item Duality. Most
@@ -134,7 +192,7 @@ public class ASIEventExecutionListener {
 
         // If it verifies, attempt to activate it
         } else {
-            /*HDA*/ActuallySizeInteractions.Log("ASI &3 IED 1 &7 Verified, registering [TO] into Probable-Flux: " + event.getStackLocation().getStatement());
+            //HDA//ActuallySizeInteractions.Log("ASI &3 IED 1 &7 Verified, registering [TO] into Probable-Flux: " + event.getStackLocation().getStatement());
 
             // Register to flux evaluation
             if (!ASIPickupSystemManager.probableDualityFlux(action)) { action.tryResolve(); }   // If it makes no flux sense, resolve instant
@@ -204,6 +262,146 @@ public class ASIEventExecutionListener {
         // Client resolves enqueued packets
         if (!event.isClientSide()) {
             ASIPickupSystemManager.saveAllActiveEntityCounterparts();
+        }
+    }
+
+    /**
+     * @since 1.0.0
+     * @author Actually Portals
+     */
+    @SubscribeEvent
+    public static void OnUseItemStart(@NotNull LivingEntityUseItemEvent.Start event) {
+
+        /*
+         * "Hungry Beegs" option that makes players eat food
+         * faster or slower depending on their size, how silly.
+         *
+         * ASI Held Entities are actually exempted. Players
+         * straight-up take twice as long just for the hell
+         * of it.
+         */
+        if (!(event.getEntity() instanceof Player)) { return; }
+        if (!event.getItem().isEdible()) { return; }
+        //FOO//ActuallySizeInteractions.Log("ASI &1 FOO &7 Recalculating food duration, clientside? " + event.getEntity().level().isClientSide);
+
+        // ASI Held Entities bypass this nerf
+        UseTimed cacheTime = ((UseTimed) (Object) event.getItem());
+        if (event.getItem().getItem() instanceof ASIPSHeldEntityItem) {
+            if (((ASIPSHeldEntityItem) event.getItem().getItem()).isPlayer()) { event.setDuration(event.getDuration() * 2); }
+            //FOO//ActuallySizeInteractions.Log("ASI &1 FOO &7 Living food exemption");
+            cacheTime.actuallysize$setUseTimeTicks(event.getDuration());
+            return; }
+        if (!ActuallyServerConfig.hungryBeegs) { return; }
+
+        // Okay now, the duration scales with inversely with your size
+        Player player = (Player) event.getEntity();
+        double size = ASIUtilities.getEffectiveSize(player);
+        double sizeAmplifier = ASIUtilities.beegBalanceResist(size, 3, 0.35);
+
+        // It also scales directly with food nutrition level
+        int nutrition = event.getItem().getFoodProperties(player).getNutrition();
+        if (nutrition < 1) { nutrition = 1; }
+        double nutritionAmplifier = 1;
+
+        // For tinies, food nutrition results in large increases
+        if (size < 0.25) {
+            nutritionAmplifier = ASIUtilities.beegBalanceEnhance((nutrition * 0.85 + 0.5) + 0.7, 8, 1);
+
+        // When not so large, it is more of a silly gimmick
+        } else {
+            nutritionAmplifier = ASIUtilities.beegBalanceEnhance((nutrition + 3) * 0.25, 2, 1);
+        }
+
+        // Combine amplifiers
+        int result = OotilityNumbers.ceil(event.getDuration() * sizeAmplifier * nutritionAmplifier);
+        //FOO//ActuallySizeInteractions.Log("ASI &1 FOO &7 Duration food (x" + size + " = " + sizeAmplifier + ", N" + nutrition + " = " + nutritionAmplifier+ ") &b " + event.getDuration() + " &r to &3 " + result);
+
+        // What is one more tick in the grand scheme of things?
+        event.setDuration(result);
+        cacheTime.actuallysize$setUseTimeTicks(event.getDuration());
+    }
+
+    /**
+     * @since 1.0.0
+     * @author Actually Portals
+     */
+    @SubscribeEvent
+    public static void OnEdaciousPropertiesBuild(@NotNull ASIPSFoodPropertiesEvent event) {
+        //FOO//ActuallySizeInteractions.Log("ASI &1 FOO &r Food Properties Event for &3 " + event.getEntity().getClass().getSimpleName());
+
+        /*
+         * Some entities simply have special effects
+         */
+        LivingEntity edacious = event.getEntity();
+        if (edacious instanceof Player) {
+            event.setSaturation(event.getSaturation() + (float) (10 * ASIUtilities.beegBalanceEnhance(event.getSize(), 4, 0.25)));
+
+        // Funny glow squid with night vision
+        } else if (edacious instanceof GlowSquid) {
+            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.NIGHT_VISION, 500, 0), 1F);
+        }
+
+        // Animals have saturation
+        if (edacious instanceof Animal) {
+            event.setSaturation(event.getSaturation() + (float) (5 * ASIUtilities.beegBalanceEnhance(event.getSize(), 4, 0.25)));
+        }
+
+        // Skeletons have no nutritional value
+        if (edacious.getType().is(EntityTypeTags.SKELETONS)) {
+            event.setNutrition(0);
+            event.setSaturation(0);
+        }
+
+        // Golems have no nutritional value
+        if (edacious instanceof AbstractGolem) {
+            event.setNutrition(0);
+            event.setSaturation(0);
+        }
+
+        // Raiders have saturation
+        if (edacious.getType().is(EntityTypeTags.RAIDERS)) {
+            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.NIGHT_VISION, 500, 0), 1F);
+        }
+    }
+
+    /**
+     * @since 1.0.0
+     * @author Actually Portals
+     */
+    @SubscribeEvent
+    public static void OnEffectEvent(@NotNull MobEffectEvent.Added event) {
+        if (!(event.getEntity() instanceof ServerPlayer)) { return; }
+
+        /*
+         * When ASI hunger mode is enabled, beegs are resistant to hunger effect
+         */
+        if (ActuallyServerConfig.hungryBeegs) {
+
+            // If the effect being added is hunger
+            if (event.getEffectInstance().getEffect().equals(MobEffects.HUNGER)) {
+                double size = ASIUtilities.getEffectiveSize(event.getEntity());
+                event.getEffectInstance().mapDuration((dur) -> OotilityNumbers.ceil(dur * ASIUtilities.beegBalanceResist(size, 1, 0.1)));
+                return;
+            }
+        }
+
+        /*
+         * Beegs in general resist a few combat-related potion effects
+         */
+
+        // If the effect being added is combat-related
+        if (event.getEffectInstance().getEffect().equals(MobEffects.POISON) ||
+            event.getEffectInstance().getEffect().equals(MobEffects.WITHER) ||
+            event.getEffectInstance().getEffect().equals(MobEffects.SLOW_FALLING)) {
+            double size = ASIUtilities.getEffectiveSize(event.getEntity());
+            event.getEffectInstance().mapDuration((dur) -> OotilityNumbers.ceil(dur * ASIUtilities.beegBalanceResist(size, 1, 0.3)));
+            return;
+        }
+
+        // If the effect being added is blindness that doesn't even let you see your feet
+        if (event.getEffectInstance().getEffect().equals(MobEffects.BLINDNESS)) {
+            double size = ASIUtilities.getEffectiveSize(event.getEntity());
+            event.getEffectInstance().mapDuration((dur) -> OotilityNumbers.ceil(dur * ASIUtilities.beegBalanceResist(size, 1, 0)));
         }
     }
 

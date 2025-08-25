@@ -218,7 +218,11 @@ public class ASIPSPickupAction implements APIFriendlyProcess {
      * @author Actually Portals
      */
     @Override
-    public boolean isVerified() { return true; }
+    public boolean isVerified() {
+        if (tiny instanceof LivingEntity) {
+            return !((LivingEntity) tiny).isDeadOrDying(); }
+        return true;
+    }
 
     @Override
     public boolean isAllowed() {
@@ -284,12 +288,15 @@ public class ASIPSPickupAction implements APIFriendlyProcess {
      */
     void resolveForPlayer(@NotNull Player tinyCast) {
         if (!ActuallyServerConfig.enableEntityHolding) { return; }
-        /*HDA*/ActuallySizeInteractions.Log("ASI &b HDP &7 Picking up player " + tiny.getScoreboardName());
+        //HDA//ActuallySizeInteractions.Log("ASI &b HDP &7 Picking up player " + tiny.getScoreboardName());
+
+        // Wake
+        if (tinyCast.isSleeping()) { tinyCast.stopSleeping(); }
 
         // Is it an entity duality? YOINK then? LMAO
         EntityDualityCounterpart entityDuality = (EntityDualityCounterpart) tiny;
         if (entityDuality.actuallysize$isActive()) {
-            /*HDA*/ActuallySizeInteractions.Log("ASI &b HDP &7 Player escaping from previous hold...");
+            //HDA//ActuallySizeInteractions.Log("ASI &b HDP &7 Player escaping from previous hold...");
 
             // It must escape before we can pick it up. Force escape this entity
             ASIPSDualityEscapeAction escape = new ASIPSDualityEscapeAction(entityDuality);
@@ -300,21 +307,21 @@ public class ASIPSPickupAction implements APIFriendlyProcess {
         ItemStack drop = ASIPickupSystemManager.generateHeldItem(tinyCast);
         stackLocation.setItemStack(drop);
         drop.setPopTime(5);
-        /*HDA*/ActuallySizeInteractions.Log("ASI &b HDP &7 Given player item");
+        //HDA//ActuallySizeInteractions.Log("ASI &b HDP &7 Given player item");
 
         // Delete the item if activation fails
         if (!chainIntoActivation(drop)) {
-            /*HDA*/ActuallySizeInteractions.Log("ASI &b HDP &c Cancelled player item");
+            //HDA//ActuallySizeInteractions.Log("ASI &b HDP &c Cancelled player item");
             drop.setCount(0); }
 
-        /*HDA*/ActuallySizeInteractions.Log("ASI &b HDP &a Entity pickup COMPLETED ");
-        /*HDA*/ActuallySizeInteractions.Log("ASI &b HDP &a + Item: &f " + drop.getCount() + "x " + drop.getDisplayName().getString());
-        /*HDA*/ActuallySizeInteractions.Log("ASI &b HDP &a + Tiny: &f " + tinyCast.getScoreboardName());
-        /*HDA*/ActuallySizeInteractions.Log("ASI &b HDP &a + Beeg: &f " + getBeeg().getScoreboardName());
-        /*HDA*/ActuallySizeInteractions.Log("ASI &b HDP &a + Tiny active: &f " + ((EntityDualityCounterpart) tinyCast).actuallysize$isActive());
-        /*HDA*/ActuallySizeInteractions.Log("ASI &b HDP &a + Tiny held: &f " + ((EntityDualityCounterpart) tinyCast).actuallysize$isHeld());
-        /*HDA*/ActuallySizeInteractions.Log("ASI &b HDP &a + Tiny root holder: &f " + ((Entity) ((EntityDualityCounterpart) tinyCast).actuallysize$getRootDualityHolder()).getScoreboardName());
-        /*HDA*/ActuallySizeInteractions.Log("ASI &b HDP &a + Tiny item count: &f " + ((EntityDualityCounterpart) tinyCast).actuallysize$getItemCounterpart());
+        //HDA//ActuallySizeInteractions.Log("ASI &b HDP &a Entity pickup COMPLETED ");
+        //HDA//ActuallySizeInteractions.Log("ASI &b HDP &a + Item: &f " + drop.getCount() + "x " + drop.getDisplayName().getString());
+        //HDA//ActuallySizeInteractions.Log("ASI &b HDP &a + Tiny: &f " + tinyCast.getScoreboardName());
+        //HDA//ActuallySizeInteractions.Log("ASI &b HDP &a + Beeg: &f " + getBeeg().getScoreboardName());
+        //HDA//ActuallySizeInteractions.Log("ASI &b HDP &a + Tiny active: &f " + ((EntityDualityCounterpart) tinyCast).actuallysize$isActive());
+        //HDA//ActuallySizeInteractions.Log("ASI &b HDP &a + Tiny held: &f " + ((EntityDualityCounterpart) tinyCast).actuallysize$isHeld());
+        //HDA//ActuallySizeInteractions.Log("ASI &b HDP &a + Tiny root holder: &f " + ((Entity) ((EntityDualityCounterpart) tinyCast).actuallysize$getRootDualityHolder()).getScoreboardName());
+        //HDA//ActuallySizeInteractions.Log("ASI &b HDP &a + Tiny item count: &f " + ((EntityDualityCounterpart) tinyCast).actuallysize$getItemCounterpart());
     }
 
     /**
@@ -326,12 +333,15 @@ public class ASIPSPickupAction implements APIFriendlyProcess {
      * @author Actually Portals
      */
     void resolveForNonPlayer() {
-        /*HDA*/ActuallySizeInteractions.Log("ASI &b HDP &7 Picking up " + tiny.getScoreboardName());
+        //HDA//ActuallySizeInteractions.Log("ASI &b HDP &7 Picking up " + tiny.getScoreboardName());
+
+        // Wake
+        if (tiny instanceof LivingEntity && ((LivingEntity) tiny).isSleeping()) { ((LivingEntity) tiny).stopSleeping(); }
 
         // Is it an entity duality? YOINK then? LMAO
         EntityDualityCounterpart entityDuality = (EntityDualityCounterpart) tiny;
         if (entityDuality.actuallysize$isActive()) {
-            /*HDA*/ActuallySizeInteractions.Log("ASI &b HDP &7 Escaping from previous hold...");
+            //HDA//ActuallySizeInteractions.Log("ASI &b HDP &7 Escaping from previous hold...");
 
             // It must escape before we can pick it up. Force escape this entity
             ASIPSDualityEscapeAction escape = new ASIPSDualityEscapeAction(entityDuality);
@@ -342,13 +352,13 @@ public class ASIPSPickupAction implements APIFriendlyProcess {
         ItemStack drop = ASIPickupSystemManager.generateHeldItem(tiny);
         stackLocation.setItemStack(drop);
         drop.setPopTime(5);
-        /*HDA*/ActuallySizeInteractions.Log("ASI &b HDP &7 Given drop!");
+        //HDA//ActuallySizeInteractions.Log("ASI &b HDP &7 Given drop!");
 
         // Delete the entity from the world (real)
         if (!isPickupAndHold() || !chainIntoActivation(drop)) {
             getTiny().remove(Entity.RemovalReason.UNLOADED_WITH_PLAYER);
         }
-        /*HDA*/ActuallySizeInteractions.Log("ASI &b HDP &a Entity pickup COMPLETED ");
+        //HDA//ActuallySizeInteractions.Log("ASI &b HDP &a Entity pickup COMPLETED ");
     }
 
     /**
@@ -366,7 +376,7 @@ public class ASIPSPickupAction implements APIFriendlyProcess {
 
         // Build the action
         ASIPSDualityActivationAction action = new ASIPSDualityActivationAction(stackLocation, item, tiny);
-        /*HDA*/ActuallySizeInteractions.Log("ASI &b HDP &7 Chaining activation...");
+        //HDA//ActuallySizeInteractions.Log("ASI &b HDP &7 Chaining activation...");
 
         // Verify it and run it
         return action.tryResolve();

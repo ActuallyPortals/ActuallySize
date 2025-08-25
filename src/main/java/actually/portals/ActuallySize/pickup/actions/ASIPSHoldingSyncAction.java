@@ -198,7 +198,7 @@ public class ASIPSHoldingSyncAction implements APIFriendlyProcess {
                 // Must be a different player and within 32 chunks
                 return !p.equals(target) && p.position().distanceToSqr(target.position()) < 262145;
             });
-            /*HDA*/ActuallySizeInteractions.Log("ASI OWL &6 Broadcasting player configs x" + nearbyPlayers.size());
+            //HDA//ActuallySizeInteractions.Log("ASI OWL &6 Broadcasting player configs x" + nearbyPlayers.size());
 
             ASINCHoldPointsConfigurationBroadcast bcp = null;
             if (broadcastConfigurables != null) {
@@ -208,7 +208,7 @@ public class ASIPSHoldingSyncAction implements APIFriendlyProcess {
 
             // Broadcast their configuration
             for (ServerPlayer nearby : nearbyPlayers) {
-                /*HDA*/ActuallySizeInteractions.Log("ASI OWL &6 Synced to &e " + nearby.getScoreboardName());
+                //HDA//ActuallySizeInteractions.Log("ASI OWL &6 Synced to &e " + nearby.getScoreboardName());
 
                 // Request their configuration
                 if (configurablesSync) {
@@ -237,7 +237,7 @@ public class ASIPSHoldingSyncAction implements APIFriendlyProcess {
              * (3) Send information on active dualities
              */
             List<Entity> foundEntities = world.getEntities(target, target.getBoundingBox().inflate(512, 512, 512));
-            /*HDA*/ActuallySizeInteractions.Log("ASI OWL &6 Broadcasting dualities sync for x" + foundEntities.size());
+            //HDA//ActuallySizeInteractions.Log("ASI OWL &6 Broadcasting dualities sync for x" + foundEntities.size());
             for (Entity nearby : foundEntities) {
 
                 // We are only considering active dualities
@@ -246,7 +246,7 @@ public class ASIPSHoldingSyncAction implements APIFriendlyProcess {
                 ItemDualityCounterpart dualityItem = (ItemDualityCounterpart) (Object) dualityEntity.actuallysize$getItemCounterpart();
                 if (dualityItem == null) { continue; }
                 ItemStackLocation<? extends Entity> stackLocation = dualityItem.actuallysize$getItemStackLocation();
-                /*HDA*/ActuallySizeInteractions.Log("ASI OWL &6 + &7 Broadcasting dualities data on &e " + nearby.getScoreboardName());
+                //HDA//ActuallySizeInteractions.Log("ASI OWL &6 + &7 Broadcasting dualities data on &e " + nearby.getScoreboardName());
 
                 // Send information
                 ASINCItemEntityActivationPacket packet = new ASINCItemEntityActivationPacket(stackLocation, nearby);

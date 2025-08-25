@@ -1,23 +1,29 @@
 package actually.portals.ActuallySize.pickup.item;
 
 import actually.portals.ActuallySize.ASIUtilities;
+import actually.portals.ActuallySize.ActuallyServerConfig;
 import actually.portals.ActuallySize.ActuallySizeInteractions;
 import actually.portals.ActuallySize.pickup.ASIPickupSystemManager;
 import actually.portals.ActuallySize.pickup.actions.ASIPSDualityEscapeAction;
+import actually.portals.ActuallySize.pickup.events.ASIPSFoodPropertiesEvent;
 import actually.portals.ActuallySize.pickup.holding.ASIPSHoldPoint;
 import actually.portals.ActuallySize.pickup.holding.ASIPSHoldPoints;
-import actually.portals.ActuallySize.pickup.mixininterfaces.EntityDualityCounterpart;
-import actually.portals.ActuallySize.pickup.mixininterfaces.GraceImpulsable;
-import actually.portals.ActuallySize.pickup.mixininterfaces.ItemDualityCounterpart;
-import actually.portals.ActuallySize.pickup.mixininterfaces.ItemEntityDualityHolder;
+import actually.portals.ActuallySize.pickup.mixininterfaces.*;
 import gunging.ootilities.GungingOotilitiesMod.instants.GOOMPlayerMomentumSync;
+import gunging.ootilities.GungingOotilitiesMod.ootilityception.OotilityNumbers;
+import gunging.ootilities.GungingOotilitiesMod.scheduling.SchedulingManager;
+import net.minecraft.client.Minecraft;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.UseAnim;
@@ -25,6 +31,7 @@ import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.client.extensions.common.IClientItemExtensions;
+import net.minecraftforge.common.MinecraftForge;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -84,13 +91,53 @@ public class ASIPSHeldEntityItem extends Item {
      */
     public boolean isPlayer() { return player; }
 
+    @Override
+    public @NotNull SoundEvent getEatingSound() {
+        return SoundEvents.PLAYER_HURT_DROWN;
+    }
+
+    /**
+     * This will register the custom item renderer that renders
+     * the enclosed entity instead of a model or so.
+     *
+     * @param consumer The client initialization consumer
+     *
+     * @author Actually Portals
+     * @since 1.0.0
+     */
+    @Override
+    public void initializeClient(Consumer<IClientItemExtensions> consumer) {
+
+        /*
+         * Normally, items are displayed as that simple 2D image made thick
+         * in the players' arm. However, we don't want to display a static
+         * image like this, we want to display the entity being held.
+         *
+         * Therefore, we must override Minecraft's rendering of this item in
+         * inventory, so it does not bother drawing a texture onto the screen,
+         * instead we must trick it into showing the entity encoded in the item.
+         *
+         * Almost as if the entity was alive and moving in the world, you know,
+         * like usual, but currently it is in an inventory slot.
+         */
+        consumer.accept(new ASIPSHeldEntityExtension());
+    }
+
     /**
      * @param pProperties The properties of this item
      *
      * @author Actually Portals
      * @since 1.0.0
      */
-    public ASIPSHeldEntityItem(@NotNull Properties pProperties) { super(pProperties); }
+    public ASIPSHeldEntityItem(@NotNull Properties pProperties) { this(pProperties, false); }
+
+    /**
+     * @param pProperties The properties of this item
+     *
+     * @author Actually Portals
+     * @since 1.0.0
+     */
+    public ASIPSHeldEntityItem(@NotNull Properties pProperties, boolean isPlayer) { super(pProperties); player = isPlayer; }
 
     /**
      * @param pStack The actual existing ItemStack instance
@@ -107,9 +154,6 @@ public class ASIPSHeldEntityItem extends Item {
         Entity entityCounterpart = itemDuality.actuallysize$getEntityCounterpart();
         if (entityCounterpart != null) { return entityCounterpart.getName(); }
 
-        // Player items are invalid if they have no duality
-        if (isPlayer()) { return Component.translatable("tooltip.actuallysizeinteractions.invalid"); }
-
         // Not sure when this would happen
         if (!pStack.hasTag()) { return Component.translatable("tooltip.actuallysizeinteractions.invalid"); }
 
@@ -122,7 +166,7 @@ public class ASIPSHeldEntityItem extends Item {
         return Component.literal(entityName);
     }
 
-    @Nullable Entity counterpartOrRebuild(@NotNull Level world, @Nullable ItemStack source, boolean forceNewEntity, boolean escapeIfSuccess) {
+    @Nullable public Entity counterpartOrRebuild(@Nullable Level world, @Nullable ItemStack source, boolean forceNewEntity, boolean escapeIfSuccess) {
         if (source == null) { return null; }
 
         /*
@@ -131,8 +175,10 @@ public class ASIPSHeldEntityItem extends Item {
          *
          * Anyway, when not forcing, if an entity exists in the world it
          * takes priority over generating one from the item.
+         *
+         * Being players forces to use the one in the world tho
          */
-        if (!forceNewEntity) {
+        if (!forceNewEntity || isPlayer()) {
 
             // Check for existing entity and accept it
             ItemDualityCounterpart itemDuality = (ItemDualityCounterpart) (Object) source;
@@ -155,10 +201,12 @@ public class ASIPSHeldEntityItem extends Item {
         }
 
         // Either we are forcing a new entity or rebuilding from tag
+        if (isPlayer()) { return null; }
+        if (world == null) { return null; }
         if (!source.hasTag()) { return null; }
         CompoundTag compoundTag = source.getTag();
         if (compoundTag == null) { return null; }
-        /*HDA*/ActuallySizeInteractions.Log("ASI &6 REC &r Generating from ASIPSHeldEntityItem.counterpartOrRebuild(Level, ItemStack, boolean, boolean)");
+        //HDA//ActuallySizeInteractions.Log("ASI &6 REC &r Generating from ASIPSHeldEntityItem.counterpartOrRebuild(Level, ItemStack, boolean, boolean)");
 
         // Rebuild entity
         Entity rebuilt = ASIPickupSystemManager.loadEntityFromTag(compoundTag.getCompound(TAG_ENTITY), world);
@@ -196,18 +244,15 @@ public class ASIPSHeldEntityItem extends Item {
         // Only makes sense when used by a player
         Player holderPlayer = useContext.getPlayer();
         if (holderPlayer == null) { return InteractionResult.PASS; }
+        if (holderPlayer.isCrouching()) { return InteractionResult.PASS; }
 
         // Fetch the entity to be placed down
         ItemDualityCounterpart itemDuality = (ItemDualityCounterpart) (Object) itemCounterpart;
         EntityDualityCounterpart entityDuality = (EntityDualityCounterpart) itemDuality.actuallysize$getEntityCounterpart();
         if (entityDuality != null) {
 
-            // Find its hold point
-            ASIPSHoldPoint holdPoint = entityDuality.actuallysize$getHoldPoint();
-            if (holdPoint == null) { holdPoint = ASIPSHoldPoints.MAINHAND; }
-
             // Force new if creative (unless players, players cannot be duped)
-            if (holderPlayer.isCreative() && !isPlayer()) {
+            if (holderPlayer.getAbilities().instabuild && !isPlayer()) {
                 Level level = holderPlayer.level();
                 Entity rebuilt = counterpartOrRebuild(level, itemCounterpart, true, true);
                 if (rebuilt != null) { entityDuality = (EntityDualityCounterpart) rebuilt; } }
@@ -226,12 +271,12 @@ public class ASIPSHeldEntityItem extends Item {
                 sync.tryResolve();
             }
 
-            // Rebuild entity and throw
+        // Rebuild entity and throw
         } else {
 
             // Rebuild entity
             Level level = holderPlayer.level();
-            Entity rebuilt = counterpartOrRebuild(level, itemCounterpart, holderPlayer.isCreative(), true);
+            Entity rebuilt = counterpartOrRebuild(level, itemCounterpart, holderPlayer.getAbilities().instabuild, true);
             if (rebuilt == null) {
                 //ActuallySizeInteractions.Log("PS USE Rebuild Failure");
                 return InteractionResult.PASS; }
@@ -246,7 +291,7 @@ public class ASIPSHeldEntityItem extends Item {
         }
 
         // Item count decrease
-        if (!holderPlayer.isCreative()) { itemCounterpart.shrink(1); }
+        if (!holderPlayer.getAbilities().instabuild) { itemCounterpart.shrink(1); }
 
         return InteractionResult.CONSUME;
     }
@@ -307,18 +352,6 @@ public class ASIPSHeldEntityItem extends Item {
     }
 
     /**
-     * @param pStack The actual ItemStack instance
-     * @return The animation that is used when using
-     *
-     * @author Actually Portals
-     * @since 1.0.0
-     */
-    @Override
-    public @NotNull UseAnim getUseAnimation(@NotNull ItemStack pStack) {
-        return pStack.getItem().isEdible() ? UseAnim.DRINK : UseAnim.BLOCK;
-    }
-
-    /**
      * Attempts to throw this held entity forward
      *
      * @param itemCounterpart The actual existing ItemStack
@@ -344,6 +377,7 @@ public class ASIPSHeldEntityItem extends Item {
         // Only makes sense when used by a player
         if (!(holderEntity instanceof Player)) { return false; }
         Player holderPlayer = (Player) holderEntity;
+        if (holderPlayer.isCrouching()) { return false; }
 
         // Throw active entity duality
         ItemDualityCounterpart itemDuality = (ItemDualityCounterpart) (Object) itemCounterpart;
@@ -355,7 +389,7 @@ public class ASIPSHeldEntityItem extends Item {
             if (holdPoint == null) { holdPoint = ASIPSHoldPoints.MAINHAND; }
 
             // Force new if creative (unless players, players cannot be duped)
-            if (holderPlayer.isCreative() && !isPlayer()) {
+            if (holderPlayer.getAbilities().instabuild && !isPlayer()) {
                 Level level = holderPlayer.level();
                 Entity rebuilt = counterpartOrRebuild(level, itemCounterpart, true, true);
                 if (rebuilt != null) { entityDuality = (EntityDualityCounterpart) rebuilt; } }
@@ -379,7 +413,7 @@ public class ASIPSHeldEntityItem extends Item {
 
             // Rebuild entity
             Level level = holderPlayer.level();
-            Entity rebuilt = counterpartOrRebuild(level, itemCounterpart, holderPlayer.isCreative(), true);
+            Entity rebuilt = counterpartOrRebuild(level, itemCounterpart, holderPlayer.getAbilities().instabuild, true);
             if (rebuilt == null) {
                 //ActuallySizeInteractions.Log("PS SWING Rebuild Failure");
                 return false; }
@@ -398,36 +432,97 @@ public class ASIPSHeldEntityItem extends Item {
         }
 
         // Item count decrease
-        if (!holderPlayer.isCreative()) { itemCounterpart.shrink(1); }
+        if (!holderPlayer.getAbilities().instabuild) { itemCounterpart.shrink(1); }
 
         // Complete processing
         return true;
     }
 
     /**
-     * This will register the custom item renderer that renders
-     * the enclosed entity instead of a model or so.
-     *
-     * @param consumer The client initialization consumer
+     * @param pStack The actual ItemStack instance
+     * @return The animation that is used when using
      *
      * @author Actually Portals
      * @since 1.0.0
      */
-    @Override
-    public void initializeClient(Consumer<IClientItemExtensions> consumer) {
-
-        /*
-         * Normally, items are displayed as that simple 2D image made thick
-         * in the players' arm. However, we don't want to display a static
-         * image like this, we want to display the entity being held.
-         *
-         * Therefore, we must override Minecraft's rendering of this item in
-         * inventory, so it does not bother drawing a texture onto the screen,
-         * instead we must trick it into showing the entity encoded in the item.
-         *
-         * Almost as if the entity was alive and moving in the world, you know,
-         * like usual, but currently it is in an inventory slot.
-         */
-        consumer.accept(new ASIPSHeldEntityExtension());
+    @Override public @NotNull UseAnim getUseAnimation(@NotNull ItemStack pStack) {
+        return pStack.getItem().isEdible() ? UseAnim.DRINK : UseAnim.BLOCK;
     }
+
+    /**
+     * @author Actually Portals
+     * @since 1.0.0
+     */
+    @Override
+    public @Nullable FoodProperties getFoodProperties(ItemStack itemCounterpart, @Nullable LivingEntity entity) {
+
+        // The system where the size of the held entity is taken into account
+        long serverTick = SchedulingManager.getServerTicks() + SchedulingManager.getClientTicks();
+        if (serverTick > sizeFoodTick || sizeFoodContribution == null) {
+            sizeFoodTick = serverTick + 200;
+            sizeFoodNutrition = 1;
+
+            // Start with the base properties
+            FoodProperties base = new FoodProperties.Builder().alwaysEat().build();
+
+            // Rebuild the entity in attempts to extract its size
+            FoodProperties enclosedContribution = null;
+            Entity rebuilt = counterpartOrRebuild(entity != null ? entity.level() : null, itemCounterpart, false, false);
+            if (rebuilt instanceof LivingEntity) {
+                ASIPSFoodPropertiesEvent food = new ASIPSFoodPropertiesEvent((LivingEntity) rebuilt);
+                //FOO//ActuallySizeInteractions.Log("ASI &1 FOO &r Posted event. Clientside? &6 " + rebuilt.level().isClientSide);
+                MinecraftForge.EVENT_BUS.post(food);
+                food.getBuilder().nutrition(food.getNutrition());
+                food.getBuilder().saturationMod(food.getSaturation());
+                enclosedContribution = food.getBuilder().build();
+                sizeFoodNutrition = enclosedContribution.getNutrition();
+            }
+            //FOO//ActuallySizeInteractions.Log("ASI &1 FOO &r Size requested &6 " + (enclosedContribution == null ? "null" : "N" + enclosedContribution.getNutrition() + " S" + enclosedContribution.getSaturationModifier()));
+
+            // The system where edible drops of eaten tinies are consumed
+            FoodProperties edaciousContribution = ((Edacious) (Object) itemCounterpart).actuallysize$getEdaciousProperties();
+            //FOO//ActuallySizeInteractions.Log("ASI &1 FOO &r Edacious requested &6 " + (edaciousContribution == null ? "null" : "N" + edaciousContribution.getNutrition() + " S" + edaciousContribution.getSaturationModifier()));
+
+            // Prepare and return
+            sizeFoodContribution = ASIPickupSystemManager.prepareFoodProperties(base, edaciousContribution, enclosedContribution);
+            return sizeFoodContribution;
+
+        // Not time to regenerate it
+        } else { return sizeFoodContribution; }
+    }
+
+    /**
+     * @author Actually Portals
+     * @since 1.0.0
+     */
+    @Override public @Nullable FoodProperties getFoodProperties() { return sizeFoodContribution; }
+
+    /**
+     * Food nutrition added depending on the enclosed entity
+     *
+     * @since 1.0.0
+     */
+    @Nullable FoodProperties sizeFoodContribution;
+
+    /**
+     * The amount of nutrition provided by the enclosed entity
+     *
+     * @since 1.0.0
+     */
+    int sizeFoodNutrition;
+
+    /**
+     * Server tick to avoid regenerating the food properties too fast
+     *
+     * @since 1.0.0
+     */
+    long sizeFoodTick;
+
+    /**
+     * Forces recalculation of Food Properties
+     *
+     * @author Actually Portals
+     * @since 1.0.0
+     */
+    public void resetFoodTick() { sizeFoodTick = 0; }
 }

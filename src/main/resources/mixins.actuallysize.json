@@ -12,6 +12,7 @@
     "ClientPacketListenerMixin",
     "EntityRenderDispatcherMixin",
     "InventoryScreenMixin$Pehkui",
+    "ItemInHandRendererMixin",
     "LocalPlayerMixin"
   ],
   "mixins": [
@@ -26,6 +27,8 @@
     "EntityMixin",
     "FlyingPathNavigationMixin",
     "FollowOwnerGoalMixin",
+    "FoodDataMixin",
+    "FoodPropertiesMixin",
     "GroundPathNavigationMixin",
     "HorseMixin",
     "ItemStackMixin",
@@ -40,6 +43,7 @@
     "ServerLevelMixin",
     "ServerPlayerMixin",
     "SleepInBedMixin",
+    "SlimeMixin",
     "SnifferMixin",
     "WaterPathNavigationMixin"
   ],
