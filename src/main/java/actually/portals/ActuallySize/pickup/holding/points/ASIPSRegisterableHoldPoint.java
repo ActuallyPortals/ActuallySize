@@ -17,7 +17,7 @@ import java.util.Objects;
  * @since 1.0.0
  * @author Actually Portals
  */
-public abstract class ASIPSRegisterableHoldPoint implements ASIPSHoldPoint {
+public abstract class ASIPSRegisterableHoldPoint extends ASIPSHoldPoint {
 
     /**
      * The goal of this system is to use hold points as enums, and be able to index maps by

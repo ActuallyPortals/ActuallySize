@@ -2,6 +2,7 @@ package actually.portals.ActuallySize.pickup.holding.points;
 
 import gunging.ootilities.GungingOotilitiesMod.exploring.ItemExplorerStatement;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -34,7 +35,7 @@ public class ASIPSStaticHoldRegistry extends ASIPSHoldPointRegistry {
      * @since 1.0.0
      */
     @Override
-    public void registerHoldPoint(@NotNull ItemExplorerStatement<?,?> index, @NotNull ASIPSRegisterableHoldPoint point) {
+    public void registerHoldPoint(@Nullable ItemExplorerStatement<?,?> index, @NotNull ASIPSRegisterableHoldPoint point) {
 
         // Increase point index
         pointIndex = pointIndex + 1;

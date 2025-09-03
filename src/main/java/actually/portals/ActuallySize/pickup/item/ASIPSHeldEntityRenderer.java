@@ -1,6 +1,8 @@
 package actually.portals.ActuallySize.pickup.item;
 
 import actually.portals.ActuallySize.ASIUtilities;
+import actually.portals.ActuallySize.pickup.mixininterfaces.VASIPoseStack;
+import actually.portals.ActuallySize.pickup.mixininterfaces.EntityDualityCounterpart;
 import actually.portals.ActuallySize.pickup.mixininterfaces.ItemDualityCounterpart;
 import actually.portals.ActuallySize.pickup.mixininterfaces.ItemEntityDualityHolder;
 import com.mojang.blaze3d.vertex.PoseStack;
@@ -114,8 +116,8 @@ public class ASIPSHeldEntityRenderer extends BlockEntityWithoutLevelRenderer {
         // Render this entity
         //RBI//ActuallySizeInteractions.Log("ASI PS HEI&a Rendered");
         ItemEntityDualityHolder dualityHolder = dualityItem.actuallysize$getItemEntityHolder();
+        if (dualityHolder == null) { dualityHolder = ((VASIPoseStack) pPoseStack).actuallysize$getPoseParent(); }
         Entity holder = dualityHolder instanceof Entity ? (Entity) dualityHolder : null;
-        pPoseStack.pushPose();
 
         // Apparently holding yourself makes it recursive! LMAO
         if (holder != null) { if (entityCounterpart.getUUID().equals(holder.getUUID())) { return; } }
@@ -168,12 +170,6 @@ public class ASIPSHeldEntityRenderer extends BlockEntityWithoutLevelRenderer {
             case GUI:
             case FIXED:
                 transform = new Vec3(0.5D, 0, 0);
-
-                /*/ O I I A I O I I I A I
-                if (!dualityItem.actuallysize$isDualityActive()) {
-                    pPoseStack.rotateAround(new Quaternionf(0, 1, 0, 1), (float) Math.cos(System.currentTimeMillis() * 0.01D), (float) Math.sin(System.currentTimeMillis() * 0.01D), 0);
-                }
-                //*/
                 break;
 
             case GROUND:
@@ -185,11 +181,15 @@ public class ASIPSHeldEntityRenderer extends BlockEntityWithoutLevelRenderer {
 
             case THIRD_PERSON_LEFT_HAND:
             case THIRD_PERSON_RIGHT_HAND:
+
+                // For now, just don't display item when the entity is held
+                if (((EntityDualityCounterpart) entityCounterpart).actuallysize$isHeld()) {
+                    return; }
+
                 if (holder != null) {
                     transform = new Vec3(0.5D, 0.5D - getSinkingScalar(holder, entityCounterpart), 0.5D);
                 } else {
-                    transform = new Vec3(0.5D, 0.48D, 0.5D);
-                }
+                    transform = new Vec3(0.5D, 0.48D, 0.5D); }
                 break;
 
 
@@ -198,8 +198,16 @@ public class ASIPSHeldEntityRenderer extends BlockEntityWithoutLevelRenderer {
                 transform = new Vec3(0, 0, 0);
         }
 
+
+        pPoseStack.pushPose();
         pPoseStack.translate(transform.x, transform.y, transform.z);
         pPoseStack.scale(scale, scale, scale);
+
+        /*/ O I I A I O I I I A I
+        if (!dualityItem.actuallysize$isDualityActive()) {
+            pPoseStack.rotateAround(new Quaternionf(0, 1, 0, 1), (float) Math.cos(System.currentTimeMillis() * 0.01D), (float) Math.sin(System.currentTimeMillis() * 0.01D), 0);
+        }
+        //*/
 
         /*
 

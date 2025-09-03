@@ -81,7 +81,7 @@ public class ASIEventExecutionListener {
         syncing.withBroadcast(newer.actuallysize$getLocalHoldPoints().getRegisteredPoints());
         syncing.resolve();
 
-        //HDA//ActuallySizeInteractions.Log("ASI &6 DTR &7 (" + event.getEntity().getClass().getSimpleName() + ") Respawn copied over hold points &e x" + newer.actuallysize$getLocalHoldPoints().getRegisteredPoints().size());
+        /*HDA*/ActuallySizeInteractions.Log("ASI &6 DTR &7 (" + event.getEntity().getClass().getSimpleName() + ") Respawn copied over hold points &e x" + newer.actuallysize$getLocalHoldPoints().getRegisteredPoints().size());
     }
 
     /**
@@ -131,7 +131,7 @@ public class ASIEventExecutionListener {
             syncing.withBroadcast(asConfigurable.actuallysize$getLocalHoldPoints().getRegisteredPoints());
             syncing.resolve();
 
-            //HDA//ActuallySizeInteractions.Log("ASI &6 DTR &7 (" + event.getEntity().getClass().getSimpleName() + ") Teleportation requested dualities");
+            /*HDA*/ActuallySizeInteractions.Log("ASI &6 DTR &7 (" + event.getEntity().getClass().getSimpleName() + ") Teleportation requested dualities");
         }
     }
 
@@ -145,7 +145,7 @@ public class ASIEventExecutionListener {
 
         // Transfer server-side hold point configuration
         HoldPointConfigurable asConfigurableOld = (HoldPointConfigurable) event.getEntity();
-        //HDA//ActuallySizeInteractions.Log("ASI &6 DTR &7 (" + event.getEntity().getClass().getSimpleName() + ") Dimensional copied over hold points &e x" + asConfigurableOld.actuallysize$getLocalHoldPoints().getRegisteredPoints().size());
+        /*HDA*/ActuallySizeInteractions.Log("ASI &6 DTR &7 (" + event.getEntity().getClass().getSimpleName() + ") Dimensional copied over hold points &e x" + asConfigurableOld.actuallysize$getLocalHoldPoints().getRegisteredPoints().size());
         //asConfigurableOld.actuallysize$getLocalHoldPoints().log();
 
         // Sync hold point configurations to client
@@ -173,12 +173,12 @@ public class ASIEventExecutionListener {
     @SubscribeEvent(priority = EventPriority.LOW)
     public static void OnEquipmentChange(@NotNull ServersideEntityEquipmentChangeEvent event) {
         if (!ActuallyServerConfig.enableEntityHolding) { return; }
-        //HDA//ActuallySizeInteractions.Log("ASI &3 IED 1 &7 Intercepted &f " + event.getReason() + " &b " + event.getStackLocation().getStatement() + " &e Player " + event.getEntity().getScoreboardName() + " &r Item " + event.getCurrentItemStack().getDisplayName().getString() + ", VERIFYING...");
+        /*HDA*/ActuallySizeInteractions.Log("ASI &3 IED 1 &7 Intercepted &f " + event.getReason() + " &b " + event.getStackLocation().getStatement() + " &e Player " + event.getEntity().getScoreboardName() + " &r Item " + event.getCurrentItemStack().getDisplayName().getString() + ", VERIFYING...");
 
         // Create an action and try to resolve it :based:
         ASIPSDualityActivationAction action = new ASIPSDualityActivationAction(event.getStackLocation());
         if (!action.isVerified()) {
-            //HDA//ActuallySizeInteractions.Log("ASI &3 IED 1 &7 Unverified, registering [FROM] into Probable-Flux: " + event.getStackLocation().getStatement());
+            /*HDA*/ActuallySizeInteractions.Log("ASI &3 IED 1 &7 Unverified, registering [FROM] into Probable-Flux: " + event.getStackLocation().getStatement());
 
             /*
              * So we failed to verify a new Item Duality. Most
@@ -192,7 +192,7 @@ public class ASIEventExecutionListener {
 
         // If it verifies, attempt to activate it
         } else {
-            //HDA//ActuallySizeInteractions.Log("ASI &3 IED 1 &7 Verified, registering [TO] into Probable-Flux: " + event.getStackLocation().getStatement());
+            /*HDA*/ActuallySizeInteractions.Log("ASI &3 IED 1 &7 Verified, registering [TO] into Probable-Flux: " + event.getStackLocation().getStatement());
 
             // Register to flux evaluation
             if (!ASIPickupSystemManager.probableDualityFlux(action)) { action.tryResolve(); }   // If it makes no flux sense, resolve instant

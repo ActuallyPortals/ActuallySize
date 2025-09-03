@@ -108,49 +108,48 @@ public class ASIPSDualityFluxAction implements APIFriendlyProcess, ASINetworkDel
 
     @Override
     public boolean isVerified() {
-        //HDA//ActuallySizeInteractions.Log("ASI &1 HDF &r Flux Action VERIFICATION start [From " + (getFrom().getStackLocation() == null ? "null": getFrom().getStackLocation().getStatement()) + "] [To " + (getTo().getStackLocation() == null ? "null": getTo().getStackLocation().getStatement()) + "]");
+        /*HDA*/ActuallySizeInteractions.Log("ASI &1 HDF &8 Flux Action VERIFICATION start [From " + (getFrom().getStackLocation() == null ? "null": getFrom().getStackLocation().getStatement()) + "] [To " + (getTo().getStackLocation() == null ? "null": getTo().getStackLocation().getStatement()) + "]");
 
         // The entity counterparts must match
         if (getTo().getEntityCounterpart() == null) {
-            //HDA//ActuallySizeInteractions.Log("ASI &1 HDF &c Entity Unverified");
+            /*HDA*/ActuallySizeInteractions.Log("ASI &1 HDF &c Entity Unverified");
             return false; }
 
         if (!getTo().getEntityCounterpart().equals(getFrom().getEntityCounterpart())) {
-            //HDA//ActuallySizeInteractions.Log("ASI &1 HDF &c Entity Estranged");
+            /*HDA*/ActuallySizeInteractions.Log("ASI &1 HDF &c Entity Estranged");
             return false;
         }
 
         if (!getTo().isVerified()) {
-            //HDA//ActuallySizeInteractions.Log("ASI &1 HDF &c Destination Unverified");
+            /*HDA*/ActuallySizeInteractions.Log("ASI &1 HDF &c Destination Unverified");
             return false;
         }
 
         if (!getFrom().isVerified()) {
-            //HDA//ActuallySizeInteractions.Log("ASI &1 HDF &c Origin Unverified");
+            /*HDA*/ActuallySizeInteractions.Log("ASI &1 HDF &c Origin Unverified");
             return false;
         }
 
-        //HDA//ActuallySizeInteractions.Log("ASI &1 HDF &r Flux Action VERIFICATION &a PASSED");
-
         // The two constituents must be verified
+        /*HDA*/ActuallySizeInteractions.Log("ASI &1 HDF &r Flux Action VERIFICATION &2 PASSED");
         return true;
     }
 
     @Override
     public boolean isAllowed() {
-        //HDA//ActuallySizeInteractions.Log("ASI &1 HDF &r Flux Action ALLOW start");
+        /*HDA*/ActuallySizeInteractions.Log("ASI &1 HDF &r Flux Action ALLOW start");
 
         if (!getTo().isAllowed()) {
-            //HDA//ActuallySizeInteractions.Log("ASI &1 HDF &c Destination Disallowed");
+            /*HDA*/ActuallySizeInteractions.Log("ASI &1 HDF &c Destination Disallowed");
             return false;
         }
 
         if (!getFrom().isAllowed()) {
-            //HDA//ActuallySizeInteractions.Log("ASI &1 HDF &c Origin Disallowed");
+            /*HDA*/ActuallySizeInteractions.Log("ASI &1 HDF &c Origin Disallowed");
             return false;
         }
 
-        //HDA//ActuallySizeInteractions.Log("ASI &1 HDF &r Flux Action ALLOW &b PASSED");
+        /*HDA*/ActuallySizeInteractions.Log("ASI &1 HDF &r Flux Action ALLOW &e PASSED");
 
         // The two constituents must be allowed
         return true;
@@ -158,7 +157,7 @@ public class ASIPSDualityFluxAction implements APIFriendlyProcess, ASINetworkDel
 
     @Override
     public void resolve() {
-        //HDA//ActuallySizeInteractions.Log("ASI &1 HDF &r Item-Entity Flux &b RESOLVING");
+        /*HDA*/ActuallySizeInteractions.Log("ASI &1 HDF &r Item-Entity Flux &b RESOLVING");
 
         // Full identify
         Entity entityCounterpart = to.getEntityCounterpart();
@@ -174,7 +173,7 @@ public class ASIPSDualityFluxAction implements APIFriendlyProcess, ASINetworkDel
 
         if (entityCounterpart == null) { return; }
         boolean isServer = !entityCounterpart.level().isClientSide;
-        //HDA//ActuallySizeInteractions.Log("ASI &1 HDF &b (Clientside: " + !isServer + ")");
+        /*HDA*/ActuallySizeInteractions.Log("ASI &1 HDF &b (Clientside: " + !isServer + ")");
 
         /*
          * In the client-side, remote players do not have a cursor
@@ -189,7 +188,7 @@ public class ASIPSDualityFluxAction implements APIFriendlyProcess, ASINetworkDel
                     Player player = (Player) stackLocationTo.getHolder();
                     ItemStack drop = ASIPickupSystemManager.generateHeldItem(entityCounterpart);
                     player.inventoryMenu.setCarried(drop);
-                    //HDA//ActuallySizeInteractions.Log("ASI &1 HDF &7 Remote player cursor adjusted");
+                    /*HDA*/ActuallySizeInteractions.Log("ASI &1 HDF &7 Remote player cursor adjusted");
                     itemCounterpartTo = drop;
                     itemDualityTo = (ItemDualityCounterpart) (Object) itemCounterpartTo;
                 }
@@ -215,7 +214,7 @@ public class ASIPSDualityFluxAction implements APIFriendlyProcess, ASINetworkDel
          * flux where two item-dualities swap slots), the old slot may have a different entity
          * already.
          */
-        //HDA//ActuallySizeInteractions.Log("ASI &1 HDF &r Flux Holder " + holderEntityFrom.getScoreboardName() + " " + ((ASIPSRegisterableHoldPoint)holdPointFrom).getNamespacedKey() + " => " + holderEntityTo.getScoreboardName() + " " + ((ASIPSRegisterableHoldPoint)holdPointTo).getNamespacedKey());
+        /*HDA*/ActuallySizeInteractions.Log("ASI &1 HDF &r Flux Holder " + holderEntityFrom.getScoreboardName() + " " + ((ASIPSRegisterableHoldPoint)holdPointFrom).getNamespacedKey() + " => " + holderEntityTo.getScoreboardName() + " " + ((ASIPSRegisterableHoldPoint)holdPointTo).getNamespacedKey());
         EntityDualityCounterpart instantFrom = holderDualityTo.actuallysize$getHeldEntityDualities().get(holdPointFrom);
         if (instantFrom instanceof Entity && ((Entity) instantFrom).getUUID().equals(entityCounterpart.getUUID())) {
             holderDualityFrom.actuallysize$getHeldEntityDualities().remove(holdPointFrom); }
@@ -225,7 +224,7 @@ public class ASIPSDualityFluxAction implements APIFriendlyProcess, ASINetworkDel
          * #2   Unregistering from the old item counterpart
          */
         if (itemDualityFrom != null && itemDualityFrom.actuallysize$isDualityActive()) {
-            //HDA//ActuallySizeInteractions.Log("ASI &1 HDF &r Unregistering old item " + itemCounterpartFrom.getDisplayName().getString());
+            /*HDA*/ActuallySizeInteractions.Log("ASI &1 HDF &r Unregistering old item " + itemCounterpartFrom.getDisplayName().getString());
             itemDualityFrom.actuallysize$setItemEntityHolder(null);
             itemDualityFrom.actuallysize$setEntityCounterpart(null);
             itemDualityFrom.actuallysize$setItemStackLocation(null);
@@ -234,7 +233,7 @@ public class ASIPSDualityFluxAction implements APIFriendlyProcess, ASINetworkDel
         /*
          * #3   Registering onto the item counterpart
          */
-        //HDA//ActuallySizeInteractions.Log("ASI &1 HDF &r Registered new item " + itemCounterpartTo.getDisplayName().getString());
+        /*HDA*/ActuallySizeInteractions.Log("ASI &1 HDF &r Registered new item " + itemCounterpartTo.getDisplayName().getString());
         itemDualityTo.actuallysize$setItemEntityHolder(holderDualityTo);
         itemDualityTo.actuallysize$setEntityCounterpart(entityCounterpart);
         itemDualityTo.actuallysize$setItemStackLocation(stackLocationTo);
@@ -242,7 +241,7 @@ public class ASIPSDualityFluxAction implements APIFriendlyProcess, ASINetworkDel
         /*
          * #4   Updating the entity counterpart.
          */
-        //HDA//ActuallySizeInteractions.Log("ASI &1 HDF &r Flux Entity " + entityCounterpart.getScoreboardName());
+        /*HDA*/ActuallySizeInteractions.Log("ASI &1 HDF &r Flux Entity " + entityCounterpart.getScoreboardName());
         entityDuality.actuallysize$setItemEntityHolder(holderDualityTo);
         entityDuality.actuallysize$setItemCounterpart(itemCounterpartTo);
         entityDuality.actuallysize$setItemStackLocation(stackLocationTo);
@@ -256,12 +255,12 @@ public class ASIPSDualityFluxAction implements APIFriendlyProcess, ASINetworkDel
          */
 
         // Create packet to send over the network and send to those tracking this entity
-        //HDA//ActuallySizeInteractions.Log("ASI &1 HDF &r Flux packet. ");
+        /*HDA*/ActuallySizeInteractions.Log("ASI &1 HDF &r Flux packet. ");
         ASINCItemEntityFluxPacket packet = new ASINCItemEntityFluxPacket(
                 new ASINCItemEntityDeactivationPacket(getFrom().getEntityCounterpart()),
                 new ASINCItemEntityActivationPacket(getTo().getStackLocation(), getTo().getEntityCounterpart()));
         ASINetworkManager.broadcastEntityUpdate(entityCounterpart, packet);
 
-        //HDA//ActuallySizeInteractions.Log("ASI &1 HDF &r Item-Entity duality flux &a COMPLETED ");
+        /*HDA*/ActuallySizeInteractions.Log("ASI &1 HDF &r Item-Entity duality flux &a COMPLETED ");
     }
 }

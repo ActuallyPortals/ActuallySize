@@ -4,9 +4,7 @@ import actually.portals.ActuallySize.ActuallyClientConfig;
 import actually.portals.ActuallySize.ActuallySizeInteractions;
 import actually.portals.ActuallySize.netcode.packets.clientbound.ASINCHoldPointsSyncReply;
 import actually.portals.ActuallySize.pickup.actions.ASIPSDualityAction;
-import actually.portals.ActuallySize.pickup.actions.ASIPSDualityDeactivationAction;
 import actually.portals.ActuallySize.pickup.actions.ASIPSDualityEscapeAction;
-import actually.portals.ActuallySize.pickup.actions.ASIPSDualityFluxAction;
 import actually.portals.ActuallySize.pickup.events.ASIHoldPointRegistryEvent;
 import actually.portals.ActuallySize.pickup.events.ASIPSBuildLocalPlayerHoldPointsEvent;
 import actually.portals.ActuallySize.pickup.holding.ASIPSFluxProfile;
@@ -18,12 +16,10 @@ import actually.portals.ActuallySize.pickup.item.ASIPSHeldEntityItem;
 import actually.portals.ActuallySize.pickup.mixininterfaces.Combinable;
 import actually.portals.ActuallySize.pickup.mixininterfaces.EntityDualityCounterpart;
 import actually.portals.ActuallySize.pickup.mixininterfaces.ItemDualityCounterpart;
-import com.mojang.datafixers.util.Pair;
 import gunging.ootilities.GungingOotilitiesMod.exploring.entities.ISEExplorerStatements;
 import gunging.ootilities.GungingOotilitiesMod.exploring.players.ISPExplorerStatements;
 import net.minecraft.nbt.*;
 import net.minecraft.network.chat.Component;
-import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
@@ -159,7 +155,7 @@ public class ASIPickupSystemManager {
 
             // Skip player, those need no saving in the item
             if (entityCounterpart instanceof Player) {
-                //HDA//ActuallySizeInteractions.Log("ASI &4 HDM &r Ticking player duality " + entityCounterpart.getScoreboardName() + " held by " + ((Entity) dualityEntity.actuallysize$getItemEntityHolder()).getScoreboardName());
+                /*HDA*/ActuallySizeInteractions.Log("ASI &4 HDM &r Ticking player duality " + entityCounterpart.getScoreboardName() + " held by " + ((Entity) dualityEntity.actuallysize$getItemEntityHolder()).getScoreboardName());
                 continue; }
 
             // Save it
@@ -527,10 +523,10 @@ public class ASIPickupSystemManager {
         // Duality flux operations only make sense while the Entity Counterpart exists in the world
         Entity entityCounterpart = action.getEntityCounterpart();
         if (entityCounterpart == null) {
-            //HDA//ActuallySizeInteractions.Log("ASI &3 IED 1F &7 Probable-Flux REJECTION: &c No Entity");
+            /*HDA*/ActuallySizeInteractions.Log("ASI &3 IED 1F &7 Probable-Flux REJECTION: &c No Entity");
             return false; }
         if (entityCounterpart.level().isClientSide) {
-            //HDA//ActuallySizeInteractions.Log("ASI &3 IED 1F &7 Probable-Flux REJECTION: &c No CLIENT-SIDE!");
+            /*HDA*/ActuallySizeInteractions.Log("ASI &3 IED 1F &7 Probable-Flux REJECTION: &c No CLIENT-SIDE!");
             return false; }
 
         // Fetch the list of duality flux for this tick
@@ -538,7 +534,7 @@ public class ASIPickupSystemManager {
 
         // Include this action
         acts.add(action);
-        //HDA//ActuallySizeInteractions.Log("ASI &3 IED 1F &7 Probable-Flux &a ACCEPTED " + entityCounterpart.getScoreboardName() + " " + action.getClass().getSimpleName());
+        /*HDA*/ActuallySizeInteractions.Log("ASI &3 IED 1F &7 Probable-Flux &a ACCEPTED " + entityCounterpart.getScoreboardName() + " " + action.getClass().getSimpleName());
         return true;
     }
 
@@ -577,7 +573,7 @@ public class ASIPickupSystemManager {
     public static void resolveDualityFlux() {
         if (dualityFlux.isEmpty()) { return; }
         dualityFluxing = true;
-        //HDA//ActuallySizeInteractions.Log("ASI &a RDF &8 ~~~~~~ Flux Resolution Pass ~~~~~~");
+        /*HDA*/ActuallySizeInteractions.Log("ASI &a RDF &8 ~~~~~~ Flux Resolution Pass ~~~~~~");
 
         // Clear map
         HashMap<UUID, ASIPSFluxProfile> fluxx = new HashMap<>();
@@ -587,7 +583,7 @@ public class ASIPickupSystemManager {
             ArrayList<ASIPSDualityAction> actions = flux.getActions();
             if (actions.isEmpty()) { continue; }
             Entity entityCounterpart = flux.getEntityCounterpart();
-            //HDA//ActuallySizeInteractions.Log("ASI &a RDF &8 >>> &7 " + entityCounterpart.getClass().getSimpleName() + " &f " + entityCounterpart.getUUID() + " &e x" + actions.size());
+            /*HDA*/ActuallySizeInteractions.Log("ASI &a RDF &8 >>> &7 " + entityCounterpart.getClass().getSimpleName() + " &f " + entityCounterpart.getUUID() + " &e x" + actions.size());
 
             // Results of flux
             flux.computeFlux();
@@ -600,16 +596,16 @@ public class ASIPickupSystemManager {
                 fluxx.put(entityCounterpart.getUUID(), residual); }
 
             // For now, quote me the event
-            //HDA//ASIPSDualityAction from = flux.getFrom();
-            //HDA//ASIPSDualityAction to = flux.getTo();
-            //HDA//ActuallySizeInteractions.Log("ASI &a RDF &7 Flux From: &e " + (from == null ? "null" : (from.getStackLocation() == null ? "UNKNOWN" : from.getStackLocation().getStatement())));
-            //HDA//ActuallySizeInteractions.Log("ASI &a RDF &7 Flux To: &6 " + (to == null ? "null" : (to.getStackLocation() == null ? "UNKNOWN" : to.getStackLocation().getStatement())));
+            /*HDA*/ASIPSDualityAction from = flux.getFrom();
+            /*HDA*/ASIPSDualityAction to = flux.getTo();
+            /*HDA*/ActuallySizeInteractions.Log("ASI &a RDF &7 Flux From: &e " + (from == null ? "null" : (from.getStackLocation() == null ? "UNKNOWN" : from.getStackLocation().getStatement())));
+            /*HDA*/ActuallySizeInteractions.Log("ASI &a RDF &7 Flux To: &6 " + (to == null ? "null" : (to.getStackLocation() == null ? "UNKNOWN" : to.getStackLocation().getStatement())));
         }
 
         // The duality flux of last tick is officially resolved
         dualityFlux = fluxx;
         dualityFluxing = false;
-        //HDA//ActuallySizeInteractions.Log("ASI &a RDF &8 ~~~~~~ Flux Resolution Conclusion ~~~~~~");
+        /*HDA*/ActuallySizeInteractions.Log("ASI &a RDF &8 ~~~~~~ Flux Resolution Conclusion ~~~~~~");
     }
 
     //region Hold Points
@@ -627,13 +623,23 @@ public class ASIPickupSystemManager {
      * @author Actually Portals
      */
     public static void registerASIHoldPoints() {
+
+        // Entity Explorer Statements will be used by entities by default
         HOLD_POINT_REGISTRY.registerHoldPoint(ISEExplorerStatements.MAINHAND, ASIPSHoldPoints.MAINHAND);
         HOLD_POINT_REGISTRY.registerHoldPoint(ISEExplorerStatements.OFFHAND, ASIPSHoldPoints.OFFHAND);
-        HOLD_POINT_REGISTRY.registerHoldPoint(ISEExplorerStatements.HEAD, ASIPSHoldPoints.HEAD);
+        HOLD_POINT_REGISTRY.registerHoldPoint(ISEExplorerStatements.HEAD, ASIPSHoldPoints.HAT);
         HOLD_POINT_REGISTRY.registerHoldPoint(ISEExplorerStatements.CHEST, ASIPSHoldPoints.RIGHT_SHOULDER);
-        HOLD_POINT_REGISTRY.registerHoldPoint(ISEExplorerStatements.LEGS, ASIPSHoldPoints.LEFT_POCKET);
+        HOLD_POINT_REGISTRY.registerHoldPoint(ISEExplorerStatements.LEGS, ASIPSHoldPoints.LEFT_THIGH);
         HOLD_POINT_REGISTRY.registerHoldPoint(ISEExplorerStatements.FEET, ASIPSHoldPoints.RIGHT_BOOT);
         HOLD_POINT_REGISTRY.registerHoldPoint(ISPExplorerStatements.CURSOR, ASIPSHoldPoints.PINCH);
+
+        // Anything else goes, really
+        HOLD_POINT_REGISTRY.registerHoldPoint(null, ASIPSHoldPoints.HEAD);
+        HOLD_POINT_REGISTRY.registerHoldPoint(null, ASIPSHoldPoints.LEFT_SHOULDER);
+        HOLD_POINT_REGISTRY.registerHoldPoint(null, ASIPSHoldPoints.RIGHT_POCKET);
+        HOLD_POINT_REGISTRY.registerHoldPoint(null, ASIPSHoldPoints.LEFT_POCKET);
+        HOLD_POINT_REGISTRY.registerHoldPoint(null, ASIPSHoldPoints.RIGHT_THIGH);
+        HOLD_POINT_REGISTRY.registerHoldPoint(null, ASIPSHoldPoints.LEFT_BOOT);
     }
 
     /**

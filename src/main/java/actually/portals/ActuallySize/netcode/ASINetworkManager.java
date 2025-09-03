@@ -97,6 +97,11 @@ public class ASINetworkManager {
                 .encoder(ASINSHoldingSyncRequest::encode)
                 .decoder(ASINSHoldingSyncRequest::new)
                 .consumerMainThread(ASINSHoldingSyncRequest::handle).add();
+
+        MAIN_CHANNEL.messageBuilder(ASINSModelPartCoordinateSync.class, i++, NetworkDirection.PLAY_TO_SERVER)
+                .encoder(ASINSModelPartCoordinateSync::encode)
+                .decoder(ASINSModelPartCoordinateSync::new)
+                .consumerMainThread(ASINSModelPartCoordinateSync::handle).add();
     }
 
     /**

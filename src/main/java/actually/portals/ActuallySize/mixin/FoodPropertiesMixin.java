@@ -32,7 +32,7 @@ public abstract class FoodPropertiesMixin implements Combinable<FoodProperties>,
     public @NotNull List<Pair<Supplier<MobEffectInstance>, Float>> actuallysize$getFoodEffects() { return effects; }
 
     @Override
-    public FoodProperties actuallysize$combineWith(FoodProperties other) {
+    public @NotNull FoodProperties actuallysize$combineWith(@NotNull FoodProperties other) {
         FoodProperties.Builder builder = new FoodProperties.Builder();
 
         // Adopt the booleans

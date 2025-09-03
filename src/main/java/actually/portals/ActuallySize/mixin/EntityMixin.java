@@ -317,13 +317,13 @@ public abstract class EntityMixin extends net.minecraftforge.common.capabilities
 
     @Override
     public @Nullable ASIPSHoldPoint actuallysize$getHoldPoint(@Nullable Object index) {
-        //HDA//ActuallySizeInteractions.Log("ASI &6 EMX-HDA &7 (" + getClass().getSimpleName() + ") Looking for matching hold point for " + (index == null ? "" : index.getClass().getSimpleName() + " ") + index);
+        /*HDA*/ActuallySizeInteractions.Log("ASI &6 EMX-HDA &7 (" + getClass().getSimpleName() + ") Looking for matching hold point for " + (index == null ? "" : index.getClass().getSimpleName() + " ") + index);
 
         // First try local registry if possible
         if (this instanceof HoldPointConfigurable) {
             ASIPSHoldPointRegistry reg = ((HoldPointConfigurable) this).actuallysize$getLocalHoldPoints();
             ASIPSRegisterableHoldPoint tried = reg.getHoldPoint(index);
-            //HDA//ActuallySizeInteractions.Log("ASI &6 EMX-HDA &7 As configurable... &f " + (tried == null ? "" : tried.getClass().getSimpleName() + " ") + (tried == null ? "null" : tried.getNamespacedKey()));
+            /*HDA*/ActuallySizeInteractions.Log("ASI &6 EMX-HDA &7 As configurable... &f " + (tried == null ? "" : tried.getClass().getSimpleName() + " ") + (tried == null ? "null" : tried.getNamespacedKey()));
             //HDR//reg.log();
 
             if (tried != null) { return tried; }
@@ -365,16 +365,16 @@ public abstract class EntityMixin extends net.minecraftforge.common.capabilities
              */
             actuallysize$heldItemCounterparts.remove(slot);
 
-            //HDA//ActuallySizeInteractions.Log("ASI &6EMX-HDA &r Removing old duality in this same slot... ");
+            /*HDA*/ActuallySizeInteractions.Log("ASI &6EMX-HDA &r Removing old duality in this same slot... ");
 
             // Remove the old one from everywhere... else
             ASIPSDualityDeactivationAction oldHandler = new ASIPSDualityDeactivationAction(oldEntityCounterpart);
             if (oldHandler.tryResolve()) {
 
-                //HDA//ActuallySizeInteractions.Log("ASI &6EMX-HDA &r Removed old. ");
+                /*HDA*/ActuallySizeInteractions.Log("ASI &6EMX-HDA &r Removed old. ");
             } else {
 
-                //HDA//ActuallySizeInteractions.Log("ASI &6EMX-HDA &c Did not remove old. ");
+                /*HDA*/ActuallySizeInteractions.Log("ASI &6EMX-HDA &c Did not remove old. ");
             }
         }
 
@@ -383,7 +383,7 @@ public abstract class EntityMixin extends net.minecraftforge.common.capabilities
          */
         if (dualityEntity == null) { return; }
 
-        //HDA//ActuallySizeInteractions.Log("ASI &6EMX-HDA &r Activating new &b " + slot + " &7 " + ((Entity) dualityEntity).getScoreboardName());
+        /*HDA*/ActuallySizeInteractions.Log("ASI &6EMX-HDA &r Activating new &b " + slot + " &7 " + ((Entity) dualityEntity).getScoreboardName());
 
         // Remember in slot
         actuallysize$heldItemCounterparts.put(slot, dualityEntity);

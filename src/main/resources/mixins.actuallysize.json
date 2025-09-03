@@ -11,9 +11,14 @@
     "ClientLevelMixin",
     "ClientPacketListenerMixin",
     "EntityRenderDispatcherMixin",
+    "EntityRendererMixin",
     "InventoryScreenMixin$Pehkui",
     "ItemInHandRendererMixin",
-    "LocalPlayerMixin"
+    "LocalPlayerMixin",
+    "ModelPartMixin",
+    "PlayerRendererMixin",
+    "PoseStackMixin",
+    "PoseStackPoseMixin"
   ],
   "mixins": [
     "AbstractContainerMenuMixin",

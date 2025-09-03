@@ -115,11 +115,11 @@ public class ASIPSHoldPointRegistry {
      * @since 1.0.0
      * @author Actually Portals
      */
-    public void registerHoldPoint(@NotNull ItemExplorerStatement<?,?> index, @NotNull ASIPSRegisterableHoldPoint point) {
+    public void registerHoldPoint(@Nullable ItemExplorerStatement<?,?> index, @NotNull ASIPSRegisterableHoldPoint point) {
 
         // Register in dictionaries
-        reindexedPoints.put(reindex(index), point);
-        registeredPoints.put(index, point);
+        reindexedPoints.put(reindex(index != null ? index : point.getNamespacedKey()), point);
+        if (index != null) { registeredPoints.put(index, point); }
         namespacedPoints.put(point.getNamespacedKey(), point);
     }
 

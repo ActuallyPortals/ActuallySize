@@ -3,24 +3,17 @@ package actually.portals.ActuallySize.controlling.execution;
 import actually.portals.ActuallySize.ActuallyClientConfig;
 import actually.portals.ActuallySize.ActuallySizeInteractions;
 import actually.portals.ActuallySize.netcode.ASINetworkManager;
-import actually.portals.ActuallySize.netcode.packets.serverbound.ASINSEntityDualitySyncRequest;
 import actually.portals.ActuallySize.netcode.packets.serverbound.ASINSPreferredSize;
 import actually.portals.ActuallySize.pickup.actions.ASIPSHoldingSyncAction;
 import gunging.ootilities.GungingOotilitiesMod.instants.GOOMClientsidePlayerLoginEvent;
 import gunging.ootilities.GungingOotilitiesMod.scheduling.SchedulingManager;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.level.Level;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.event.entity.EntityJoinLevelEvent;
-import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.network.NetworkEvent;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.List;
 
 /**
  * Listeners for events that may only happen on the client-side
@@ -66,7 +59,7 @@ public class ASIClientsideRequests {
                 // Resolve without asking
                 ASIPSHoldingSyncAction syncing = new ASIPSHoldingSyncAction(me);
                 syncing.withActiveDualities();
-                syncing.resolve();;
+                syncing.resolve();
 
                 /*/ Iterate entities within like 32 chunks, should be enough
                 Level world = me.level();

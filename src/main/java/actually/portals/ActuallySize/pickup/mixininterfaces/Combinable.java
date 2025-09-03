@@ -1,5 +1,7 @@
 package actually.portals.ActuallySize.pickup.mixininterfaces;
 
+import org.jetbrains.annotations.NotNull;
+
 /**
  * When this can be combined with another of its own kind
  *
@@ -17,5 +19,5 @@ public interface Combinable<T> {
      * @since 1.0.0
      * @author Actually Portals
      */
-    T actuallysize$combineWith(T other);
+    @NotNull T actuallysize$combineWith(@NotNull T other);
 }

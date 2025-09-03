@@ -2,13 +2,13 @@ package actually.portals.ActuallySize.pickup.holding.points;
 
 import actually.portals.ActuallySize.ASIUtilities;
 import actually.portals.ActuallySize.ActuallySizeInteractions;
-import actually.portals.ActuallySize.pickup.holding.ASIPSHoldPoint;
 import actually.portals.ActuallySize.pickup.mixininterfaces.EntityDualityCounterpart;
 import actually.portals.ActuallySize.pickup.mixininterfaces.ItemEntityDualityHolder;
 import gunging.ootilities.GungingOotilitiesMod.ootilityception.OotilityNumbers;
 import gunging.ootilities.GungingOotilitiesMod.ootilityception.OotilityVectors;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
@@ -19,11 +19,10 @@ import org.jetbrains.annotations.NotNull;
  * @author Actually Portals
  * @since 1.0.0
  */
-public class FacingRelativeHold extends ASIPSRegisterableHoldPoint implements ASIPSHoldPoint {
+public abstract class RelativeCoordinateHold extends ASIPSRegisterableHoldPoint {
 
     /**
-     * Creates a ride point that targets a specific
-     * transformation relative to the holder's facing.
+     * Creates a ride point with a specific relative transformation.
      *
      * @param nk The namespaced key to name this slot
      * @param sideOffset Relative sideways offset
@@ -36,7 +35,7 @@ public class FacingRelativeHold extends ASIPSRegisterableHoldPoint implements AS
      * @author Actually Portals
      * @since 1.0.0
      */
-    public FacingRelativeHold(@NotNull ResourceLocation nk, double sideOffset, double verticalOffset, double forwardOffset, double xOffset, double yOffset, double zOffset) {
+    public RelativeCoordinateHold(@NotNull ResourceLocation nk, double sideOffset, double verticalOffset, double forwardOffset, double xOffset, double yOffset, double zOffset) {
         super(nk);
         this.verticalOffset = verticalOffset;
         this.forwardOffset = forwardOffset;
@@ -47,8 +46,7 @@ public class FacingRelativeHold extends ASIPSRegisterableHoldPoint implements AS
     }
 
     /**
-     * Creates a ride point that targets a specific
-     * transformation relative to the holder's facing.
+     * Creates a ride point with a specific relative transformation.
      *
      * @param nk The namespaced key to name this slot
      * @param sideOffset Relative sideways offset
@@ -62,7 +60,7 @@ public class FacingRelativeHold extends ASIPSRegisterableHoldPoint implements AS
      * @author Actually Portals
      * @since 1.0.0
      */
-    public FacingRelativeHold(@NotNull ResourceLocation nk, double sideOffset, double verticalOffset, double forwardOffset, double levelOffset, double xOffset, double yOffset, double zOffset) {
+    public RelativeCoordinateHold(@NotNull ResourceLocation nk, double sideOffset, double verticalOffset, double forwardOffset, double levelOffset, double xOffset, double yOffset, double zOffset) {
         super(nk);
         this.verticalOffset = verticalOffset;
         this.forwardOffset = forwardOffset;
@@ -167,11 +165,56 @@ public class FacingRelativeHold extends ASIPSRegisterableHoldPoint implements AS
     public double getZOffset() { return zOffset; }
 
     /**
+     * @param holder The entity doing the holder
+     * @param entityDuality The entity being held
+     *
+     * @return The origin for this relative coordinate hold
+     *
+     * @author Actually Portals
+     * @since 1.0.0
+     */
+    public abstract Vec3 getOrigin(@NotNull Entity holder, @NotNull EntityDualityCounterpart entityDuality);
+
+    /**
+     * @param holder The entity doing the holder
+     * @param entityDuality The entity being held
+     *
+     * @return The angle to the side axis, in radians, where 0° is completely horizontal and 90° is completely downward
+     *
+     * @author Actually Portals
+     * @since 1.0.0
+     */
+    public abstract double getPitch(@NotNull Entity holder, @NotNull EntityDualityCounterpart entityDuality);
+
+    /**
+     * @param holder The entity doing the holder
+     * @param entityDuality The entity being held
+     *
+     * @return The angle around vertical axis, in radians, where 0° is along positive forward and 270° is along positive side
+     *
+     * @author Actually Portals
+     * @since 1.0.0
+     */
+    public abstract double getYaw(@NotNull Entity holder, @NotNull EntityDualityCounterpart entityDuality);
+
+    /**
+     * @param holder The entity doing the holder
+     * @param entityDuality The entity being held
+     *
+     * @return The angle around forward axis, in radians, where 0° makes the side vector completely flat.
+     *
+     * @author Actually Portals
+     * @since 1.0.0
+     */
+    public double getRoll(@NotNull Entity holder, @NotNull EntityDualityCounterpart entityDuality) { return 0; }
+
+
+    /**
      * @author Actually Portals
      * @since 1.0.0
      */
     @Override
-    public void positionHeldEntity(@NotNull ItemEntityDualityHolder holder, @NotNull EntityDualityCounterpart entityDuality) {
+    public void serversidePositionHeldEntity(@NotNull ItemEntityDualityHolder holder, @NotNull EntityDualityCounterpart entityDuality) {
 
         // This slot only supports entities to be holders
         if (!(holder instanceof Entity)) { entityDuality.actuallysize$escapeDuality(); return; }
@@ -179,18 +222,37 @@ public class FacingRelativeHold extends ASIPSRegisterableHoldPoint implements AS
         // First identify the parts
         Entity entityCounterpart = (Entity) entityDuality;
         Entity holderEntity = (Entity) holder;
+        double size = ASIUtilities.getEntityScale(holderEntity);
 
-        // Transform F V S L scaled by the holders' scale
-        Vec3 svf = OotilityVectors.entityTransformSVFL(holderEntity,
-                getSideOffset(), getVerticalOffset(), getForwardOffset(), getLevelOffset(),
-                getXOffset(), getYOffset(), getZOffset())
-                .scale(ASIUtilities.getEntityScale(holderEntity));
+        // Roll operation support (funny)
+        double roll = getRoll(holderEntity, entityDuality);
+        double rolledSide = getSideOffset() * Math.cos(roll) - getVerticalOffset() * Math.sin(roll);
+        double rolledVertical = getVerticalOffset() * Math.cos(roll) + getSideOffset() * Math.sin(roll);
+
+        // Transform S V F L scaled by the holders' scale
+        Vec3 svf = OotilityVectors.transformSVFL(getPitch(holderEntity, entityDuality), getYaw(holderEntity, entityDuality),
+                        rolledSide, rolledVertical, getForwardOffset(), getLevelOffset(),
+                        getXOffset(), getYOffset(), getZOffset()).scale(size);
 
         // Freeze velocity and set position to the calculated offsets
         entityCounterpart.setDeltaMovement(Vec3.ZERO);
-        entityCounterpart.setPos(new Vec3(holderEntity.getX() + svf.x(), holderEntity.getY() + svf.y(), holderEntity.getZ() + svf.z()));
+        Vec3 origin = getOrigin(holderEntity, entityDuality);
+        Vec3 result = new Vec3(origin.x() + svf.x(), origin.y() + svf.y(), origin.z() + svf.z());
+
+        /*/ Cap distance and sanitize
+        double distance = result.distanceToSqr(holderEntity.position());
+        double max = 3;
+        if (size > 1) { max *= size; }
+        if (distance > (max * max)) { result = result.normalize().scale(max); }
+        if (Double.isNaN(result.x) || Double.isNaN(result.y) || Double.isNaN(result.z)) { result = holderEntity.position(); }   //*/
+
+        entityCounterpart.setPos(result);
     }
 
+    /**
+     * @author Actually Portals
+     * @since 1.0.0
+     */
     @Override
     public void throwHeldEntity(@NotNull ItemEntityDualityHolder holder, @NotNull EntityDualityCounterpart entityDuality) {
 
@@ -198,7 +260,7 @@ public class FacingRelativeHold extends ASIPSRegisterableHoldPoint implements AS
         if (!(holder instanceof Entity)) { entityDuality.actuallysize$escapeDuality(); return; }
 
         // Position it where normal
-        positionHeldEntity(holder, entityDuality);
+        serversidePositionHeldEntity(holder, entityDuality);
 
         // First identify the parts
         Entity entityCounterpart = (Entity) entityDuality;
@@ -206,7 +268,7 @@ public class FacingRelativeHold extends ASIPSRegisterableHoldPoint implements AS
         double beegScale = ASIUtilities.getEffectiveSize(holderEntity);
         double tinyScale = ASIUtilities.getEffectiveSize(entityCounterpart);
         double gauss = OotilityNumbers.gaussianRev(0, 2, (beegScale / tinyScale));
-        double strength = 3.8 * ASIUtilities.beegBalanceEnhance(beegScale, 5, 0.1);
+        double strength = 3.8 * ASIUtilities.beegBalanceEnhance(beegScale, 3, 0.1);
 
         /*
          * Full strength at relative size 5x and forth (asymptotic)
