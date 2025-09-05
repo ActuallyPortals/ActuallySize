@@ -138,5 +138,31 @@ public class ASIPSHoldPoints {
     @NotNull public static final ASIPSRegisterableHoldPoint LEFT_BOOT =  new ASIPSModelPartHoldPoint(
             ResourceLocation.fromNamespaceAndPath(ActuallySizeInteractions.MODID, "left_boot"),
             0D/16D, -11.5D/16D, 0D/16D, 0, 0, 0, new ASIMPLForwardNZVerticalNY("left_leg"));
+
+
+    /**
+     * @since 1.0.0
+     */
+    @NotNull public static final ASIPSRegisterableHoldPoint FLUSH =  new ASIPSModelPartHoldPoint(
+            ResourceLocation.fromNamespaceAndPath(ActuallySizeInteractions.MODID, "flush"),
+            0D/16D, -13D/16D, 1D/16D, 0, 0, 0,
+            new ASIMPLForwardNZVerticalNY("body"));
+
+    /**
+     * @since 1.0.0
+     */
+    @NotNull public static final ASIPSRegisterableHoldPoint SHED =  new ASIPSModelPartHoldPoint(
+            ResourceLocation.fromNamespaceAndPath(ActuallySizeInteractions.MODID, "shed"),
+            0D/16D, -3.5D/16D, 2.5D/16D, 0, 0, 0,
+            new ASIMPLForwardNZVerticalNY("body"));
+
+    /**
+     * @since 1.0.0
+     */
+    @NotNull public static final ASIPSRegisterableHoldPoint NOMF =  new ASIPSModelPartHoldPoint(
+            ResourceLocation.fromNamespaceAndPath(ActuallySizeInteractions.MODID, "nomf"),
+            0D/16D, 0D/16D, 2.5D/16D, 0, 0, 0,
+            new ASIMPLForwardNZVerticalNY("head"));
+
     //endregion
 }
