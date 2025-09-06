@@ -36,6 +36,7 @@
     "FoodDataMixin",
     "FoodPropertiesMixin",
     "GroundPathNavigationMixin",
+    "GuiGraphicsMixin",
     "HorseMixin",
     "ItemStackMixin",
     "LivingEntityMixin",

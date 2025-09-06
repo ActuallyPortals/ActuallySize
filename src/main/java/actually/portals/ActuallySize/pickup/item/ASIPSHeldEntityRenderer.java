@@ -6,12 +6,14 @@ import actually.portals.ActuallySize.pickup.mixininterfaces.EntityDualityCounter
 import actually.portals.ActuallySize.pickup.mixininterfaces.ItemDualityCounterpart;
 import actually.portals.ActuallySize.pickup.mixininterfaces.ItemEntityDualityHolder;
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.math.Axis;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.geom.EntityModelSet;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderDispatcher;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
@@ -19,6 +21,7 @@ import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import org.jetbrains.annotations.NotNull;
+import org.joml.Quaternionf;
 
 /**
  * A class that renders the entity encoded within a {@link ASIPSHeldEntityItem}
@@ -66,7 +69,7 @@ public class ASIPSHeldEntityRenderer extends BlockEntityWithoutLevelRenderer {
      * Actually draws the item in the inventory GUI, except I do not draw an item at all
      * and just redirect to drawing the entity using the models of the entity whatever.
      *
-     * @param stack The ItemStack being rendered
+     * @param itemCounterpart The ItemStack being rendered
      * @param pDisplayContext The context by which this item is rendered
      * @param pPoseStack The pose stack to draw at
      * @param pBuffer A buffer I guess
@@ -77,25 +80,25 @@ public class ASIPSHeldEntityRenderer extends BlockEntityWithoutLevelRenderer {
      * @author Actually Portals
      */
     @Override
-    public void renderByItem(@NotNull ItemStack stack, @NotNull ItemDisplayContext pDisplayContext, @NotNull PoseStack pPoseStack, @NotNull MultiBufferSource pBuffer, int pPackedLight, int pPackedOverlay) {
+    public void renderByItem(@NotNull ItemStack itemCounterpart, @NotNull ItemDisplayContext pDisplayContext, @NotNull PoseStack pPoseStack, @NotNull MultiBufferSource pBuffer, int pPackedLight, int pPackedOverlay) {
         //RBI//ActuallySizeInteractions.Log("ASI PS HEI&b Renderer By Item");
 
         // Need to have a count
-        if (stack.getCount() < 1) {
+        if (itemCounterpart.getCount() < 1) {
             //RBI//ActuallySizeInteractions.Log("ASI PS HEI&c Uncounted");
             return; }
 
         // Interpret as duality
-        ItemDualityCounterpart dualityItem = (ItemDualityCounterpart) (Object) stack;
-        Entity entityCounterpart = dualityItem.actuallysize$getEntityCounterpart();
+        ItemDualityCounterpart itemDuality = (ItemDualityCounterpart) (Object) itemCounterpart;
+        Entity entityCounterpart = itemDuality.actuallysize$getEntityCounterpart();
         if (entityCounterpart == null) {
 
-            if (!(stack.getItem() instanceof ASIPSHeldEntityItem)) {
+            if (!(itemCounterpart.getItem() instanceof ASIPSHeldEntityItem)) {
                 //RBI//ActuallySizeInteractions.Log("ASI PS HEI&c Not held entity item");
                 return;
             }
 
-            if (((ASIPSHeldEntityItem) stack.getItem()).isPlayer()) {
+            if (((ASIPSHeldEntityItem) itemCounterpart.getItem()).isPlayer()) {
                 //RBI//ActuallySizeInteractions.Log("ASI PS HEI&c PLAYER variant of held entity item");
                 return;
             }
@@ -107,37 +110,56 @@ public class ASIPSHeldEntityRenderer extends BlockEntityWithoutLevelRenderer {
                 return; }
 
             // Rebuild entity
-            entityCounterpart = dualityItem.actuallysize$getEnclosedEntity(player.level());
+            entityCounterpart = itemDuality.actuallysize$getEnclosedEntity(player.level());
             if (entityCounterpart == null) {
                 //RBI//ActuallySizeInteractions.Log("ASI PS HEI&c Non reproducible");
                 return; }
         }
 
+        /*
+         * When this is being rendered in the world, we don't render held dualities.
+         */
+        switch (pDisplayContext) {
+            case HEAD:
+            case THIRD_PERSON_LEFT_HAND:
+            case THIRD_PERSON_RIGHT_HAND:
+
+                // We don't display item when the entity is held
+                if (((EntityDualityCounterpart) entityCounterpart).actuallysize$isHeld()) {
+                    return; }
+
+                break;
+
+            default: break; }
+
         // Render this entity
         //RBI//ActuallySizeInteractions.Log("ASI PS HEI&a Rendered");
-        ItemEntityDualityHolder dualityHolder = dualityItem.actuallysize$getItemEntityHolder();
+        ItemEntityDualityHolder dualityHolder = itemDuality.actuallysize$getItemEntityHolder();
         if (dualityHolder == null) { dualityHolder = ((VASIPoseStack) pPoseStack).actuallysize$getPoseParent(); }
         Entity holder = dualityHolder instanceof Entity ? (Entity) dualityHolder : null;
 
         // Apparently holding yourself makes it recursive! LMAO
         if (holder != null) { if (entityCounterpart.getUUID().equals(holder.getUUID())) { return; } }
 
-        float scale;
+        double scale;
         switch (pDisplayContext) {
             case GUI:
             case FIXED:
-                scale = (float) getNormalizationScale(entityCounterpart);
+                scale = getNormalizationScale(entityCounterpart);
                 break;
 
             case GROUND:
-                scale = ((float) getNormalizationScale(entityCounterpart)) * 0.4F;
+                scale = getNormalizationScale(entityCounterpart) * 0.4D;
                 break;
 
             case FIRST_PERSON_LEFT_HAND:
             case FIRST_PERSON_RIGHT_HAND:
             case HEAD:
-                scale = (float) Math.sqrt(getNormalizationScale(entityCounterpart));
-                scale *= 0.4F;
+                scale = Math.sqrt(getNormalizationScale(entityCounterpart));
+                if (holder == null) {
+                    scale *= 0.4D;
+                } else {
+                    scale *= 0.7D * ASIUtilities.beegBalanceEnhance(ASIUtilities.getRelativeScale(holder, false, entityCounterpart, false), 2, 0.25); }
                 break;
 
             case THIRD_PERSON_LEFT_HAND:
@@ -181,67 +203,44 @@ public class ASIPSHeldEntityRenderer extends BlockEntityWithoutLevelRenderer {
 
             case THIRD_PERSON_LEFT_HAND:
             case THIRD_PERSON_RIGHT_HAND:
-
-                // For now, just don't display item when the entity is held
-                if (((EntityDualityCounterpart) entityCounterpart).actuallysize$isHeld()) {
-                    return; }
-
                 if (holder != null) {
                     transform = new Vec3(0.5D, 0.5D - getSinkingScalar(holder, entityCounterpart), 0.5D);
                 } else {
                     transform = new Vec3(0.5D, 0.48D, 0.5D); }
                 break;
 
-
             case NONE:
             default:
                 transform = new Vec3(0, 0, 0);
         }
 
+        double spinDegrees = entityCounterpart instanceof LivingEntity ? ((LivingEntity) entityCounterpart).yBodyRotO : 0;
+        switch (pDisplayContext) {
+            case GUI:
+                spinDegrees += 45;
+                break;
+
+            case THIRD_PERSON_RIGHT_HAND:
+            case FIRST_PERSON_RIGHT_HAND:
+                spinDegrees -= 25;
+                break;
+
+            case THIRD_PERSON_LEFT_HAND:
+            case FIRST_PERSON_LEFT_HAND:
+                spinDegrees += 25;
+                break;
+
+            case HEAD:
+            case GROUND:
+            case FIXED:
+            case NONE:
+            default: break;
+        }
 
         pPoseStack.pushPose();
         pPoseStack.translate(transform.x, transform.y, transform.z);
-        pPoseStack.scale(scale, scale, scale);
-
-        /*/ O I I A I O I I I A I
-        if (!dualityItem.actuallysize$isDualityActive()) {
-            pPoseStack.rotateAround(new Quaternionf(0, 1, 0, 1), (float) Math.cos(System.currentTimeMillis() * 0.01D), (float) Math.sin(System.currentTimeMillis() * 0.01D), 0);
-        }
-        //*/
-
-        /*
-
-        // Reference latest
-        int rev = 3;
-        ArrayList<PoseStack.Pose> latest = new ArrayList<>();
-        for (int i = 0; i < rev; i++) {
-
-            // Remember
-            latest.add(pPoseStack.last());
-
-            // Pop
-            pPoseStack.popPose();
-        }
-
-        Minecraft.getInstance().getEntityRenderDispatcher().render(rebuilt, 0, 0, 0, 0, 1, pPoseStack, pBuffer, pPackedLight);
-
-
-        for (int iii = 0; iii < rev ; iii++) {
-
-            // Push
-            pPoseStack.pushPose();
-
-            // Find
-            PoseStack.Pose ii = latest.get(rev - iii - 1);
-
-            // Set
-            pPoseStack.last().pose().set(ii.pose());
-            pPoseStack.last().normal().set(ii.normal());
-        }
-
-        Minecraft.getInstance().getEntityRenderDispatcher().render(rebuilt, 0, 0, 0, 0, 1, pPoseStack, pBuffer, pPackedLight);
-
-        // */
+        pPoseStack.scale((float) scale, (float) scale, (float) scale);
+        pPoseStack.mulPose(Axis.YP.rotationDegrees((float) spinDegrees));
 
         // Draw again to be sure
         Minecraft.getInstance().getEntityRenderDispatcher().render(entityCounterpart, 0, 0, 0, 0, 1, pPoseStack, pBuffer, pPackedLight);
