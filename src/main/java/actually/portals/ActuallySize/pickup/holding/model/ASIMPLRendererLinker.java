@@ -113,12 +113,18 @@ public abstract class ASIMPLRendererLinker implements ASIPSModelPartLinker {
         double roll = Math.acos(dot); // From dot product with its horizontal-plane (XZ) projection
         if (side.y < 0) { roll = -roll; }
 
+        long lastUpdated = holdableTiny.actuallysize$getModelPartTime();
+        if (SchedulingManager.getClientTicks() - lastUpdated > ASIPSModelPartInfo.PACKET_INTERVAL) {
+
+            // Update client ticks
+            holdableTiny.actuallysize$setModelPartTime(SchedulingManager.getClientTicks());
+
+            // Send packet
+            ASINetworkManager.playerToServer(new ASINSModelPartCoordinateSync((Entity) entityCounterpart, origin, pitch, yaw, roll));
+        }
+
         // Skidush
         holdableTiny.actuallysize$getHeldModelPart().updateModelPart(origin, pitch, yaw, roll);
-
-        // Send packet every few seconds
-        if (SchedulingManager.getClientTicks() % 40 == 0) {
-            ASINetworkManager.playerToServer(new ASINSModelPartCoordinateSync((Entity) entityCounterpart, origin, pitch, yaw, roll)); }
     }
 
     /**

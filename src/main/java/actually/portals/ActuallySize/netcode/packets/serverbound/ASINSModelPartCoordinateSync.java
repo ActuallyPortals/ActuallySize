@@ -2,6 +2,7 @@ package actually.portals.ActuallySize.netcode.packets.serverbound;
 
 import actually.portals.ActuallySize.pickup.holding.model.ASIPSModelPartInfo;
 import actually.portals.ActuallySize.pickup.mixininterfaces.ModelPartHoldable;
+import gunging.ootilities.GungingOotilitiesMod.scheduling.SchedulingManager;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
@@ -149,7 +150,10 @@ public class ASINSModelPartCoordinateSync {
             // Update model info with these specs
             ASIPSModelPartInfo info = ((ModelPartHoldable) found).actuallysize$getHeldModelPart();
             if (info == null) { return; }
-            info.updateModelPart(origin, pitch, yaw, roll);
+
+            // Register update
+            if (info.serversideUpdateModelPart(origin, pitch, yaw, roll)) {
+                ((ModelPartHoldable) found).actuallysize$setModelPartTime(SchedulingManager.getServerTicks()); }
         });
         contextSupplier.get().setPacketHandled(true);
     }

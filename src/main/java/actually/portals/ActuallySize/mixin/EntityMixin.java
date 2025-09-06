@@ -236,7 +236,7 @@ public abstract class EntityMixin extends net.minecraftforge.common.capabilities
 
         // Begin tracking model part based in the parent's game object first, not model
         if (who instanceof Entity) {
-            actuallysize$modelPartHold = new ASIPSModelPartInfo((Entity) who); }
+            actuallysize$modelPartInfo = new ASIPSModelPartInfo((Entity) who); }
     }
 
     @Inject(method = "baseTick", at = @At("HEAD"))
@@ -489,11 +489,34 @@ public abstract class EntityMixin extends net.minecraftforge.common.capabilities
         actuallysize$holdPoint = point; }
 
     @Nullable @Unique
-    ASIPSModelPartInfo actuallysize$modelPartHold;
+    ASIPSModelPartInfo actuallysize$modelPartInfo;
 
     @Override
     public @Nullable ASIPSModelPartInfo actuallysize$getHeldModelPart() {
-        return actuallysize$modelPartHold;
+
+        if (actuallysize$modelPartInfo != null && actuallysize$modelPartTime > 1) {
+
+            // Reset model part info after a few seconds, a timeout
+            long tic = level.isClientSide ? SchedulingManager.getClientTicks() : SchedulingManager.getServerTicks();
+            if (tic - actuallysize$modelPartTime > ASIPSModelPartInfo.TIMEOUT_INTERVAL) {
+                actuallysize$modelPartInfo.reset();
+                actuallysize$modelPartTime = 0;
+            }
+        }
+
+        return actuallysize$modelPartInfo;
+    }
+
+    @Unique long actuallysize$modelPartTime;
+
+    @Override
+    public long actuallysize$getModelPartTime() {
+        return actuallysize$modelPartTime;
+    }
+
+    @Override
+    public void actuallysize$setModelPartTime(long t) {
+        actuallysize$modelPartTime = t;
     }
 
     @Override

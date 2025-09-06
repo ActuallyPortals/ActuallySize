@@ -22,25 +22,6 @@ import org.jetbrains.annotations.NotNull;
 public class ASIPSModelPartHoldPoint extends ASIPSRelativeFacingHold {
 
     /**
-     * If the Position of the holder modifies this model part (usually true)
-     *
-     * @since 1.0.0
-     */
-    boolean relativePosition = true;
-
-    /**
-     * @author Actually Portals
-     * @since 1.0.0
-     */
-    public boolean isRelativePosition() { return relativePosition; }
-
-    /**
-     * @author Actually Portals
-     * @since 1.0.0
-     */
-    @NotNull public ASIPSModelPartHoldPoint setIsRelativePosition(boolean relative) { this.relativePosition = relative; return this; }
-
-    /**
      * If the Pitch of the holder modifies this model part (usually false)
      *
      * @since 1.0.0
@@ -170,12 +151,8 @@ public class ASIPSModelPartHoldPoint extends ASIPSRelativeFacingHold {
                     OotilityVectors.transformSVFL(getPitch(holder, entityDuality), getYaw(holder, entityDuality), getDefaultOrigin()).scale(ASIUtilities.getEntityScale(holder)));
         }
 
-        // May be relative
-        if (isRelativePosition()) {
-            return model.getOrigin().add(super.getOrigin(holder, entityDuality));
-        } else {
-            return model.getOrigin();
-        }
+        // Must be relative, it makes no sense for it not to be
+        return model.getOrigin().add(super.getOrigin(holder, entityDuality));
     }
 
     /**
