@@ -1,6 +1,7 @@
 package actually.portals.ActuallySize.mixin;
 
 import actually.portals.ActuallySize.pickup.holding.ASIPSHoldPoint;
+import actually.portals.ActuallySize.pickup.mixininterfaces.GraceImpulsable;
 import actually.portals.ActuallySize.pickup.mixininterfaces.VASIPoseStack;
 import actually.portals.ActuallySize.pickup.mixininterfaces.EntityDualityCounterpart;
 import actually.portals.ActuallySize.pickup.mixininterfaces.ItemEntityDualityHolder;
@@ -10,15 +11,19 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
 import net.minecraft.client.renderer.entity.EntityRenderer;
+import net.minecraft.server.packs.resources.ResourceManagerReloadListener;
 import net.minecraft.world.entity.Entity;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 
 import java.util.ArrayList;
 import java.util.Map;
 
 @Mixin(value = EntityRenderDispatcher.class)
-public abstract class EntityRenderDispatcherMixin {
+public abstract class EntityRenderDispatcherMixin implements ResourceManagerReloadListener, GraceImpulsable {
+
+    @Shadow private boolean shouldRenderShadow;
 
     @WrapOperation(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/entity/EntityRenderer;render(Lnet/minecraft/world/entity/Entity;FFLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V"))
     private <T extends Entity> void onRenderCall(EntityRenderer<T> instance, T pEntity, float pEntityYaw, float pPartialTick, PoseStack pPoseStack, MultiBufferSource pBuffer, int pPackedLight, Operation<Void> original) {
@@ -58,4 +63,10 @@ public abstract class EntityRenderDispatcherMixin {
         asDeque.actuallysize$setPoseChildren(deckedChildren);
         asDeque.actuallysize$setRenderer(rend);
     }
+
+    @Override
+    public void actuallysize$addGraceImpulse(int ticks) { }
+
+    @Override
+    public boolean actuallysize$isInGraceImpulse() { return shouldRenderShadow; }
 }

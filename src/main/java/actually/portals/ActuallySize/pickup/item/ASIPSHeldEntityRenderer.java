@@ -1,10 +1,7 @@
 package actually.portals.ActuallySize.pickup.item;
 
 import actually.portals.ActuallySize.ASIUtilities;
-import actually.portals.ActuallySize.pickup.mixininterfaces.VASIPoseStack;
-import actually.portals.ActuallySize.pickup.mixininterfaces.EntityDualityCounterpart;
-import actually.portals.ActuallySize.pickup.mixininterfaces.ItemDualityCounterpart;
-import actually.portals.ActuallySize.pickup.mixininterfaces.ItemEntityDualityHolder;
+import actually.portals.ActuallySize.pickup.mixininterfaces.*;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import net.minecraft.client.Minecraft;
@@ -12,6 +9,7 @@ import net.minecraft.client.model.geom.EntityModelSet;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderDispatcher;
+import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
@@ -243,7 +241,14 @@ public class ASIPSHeldEntityRenderer extends BlockEntityWithoutLevelRenderer {
         pPoseStack.mulPose(Axis.YP.rotationDegrees((float) spinDegrees));
 
         // Draw again to be sure
-        Minecraft.getInstance().getEntityRenderDispatcher().render(entityCounterpart, 0, 0, 0, 0, 1, pPoseStack, pBuffer, pPackedLight);
+        EntityRenderDispatcher renderer = Minecraft.getInstance().getEntityRenderDispatcher();
+        boolean shadows = ((GraceImpulsable) renderer).actuallysize$isInGraceImpulse();
+        boolean hitbox = renderer.shouldRenderHitBoxes();
+        renderer.setRenderShadow(false);
+        renderer.setRenderHitBoxes(false);
+        renderer.render(entityCounterpart, 0, 0, 0, 0, 1, pPoseStack, pBuffer, pPackedLight);
+        renderer.setRenderShadow(shadows);
+        renderer.setRenderHitBoxes(hitbox);
 
         // Escape
         pPoseStack.popPose();
