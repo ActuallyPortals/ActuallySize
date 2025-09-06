@@ -30,6 +30,7 @@ import net.minecraft.world.Nameable;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.Level;
@@ -505,6 +506,34 @@ public abstract class EntityMixin extends net.minecraftforge.common.capabilities
         }
 
         return actuallysize$modelPartInfo;
+    }
+
+    @Inject(method = "isCurrentlyGlowing", at = @At("HEAD"), cancellable = true)
+    public void onIsGlowing(CallbackInfoReturnable<Boolean> cir) {
+
+        // Only overridden in clientside
+        if (level.isClientSide) {
+
+            // If it is indeed invisible due to being held, it must not glow
+            if (actually.portals.ActuallySize.controlling.execution.ASIClientsideRequests.isInvisibleBecauseHeld((Entity) (Object) this)) {
+                cir.setReturnValue(false);
+                cir.cancel();
+            }
+        }
+    }
+
+    @Inject(method = "isInvisible", at = @At("HEAD"), cancellable = true)
+    public void onIsInvisible(CallbackInfoReturnable<Boolean> cir) {
+
+        // Only overridden in clientside
+        if (level.isClientSide) {
+
+            // If it is indeed invisible due to being held, it is invisible
+            if (actually.portals.ActuallySize.controlling.execution.ASIClientsideRequests.isInvisibleBecauseHeld((Entity) (Object) this)) {
+                cir.setReturnValue(true);
+                cir.cancel();
+            }
+        }
     }
 
     @Unique long actuallysize$modelPartTime;
