@@ -6,6 +6,7 @@ import actually.portals.ActuallySize.pickup.holding.model.vanilla.ASIMPLForwardN
 import actually.portals.ActuallySize.pickup.holding.model.vanilla.ASIMPLForwardYVerticalNZ;
 import actually.portals.ActuallySize.pickup.holding.points.ASIPSRegisterableHoldPoint;
 import actually.portals.ActuallySize.pickup.holding.points.ASIPSRelativeFacingHold;
+import gunging.ootilities.GungingOotilitiesMod.ootilityception.SVFLBit;
 import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.NotNull;
 
@@ -27,7 +28,7 @@ public class ASIPSHoldPoints {
      */
     @NotNull public static final ASIPSRegisterableHoldPoint PINCH =  new ASIPSRelativeFacingHold(
             ResourceLocation.fromNamespaceAndPath(ActuallySizeInteractions.MODID, "pinch"),
-            -0.1, 0, 0.2, 0.2, 0, 1.6, 0);
+            new SVFLBit(-0.1, 0, 0.2, 0.2, 0, 1.6, 0));
 
     /**
      * A hold point that positions the held entity in the mainhand of the player model.
@@ -36,7 +37,9 @@ public class ASIPSHoldPoints {
      */
     @NotNull public static final ASIPSRegisterableHoldPoint MAINHAND =  new ASIPSModelPartHoldPoint(
             ResourceLocation.fromNamespaceAndPath(ActuallySizeInteractions.MODID, "mainhand"),
-            0D/16D, 1.5D/16D, 10D/16D, 0, 0, 0, 0, new ASIMPLForwardYVerticalNZ("right_arm"));
+            new SVFLBit(0D/16D, 1.5D/16D, 10D/16D),
+            new SVFLBit(-0.4, 0, 0, 0.2, 0, 1.2, 0),
+            new ASIMPLForwardYVerticalNZ("right_arm"));
 
     /**
      * A hold point that positions the held entity in the offhand of the player model.
@@ -45,7 +48,9 @@ public class ASIPSHoldPoints {
      */
     @NotNull public static final ASIPSRegisterableHoldPoint OFFHAND =  new ASIPSModelPartHoldPoint(
             ResourceLocation.fromNamespaceAndPath(ActuallySizeInteractions.MODID, "offhand"),
-            0D/16D, 1.5D/16D, 10D/16D, 0, 0, 0, 0, new ASIMPLForwardYVerticalNZ("left_arm"));
+            new SVFLBit(0D/16D, 1.5D/16D, 10D/16D),
+            new SVFLBit(0.4, 0, 0, 0.2, 0, 1.2, 0),
+            new ASIMPLForwardYVerticalNZ("left_arm"));
 
     /**
      * A hold point that positions the held entity in the head of the player model.
@@ -54,7 +59,9 @@ public class ASIPSHoldPoints {
      */
     @NotNull public static final ASIPSRegisterableHoldPoint HAT =  new ASIPSModelPartHoldPoint(
             ResourceLocation.fromNamespaceAndPath(ActuallySizeInteractions.MODID, "hat"),
-            0D/16D, 7D/16D, 0D/16D, 0, 0, 0, new ASIMPLForwardNZVerticalNY("head"));
+            new SVFLBit(0D/16D, 7D/16D, 0D/16D),
+            new SVFLBit(0, 0, 0, 0, 0, 1.8, 0),
+            new ASIMPLForwardNZVerticalNY("head"));
 
     /**
      * A hold point that positions the held entity in the head of the player model.
@@ -63,7 +70,9 @@ public class ASIPSHoldPoints {
      */
     @NotNull public static final ASIPSRegisterableHoldPoint HEAD =  new ASIPSModelPartHoldPoint(
             ResourceLocation.fromNamespaceAndPath(ActuallySizeInteractions.MODID, "head"),
-            0D/16D, 7D/16D, 3D/16D, 0, 0, 0, new ASIMPLForwardNZVerticalNY("head"));
+            new SVFLBit(0D/16D, 7D/16D, 3D/16D),
+            new SVFLBit(0, 0, 0, 0.1, 0, 1.8, 0),
+            new ASIMPLForwardNZVerticalNY("head"));
 
     /**
      * A hold point that positions the held entity in the right shoulder of the player model.
@@ -72,7 +81,9 @@ public class ASIPSHoldPoints {
      */
     @NotNull public static final ASIPSRegisterableHoldPoint RIGHT_SHOULDER =  new ASIPSModelPartHoldPoint(
             ResourceLocation.fromNamespaceAndPath(ActuallySizeInteractions.MODID, "right_shoulder"),
-            -4.5D/16D, 0D/16D, 0.5D/16D, 0, 0, 0, new ASIMPLForwardNZVerticalNY("body"));
+            new SVFLBit(-4.5D/16D, 0D/16D, 0.5D/16D),
+            new SVFLBit(-0.3, 0, 0, 0, 0, 1.4, 0),
+            new ASIMPLForwardNZVerticalNY("body"));
 
     /**
      * A hold point that positions the held entity in the left shoulder of the player model.
@@ -81,7 +92,9 @@ public class ASIPSHoldPoints {
      */
     @NotNull public static final ASIPSRegisterableHoldPoint LEFT_SHOULDER =  new ASIPSModelPartHoldPoint(
             ResourceLocation.fromNamespaceAndPath(ActuallySizeInteractions.MODID, "left_shoulder"),
-            4.5D/16D, 0D/16D, 0.5D/16D, 0, 0, 0, new ASIMPLForwardNZVerticalNY("body"));
+            new SVFLBit(4.5D/16D, 0D/16D, 0.5D/16D),
+            new SVFLBit(0.3, 0, 0, 0, 0, 1.4, 0),
+            new ASIMPLForwardNZVerticalNY("body"));
 
     /**
      * A hold point that positions the held entity in the right pocket of the player model.
@@ -90,7 +103,9 @@ public class ASIPSHoldPoints {
      */
     @NotNull public static final ASIPSRegisterableHoldPoint RIGHT_POCKET =  new ASIPSModelPartHoldPoint(
             ResourceLocation.fromNamespaceAndPath(ActuallySizeInteractions.MODID, "right_pocket"),
-            -3.5D/16D, -11D/16D, 0D/16D, 0, 0, 0, new ASIMPLForwardNZVerticalNY("body"));
+            new SVFLBit(-3.5D/16D, -11D/16D, 0D/16D),
+            new SVFLBit(-0.3, 0, 0, 0, 0, 1.0, 0),
+            new ASIMPLForwardNZVerticalNY("body"));
 
     /**
      * A hold point that positions the held entity in the left pocket of the player model.
@@ -99,7 +114,9 @@ public class ASIPSHoldPoints {
      */
     @NotNull public static final ASIPSRegisterableHoldPoint LEFT_POCKET =  new ASIPSModelPartHoldPoint(
             ResourceLocation.fromNamespaceAndPath(ActuallySizeInteractions.MODID, "left_pocket"),
-            3.5D/16D, -11D/16D, 0D/16D, 0, 0, 0, new ASIMPLForwardNZVerticalNY("body"));
+            new SVFLBit(3.5D/16D, -11D/16D, 0D/16D),
+            new SVFLBit(0.3, 0, 0, 0, 0, 1.0, 0),
+            new ASIMPLForwardNZVerticalNY("body"));
 
     /**
      * A hold point that positions the held entity in the right thigh of the player model,
@@ -109,7 +126,9 @@ public class ASIPSHoldPoints {
      */
     @NotNull public static final ASIPSRegisterableHoldPoint RIGHT_THIGH =  new ASIPSModelPartHoldPoint(
             ResourceLocation.fromNamespaceAndPath(ActuallySizeInteractions.MODID, "right_thigh"),
-            -1.5D/16D, -3D/16D, 0D/16D, 0, 0, 0, new ASIMPLForwardNZVerticalNY("right_leg"));
+            new SVFLBit(-1.5D/16D, -3D/16D, 0D/16D),
+            new SVFLBit(-0.3, 0, 0, 0, 0, 0.7, 0),
+            new ASIMPLForwardNZVerticalNY("right_leg"));
 
     /**
      * A hold point that positions the held entity in the left thigh of the player model,
@@ -119,7 +138,9 @@ public class ASIPSHoldPoints {
      */
     @NotNull public static final ASIPSRegisterableHoldPoint LEFT_THIGH =  new ASIPSModelPartHoldPoint(
             ResourceLocation.fromNamespaceAndPath(ActuallySizeInteractions.MODID, "left_thigh"),
-            1.5D/16D, -3D/16D, 0D/16D, 0, 0, 0, new ASIMPLForwardNZVerticalNY("left_leg"));
+            new SVFLBit(1.5D/16D, -3D/16D, 0D/16D),
+            new SVFLBit(0.3, 0, 0, 0, 0, 0.7, 0),
+            new ASIMPLForwardNZVerticalNY("left_leg"));
 
     /**
      * A hold point that positions the held entity in the right foot of the player model.
@@ -128,7 +149,9 @@ public class ASIPSHoldPoints {
      */
     @NotNull public static final ASIPSRegisterableHoldPoint RIGHT_BOOT =  new ASIPSModelPartHoldPoint(
             ResourceLocation.fromNamespaceAndPath(ActuallySizeInteractions.MODID, "right_boot"),
-            0D/16D, -11.5D/16D, 0D/16D, 0, 0, 0, new ASIMPLForwardNZVerticalNY("right_leg"));
+            new SVFLBit(0D/16D, -11.5D/16D, 0D/16D),
+            new SVFLBit(-0.15, 0, 0, 0, 0, 0.1, 0),
+            new ASIMPLForwardNZVerticalNY("right_leg"));
 
     /**
      * A hold point that positions the held entity in the left foot of the player model.
@@ -137,7 +160,9 @@ public class ASIPSHoldPoints {
      */
     @NotNull public static final ASIPSRegisterableHoldPoint LEFT_BOOT =  new ASIPSModelPartHoldPoint(
             ResourceLocation.fromNamespaceAndPath(ActuallySizeInteractions.MODID, "left_boot"),
-            0D/16D, -11.5D/16D, 0D/16D, 0, 0, 0, new ASIMPLForwardNZVerticalNY("left_leg"));
+            new SVFLBit(0D/16D, -11.5D/16D, 0D/16D),
+            new SVFLBit(0.15, 0, 0, 0, 0, 0.1, 0),
+            new ASIMPLForwardNZVerticalNY("left_leg"));
 
 
     /**
@@ -145,7 +170,8 @@ public class ASIPSHoldPoints {
      */
     @NotNull public static final ASIPSRegisterableHoldPoint FLUSH =  new ASIPSModelPartHoldPoint(
             ResourceLocation.fromNamespaceAndPath(ActuallySizeInteractions.MODID, "flush"),
-            0D/16D, -13D/16D, 1D/16D, 0, 0, 0,
+            new SVFLBit(0D/16D, -13D/16D, 1D/16D),
+            new SVFLBit(0, 0, 0, 0, 0, 1, 0),
             new ASIMPLForwardNZVerticalNY("body"));
 
     /**
@@ -153,7 +179,8 @@ public class ASIPSHoldPoints {
      */
     @NotNull public static final ASIPSRegisterableHoldPoint SHED =  new ASIPSModelPartHoldPoint(
             ResourceLocation.fromNamespaceAndPath(ActuallySizeInteractions.MODID, "shed"),
-            0D/16D, -3.5D/16D, 2.5D/16D, 0, 0, 0,
+            new SVFLBit(0D/16D, -3.5D/16D, 2.5D/16D),
+            new SVFLBit(0, 0, 0, 0.1, 0, 1.25, 0),
             new ASIMPLForwardNZVerticalNY("body"));
 
     /**
@@ -161,7 +188,8 @@ public class ASIPSHoldPoints {
      */
     @NotNull public static final ASIPSRegisterableHoldPoint NOMF =  new ASIPSModelPartHoldPoint(
             ResourceLocation.fromNamespaceAndPath(ActuallySizeInteractions.MODID, "nomf"),
-            0D/16D, 0D/16D, 2.5D/16D, 0, 0, 0,
+            new SVFLBit(0D/16D, 0D/16D, 2.5D/16D),
+            new SVFLBit(0, 0, 0, 0.07, 0, 1.4, 0),
             new ASIMPLForwardNZVerticalNY("head"));
 
     //endregion

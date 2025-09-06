@@ -6,6 +6,7 @@ import actually.portals.ActuallySize.pickup.mixininterfaces.EntityDualityCounter
 import actually.portals.ActuallySize.pickup.mixininterfaces.ItemEntityDualityHolder;
 import gunging.ootilities.GungingOotilitiesMod.ootilityception.OotilityNumbers;
 import gunging.ootilities.GungingOotilitiesMod.ootilityception.OotilityVectors;
+import gunging.ootilities.GungingOotilitiesMod.ootilityception.SVFLBit;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
@@ -22,147 +23,43 @@ import org.jetbrains.annotations.NotNull;
 public abstract class RelativeCoordinateHold extends ASIPSRegisterableHoldPoint {
 
     /**
-     * Creates a ride point with a specific relative transformation.
+     * A ride point relative to the holder's pitch, yaw, and world coordinates.
      *
      * @param nk The namespaced key to name this slot
-     * @param sideOffset Relative sideways offset
-     * @param verticalOffset Relative vertical offset
-     * @param forwardOffset Relative forward offset
-     * @param xOffset Absolute X offset
-     * @param yOffset Absolute Y offset
-     * @param zOffset Absolute Z offset
+     * @param svf The SVF coordinate information
      *
      * @author Actually Portals
      * @since 1.0.0
      */
-    public RelativeCoordinateHold(@NotNull ResourceLocation nk, double sideOffset, double verticalOffset, double forwardOffset, double xOffset, double yOffset, double zOffset) {
+    public RelativeCoordinateHold(@NotNull ResourceLocation nk, @NotNull SVFLBit svf) {
         super(nk);
-        this.verticalOffset = verticalOffset;
-        this.forwardOffset = forwardOffset;
-        this.sideOffset = sideOffset;
-        this.xOffset = xOffset;
-        this.zOffset = zOffset;
-        this.yOffset = yOffset;
+        this.coordinates = svf;
     }
 
     /**
-     * Creates a ride point with a specific relative transformation.
-     *
-     * @param nk The namespaced key to name this slot
-     * @param sideOffset Relative sideways offset
-     * @param verticalOffset Relative vertical offset
-     * @param forwardOffset Relative forward offset
-     * @param levelOffset Relative forward offset with no vertical component (along the Y axis)
-     * @param xOffset Absolute X offset
-     * @param yOffset Absolute Y offset
-     * @param zOffset Absolute Z offset
-     *
-     * @author Actually Portals
-     * @since 1.0.0
-     */
-    public RelativeCoordinateHold(@NotNull ResourceLocation nk, double sideOffset, double verticalOffset, double forwardOffset, double levelOffset, double xOffset, double yOffset, double zOffset) {
-        super(nk);
-        this.verticalOffset = verticalOffset;
-        this.forwardOffset = forwardOffset;
-        this.sideOffset = sideOffset;
-        this.levelOffset = levelOffset;
-        this.xOffset = xOffset;
-        this.zOffset = zOffset;
-        this.yOffset = yOffset;
-    }
-
-    /**
-     * The offset in the direction the holder is facing
+     * The relative coordinate information for this hold
      *
      * @since 1.0.0
      */
-    double forwardOffset;
+    @NotNull final SVFLBit coordinates;
 
     /**
      * @author Actually Portals
      * @since 1.0.0
      */
-    public double getForwardOffset() { return forwardOffset; }
+    public @NotNull SVFLBit getCoordinates() { return coordinates; }
 
     /**
-     * The offset in the direction upward relative to the holder
+     * The transformation applied to the origin of this hold point, if it
+     * were to depend on the holder or held entity for whatever reason.
      *
-     * @since 1.0.0
-     */
-    double verticalOffset;
-
-    /**
+     * @param holder The entity doing the holder
+     * @param entityDuality The entity being held
+     *
      * @author Actually Portals
      * @since 1.0.0
      */
-    public double getVerticalOffset() { return verticalOffset; }
-
-    /**
-     * The offset in the direction sideways relative to the facing
-     * direction where a positive number is leftward (probably).
-     *
-     * @since 1.0.0
-     */
-    double sideOffset;
-
-    /**
-     * @author Actually Portals
-     * @since 1.0.0
-     */
-    public double getSideOffset() { return sideOffset; }
-
-    /**
-     * The offset in the direction forward relative to the facing
-     * direction, except it has no vertical component.
-     *
-     * @since 1.0.0
-     */
-    double levelOffset;
-
-    /**
-     * @author Actually Portals
-     * @since 1.0.0
-     */
-    public double getLevelOffset() { return levelOffset; }
-
-    /**
-     * The offset in absolute X direction
-     *
-     * @since 1.0.0
-     */
-    double xOffset;
-
-    /**
-     * @author Actually Portals
-     * @since 1.0.0
-     */
-    public double getXOffset() { return xOffset; }
-
-    /**
-     * The offset in absolute Y direction
-     *
-     * @since 1.0.0
-     */
-    double yOffset;
-
-    /**
-     * @author Actually Portals
-     * @since 1.0.0
-     */
-    public double getYOffset() { return yOffset; }
-
-    /**
-     * The offset in the absolute Z direction
-     *
-     * @since 1.0.0
-     */
-    double zOffset;
-
-    /**
-     * @author Actually Portals
-     * @since 1.0.0
-     */
-    public double getZOffset() { return zOffset; }
+    public @NotNull SVFLBit getCoordinates(@NotNull Entity holder, @NotNull EntityDualityCounterpart entityDuality) { return getCoordinates(); }
 
     /**
      * @param holder The entity doing the holder
@@ -208,7 +105,6 @@ public abstract class RelativeCoordinateHold extends ASIPSRegisterableHoldPoint 
      */
     public double getRoll(@NotNull Entity holder, @NotNull EntityDualityCounterpart entityDuality) { return 0; }
 
-
     /**
      * @author Actually Portals
      * @since 1.0.0
@@ -223,16 +119,24 @@ public abstract class RelativeCoordinateHold extends ASIPSRegisterableHoldPoint 
         Entity entityCounterpart = (Entity) entityDuality;
         Entity holderEntity = (Entity) holder;
         double size = ASIUtilities.getEntityScale(holderEntity);
+        Vec3 svf;
 
-        // Roll operation support (funny)
-        double roll = getRoll(holderEntity, entityDuality);
-        double rolledSide = getSideOffset() * Math.cos(roll) - getVerticalOffset() * Math.sin(roll);
-        double rolledVertical = getVerticalOffset() * Math.cos(roll) + getSideOffset() * Math.sin(roll);
+        // Transformation relative to origin
+        SVFLBit bit = getCoordinates(holderEntity, entityDuality);
+        if (!bit.isZero()) {
 
-        // Transform S V F L scaled by the holders' scale
-        Vec3 svf = OotilityVectors.transformSVFL(getPitch(holderEntity, entityDuality), getYaw(holderEntity, entityDuality),
-                        rolledSide, rolledVertical, getForwardOffset(), getLevelOffset(),
-                        getXOffset(), getYOffset(), getZOffset()).scale(size);
+            // Roll operation support (funny)
+            double roll = getRoll(holderEntity, entityDuality);
+            double rolledSide = bit.getS() * Math.cos(roll) - bit.getV() * Math.sin(roll);
+            double rolledVertical = bit.getV() * Math.cos(roll) + bit.getS() * Math.sin(roll);
+
+            // Transform S V F L scaled by the holders' scale
+            svf = OotilityVectors.transformSVFL(getPitch(holderEntity, entityDuality), getYaw(holderEntity, entityDuality),
+                    rolledSide, rolledVertical, bit.getF(), bit.getL(),
+                    bit.getX(), bit.getY(), bit.getZ()).scale(size);
+
+        // No need to apply any transformation
+        } else { svf = Vec3.ZERO; }
 
         // Freeze velocity and set position to the calculated offsets
         entityCounterpart.setDeltaMovement(Vec3.ZERO);

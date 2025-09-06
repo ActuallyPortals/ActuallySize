@@ -1,6 +1,7 @@
 package actually.portals.ActuallySize.pickup.holding.points;
 
 import actually.portals.ActuallySize.pickup.mixininterfaces.EntityDualityCounterpart;
+import gunging.ootilities.GungingOotilitiesMod.ootilityception.SVFLBit;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.Vec3;
@@ -12,37 +13,13 @@ public class ASIPSRelativeFacingHold extends RelativeCoordinateHold {
      * A ride point relative to the holder's pitch, yaw, and world coordinates.
      *
      * @param nk The namespaced key to name this slot
-     * @param sideOffset Relative sideways offset
-     * @param verticalOffset Relative vertical offset
-     * @param forwardOffset Relative forward offset
-     * @param xOffset Absolute X offset
-     * @param yOffset Absolute Y offset
-     * @param zOffset Absolute Z offset
+     * @param svf The SVF coordinate information
      *
      * @author Actually Portals
      * @since 1.0.0
      */
-    public ASIPSRelativeFacingHold(@NotNull ResourceLocation nk, double sideOffset, double verticalOffset, double forwardOffset, double xOffset, double yOffset, double zOffset) {
-        super(nk, sideOffset, verticalOffset, forwardOffset, xOffset, yOffset, zOffset);
-    }
-
-    /**
-     * A ride point relative to the holder's pitch, yaw, and world coordinates.
-     *
-     * @param nk The namespaced key to name this slot
-     * @param sideOffset Relative sideways offset
-     * @param verticalOffset Relative vertical offset
-     * @param forwardOffset Relative forward offset
-     * @param levelOffset Relative level offset
-     * @param xOffset Absolute X offset
-     * @param yOffset Absolute Y offset
-     * @param zOffset Absolute Z offset
-     *
-     * @author Actually Portals
-     * @since 1.0.0
-     */
-    public ASIPSRelativeFacingHold(@NotNull ResourceLocation nk, double sideOffset, double verticalOffset, double forwardOffset, double levelOffset, double xOffset, double yOffset, double zOffset) {
-        super(nk, sideOffset, verticalOffset, forwardOffset, levelOffset, xOffset, yOffset, zOffset);
+    public ASIPSRelativeFacingHold(@NotNull ResourceLocation nk, @NotNull SVFLBit svf) {
+        super(nk, svf);
     }
 
     @Override
