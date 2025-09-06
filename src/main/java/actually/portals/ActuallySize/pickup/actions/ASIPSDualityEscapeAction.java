@@ -284,7 +284,10 @@ public class ASIPSDualityEscapeAction extends ASIPSDualityAction {
         /*HDA*/ActuallySizeInteractions.LogHDA(getClass(), "HDE", "Entity &f {0}", (entityCounterpart == null ? "null" : entityCounterpart.getScoreboardName()));
         
         // Should have been confirmed during verification step but
-        if (entityCounterpart == null) { return; }
+        if (entityCounterpart == null) {
+            /*HDA*/ActuallySizeInteractions.LogHDA(getClass(), "HDE", "&3 No entity to deactivate");
+            /*HDA*/ActuallySizeInteractions.LogHDA(false, getClass(), "HDE", "Resolving");
+            return; }
 
         // Full-Identifying
         ItemDualityCounterpart itemDuality = (ItemDualityCounterpart) (Object) itemCounterpart;

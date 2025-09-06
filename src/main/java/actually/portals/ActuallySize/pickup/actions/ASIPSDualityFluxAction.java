@@ -90,8 +90,12 @@ public class ASIPSDualityFluxAction implements APIFriendlyProcess, ASINetworkDel
      * @author Actually Portals
      */
     public ASIPSDualityFluxAction(@NotNull ASIPSDualityAction from, @NotNull ASIPSDualityAction to) {
+        /*HDA*/ActuallySizeInteractions.LogHDA(true, getClass(), "HDF", "Explicit Constructor");
+
         this.from = from;
         this.to = to;
+
+        /*HDA*/ActuallySizeInteractions.LogHDA(false, getClass(), "HDF", "Explicit Constructor");
     }
 
     /**
@@ -102,8 +106,12 @@ public class ASIPSDualityFluxAction implements APIFriendlyProcess, ASINetworkDel
      * @author Actually Portals
      */
     public ASIPSDualityFluxAction(@NotNull ASINCItemEntityFluxPacket packet, @Nullable Level world) {
+        /*HDA*/ActuallySizeInteractions.LogHDA(true, getClass(), "HDF", "Packet Constructor");
+
         this.from = new ASIPSDualityDeactivationAction(packet.getFrom(), world);
         this.to = new ASIPSDualityActivationAction(packet.getTo(), world);
+
+        /*HDA*/ActuallySizeInteractions.LogHDA(false, getClass(), "HDF", "Packet Constructor");
     }
 
     @Override
@@ -111,7 +119,7 @@ public class ASIPSDualityFluxAction implements APIFriendlyProcess, ASINetworkDel
         /*HDA*/ActuallySizeInteractions.LogHDA(true, getClass(), "HDF", "Verifying");
         /*HDA*/ActuallySizeInteractions.LogHDA(getClass(), "HDF", "[From] &f {0}", getFrom().getClass().getSimpleName());
         /*HDA*/ActuallySizeInteractions.LogHDA(getClass(), "HDF", "[To] &f {0}", getTo().getClass().getSimpleName());
-        /*HDA*/ActuallySizeInteractions.LogHDA(getClass(), "HDF", "Clientside", (getTo().getEntityCounterpart() == null ? "null" : getTo().getEntityCounterpart().level().isClientSide));
+        /*HDA*/ActuallySizeInteractions.LogHDA(getClass(), "HDF", "Clientside &b {0}", (getTo().getEntityCounterpart() == null ? "null" : getTo().getEntityCounterpart().level().isClientSide));
 
         // The entity counterparts must match
         if (getTo().getEntityCounterpart() == null) {
@@ -122,20 +130,17 @@ public class ASIPSDualityFluxAction implements APIFriendlyProcess, ASINetworkDel
         if (!getTo().getEntityCounterpart().equals(getFrom().getEntityCounterpart())) {
             /*HDA*/ActuallySizeInteractions.LogHDA(getClass(), "HDF", "&c Estranged Entity");
             /*HDA*/ActuallySizeInteractions.LogHDA(false, getClass(), "HDE", "Verifying");
-            return false;
-        }
+            return false; }
 
         if (!getTo().isVerified()) {
             /*HDA*/ActuallySizeInteractions.LogHDA(getClass(), "HDF", "&c [To] Unverified");
             /*HDA*/ActuallySizeInteractions.LogHDA(false, getClass(), "HDE", "Verifying");
-            return false;
-        }
+            return false; }
 
         if (!getFrom().isVerified()) {
             /*HDA*/ActuallySizeInteractions.LogHDA(getClass(), "HDF", "&c [From] Unverified");
             /*HDA*/ActuallySizeInteractions.LogHDA(false, getClass(), "HDE", "Verifying");
-            return false;
-        }
+            return false; }
 
         // The two constituents must be verified
         /*HDA*/ActuallySizeInteractions.LogHDA(getClass(), "HDF", "&2 VERIFIED");
@@ -148,19 +153,17 @@ public class ASIPSDualityFluxAction implements APIFriendlyProcess, ASINetworkDel
         /*HDA*/ActuallySizeInteractions.LogHDA(true, getClass(), "HDF", "Allowing");
         /*HDA*/ActuallySizeInteractions.LogHDA(getClass(), "HDF", "[From] &f {0}", getFrom().getClass().getSimpleName());
         /*HDA*/ActuallySizeInteractions.LogHDA(getClass(), "HDF", "[To] &f {0}", getTo().getClass().getSimpleName());
-        /*HDA*/ActuallySizeInteractions.LogHDA(getClass(), "HDF", "Clientside", (getTo().getEntityCounterpart() == null ? "null" : getTo().getEntityCounterpart().level().isClientSide));
+        /*HDA*/ActuallySizeInteractions.LogHDA(getClass(), "HDF", "Clientside &b {0}", (getTo().getEntityCounterpart() == null ? "null" : getTo().getEntityCounterpart().level().isClientSide));
 
         if (!getTo().isAllowed()) {
             /*HDA*/ActuallySizeInteractions.LogHDA(getClass(), "HDF", "&6 [To] Disallowed");
             /*HDA*/ActuallySizeInteractions.LogHDA(false, getClass(), "HDF", "Allowing");
-            return false;
-        }
+            return false; }
 
         if (!getFrom().isAllowed()) {
             /*HDA*/ActuallySizeInteractions.LogHDA(getClass(), "HDF", "&6 [From] Disallowed");
             /*HDA*/ActuallySizeInteractions.LogHDA(false, getClass(), "HDF", "Allowing");
-            return false;
-        }
+            return false; }
 
         // The two constituents must be allowed
         /*HDA*/ActuallySizeInteractions.LogHDA(getClass(), "HDF", "&6 ALLOWED");
@@ -173,7 +176,7 @@ public class ASIPSDualityFluxAction implements APIFriendlyProcess, ASINetworkDel
         /*HDA*/ActuallySizeInteractions.LogHDA(true, getClass(), "HDF", "Resolving");
         /*HDA*/ActuallySizeInteractions.LogHDA(getClass(), "HDF", "[From] &f {0}", getFrom().getClass().getSimpleName());
         /*HDA*/ActuallySizeInteractions.LogHDA(getClass(), "HDF", "[To] &f {0}", getTo().getClass().getSimpleName());
-        /*HDA*/ActuallySizeInteractions.LogHDA(getClass(), "HDF", "Clientside", (getTo().getEntityCounterpart() == null ? "null" : getTo().getEntityCounterpart().level().isClientSide));
+        /*HDA*/ActuallySizeInteractions.LogHDA(getClass(), "HDF", "Clientside &b {0}", (getTo().getEntityCounterpart() == null ? "null" : getTo().getEntityCounterpart().level().isClientSide));
 
         // Full identify
         Entity entityCounterpart = to.getEntityCounterpart();

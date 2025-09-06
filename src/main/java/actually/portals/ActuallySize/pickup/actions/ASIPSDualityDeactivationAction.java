@@ -287,7 +287,10 @@ public class ASIPSDualityDeactivationAction extends ASIPSDualityAction {
         // Should have been confirmed during verification step but
         if (stackLocation == null) { return; }
         if (holdPoint == null) { return; }
-        if (entityCounterpart == null) { return; }
+        if (entityCounterpart == null) {
+            /*HDA*/ActuallySizeInteractions.LogHDA(getClass(), "HDD", "&3 No entity to deactivate");
+            /*HDA*/ActuallySizeInteractions.LogHDA(false, getClass(), "HDD", "Resolving");
+            return; }
 
         /*
          * Attempting to deactivate players redirects them to escape instead
@@ -382,7 +385,7 @@ public class ASIPSDualityDeactivationAction extends ASIPSDualityAction {
             ASINetworkManager.broadcastEntityUpdate(entityCounterpart, packet);
         }
 
-        /*HDA*/ActuallySizeInteractions.LogHDA(getClass(), "HDD", "&3 REDIRECTED");
+        /*HDA*/ActuallySizeInteractions.LogHDA(getClass(), "HDD", "&3 RESOLVED");
         /*HDA*/ActuallySizeInteractions.LogHDA(false, getClass(), "HDD", "Resolving");
     }
 }
