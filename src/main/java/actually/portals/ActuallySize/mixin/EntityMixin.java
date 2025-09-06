@@ -4,10 +4,7 @@ import actually.portals.ActuallySize.ASIUtilities;
 import actually.portals.ActuallySize.ActuallyServerConfig;
 import actually.portals.ActuallySize.ActuallySizeInteractions;
 import actually.portals.ActuallySize.pickup.ASIPickupSystemManager;
-import actually.portals.ActuallySize.pickup.actions.ASIPSDualityActivationAction;
-import actually.portals.ActuallySize.pickup.actions.ASIPSDualityDeactivationAction;
-import actually.portals.ActuallySize.pickup.actions.ASIPSDualityEscapeAction;
-import actually.portals.ActuallySize.pickup.actions.ASIPSHoldingSyncAction;
+import actually.portals.ActuallySize.pickup.actions.*;
 import actually.portals.ActuallySize.pickup.holding.ASIPSHoldPoint;
 import actually.portals.ActuallySize.pickup.holding.points.ASIPSHoldPointRegistry;
 import actually.portals.ActuallySize.pickup.holding.points.ASIPSRegisterableHoldPoint;
@@ -157,7 +154,8 @@ public abstract class EntityMixin extends net.minecraftforge.common.capabilities
         // Only server handles held entity flux
         Level world = level();
         if (!(world instanceof ServerLevel)) { return; }
-        /*HDA*/ActuallySizeInteractions.Log("ASI &6 EMX-HDA &7 (" + getClass().getSimpleName() + ") &5 Restoring in server after dimension change");
+        /*HDA*/ActuallySizeInteractions.LogHDA(true, ASIPSPickupAction.class, "EMX", "Dimensional change restore");
+        /*HDA*/ActuallySizeInteractions.LogHDA(ASIPSPickupAction.class, "EMX", "Entity &f {0}", getScoreboardName());
 
         // Players get force-synced, they will request active dualities themselves
         Entity restoredEntity = (Entity) (Object) this;
@@ -167,7 +165,7 @@ public abstract class EntityMixin extends net.minecraftforge.common.capabilities
             HoldPointConfigurable asConfigurableOld = (HoldPointConfigurable) pEntity;
             HoldPointConfigurable asConfigurableNew = (HoldPointConfigurable) restoredEntity;
             asConfigurableNew.actuallysize$setLocalHoldPoints(asConfigurableOld.actuallysize$getLocalHoldPoints());
-            /*HDA*/ActuallySizeInteractions.Log("ASI &6 EMX-HDA &7 (" + getClass().getSimpleName() + ") Copied over hold points &e x" + asConfigurableNew.actuallysize$getLocalHoldPoints().getRegisteredPoints().size());
+            /*HDA*/ActuallySizeInteractions.LogHDA(getClass(), "EMX", "Copied over hold points &e x{0}", asConfigurableNew.actuallysize$getLocalHoldPoints().getRegisteredPoints().size());
 
             // Sync hold point configurations to client
             ASIPSHoldingSyncAction syncing = new ASIPSHoldingSyncAction((ServerPlayer) restoredEntity);
@@ -184,7 +182,7 @@ public abstract class EntityMixin extends net.minecraftforge.common.capabilities
             ItemStackLocation oldLocation = held.getValue().actuallysize$getItemStackLocation();
             Entity heldAsEntity = (Entity) held.getValue();
             if (oldLocation == null) { continue; }
-            /*HDA*/ActuallySizeInteractions.Log("ASI &6 EMX-HDA &7 (" + getClass().getSimpleName() + ") Transmigrating held entity &e " + oldLocation.getStatement());
+            /*HDA*/ActuallySizeInteractions.LogHDA(getClass(), "EMX", "Transmigrating held entity in &e{0}", oldLocation.getStatement());
 
             // Rebuild the item stack location
             ItemExplorerElaborator elaborator = oldLocation.getStatement().prepareElaborator(this);
@@ -199,6 +197,7 @@ public abstract class EntityMixin extends net.minecraftforge.common.capabilities
             ASIPSDualityActivationAction transfer = new ASIPSDualityActivationAction(newLocation, newLocation.getItemStack(), reprepared);
             transfer.tryResolve();
         }
+        /*HDA*/ActuallySizeInteractions.LogHDA(false, ASIPSPickupAction.class, "EMX", "Dimensional change restore");
     }
 
     @Override
@@ -317,13 +316,13 @@ public abstract class EntityMixin extends net.minecraftforge.common.capabilities
 
     @Override
     public @Nullable ASIPSHoldPoint actuallysize$getHoldPoint(@Nullable Object index) {
-        /*HDA*/ActuallySizeInteractions.Log("ASI &6 EMX-HDA &7 (" + getClass().getSimpleName() + ") Looking for matching hold point for " + (index == null ? "" : index.getClass().getSimpleName() + " ") + index);
 
         // First try local registry if possible
         if (this instanceof HoldPointConfigurable) {
             ASIPSHoldPointRegistry reg = ((HoldPointConfigurable) this).actuallysize$getLocalHoldPoints();
             ASIPSRegisterableHoldPoint tried = reg.getHoldPoint(index);
-            /*HDA*/ActuallySizeInteractions.Log("ASI &6 EMX-HDA &7 As configurable... &f " + (tried == null ? "" : tried.getClass().getSimpleName() + " ") + (tried == null ? "null" : tried.getNamespacedKey()));
+
+            /*HDA*/ActuallySizeInteractions.LogHDA(getClass(), "EMX", "Matched hold point &f {0} -> &e {1}", index, tried);
             //HDR//reg.log();
 
             if (tried != null) { return tried; }
@@ -365,17 +364,11 @@ public abstract class EntityMixin extends net.minecraftforge.common.capabilities
              */
             actuallysize$heldItemCounterparts.remove(slot);
 
-            /*HDA*/ActuallySizeInteractions.Log("ASI &6EMX-HDA &r Removing old duality in this same slot... ");
+            /*HDA*/ActuallySizeInteractions.LogHDA(getClass(), "EMX", "{1} found active duality in this slot {0}, removing...", slot, getScoreboardName());
 
             // Remove the old one from everywhere... else
             ASIPSDualityDeactivationAction oldHandler = new ASIPSDualityDeactivationAction(oldEntityCounterpart);
-            if (oldHandler.tryResolve()) {
-
-                /*HDA*/ActuallySizeInteractions.Log("ASI &6EMX-HDA &r Removed old. ");
-            } else {
-
-                /*HDA*/ActuallySizeInteractions.Log("ASI &6EMX-HDA &c Did not remove old. ");
-            }
+            oldHandler.tryResolve();
         }
 
         /*
@@ -383,10 +376,9 @@ public abstract class EntityMixin extends net.minecraftforge.common.capabilities
          */
         if (dualityEntity == null) { return; }
 
-        /*HDA*/ActuallySizeInteractions.Log("ASI &6EMX-HDA &r Activating new &b " + slot + " &7 " + ((Entity) dualityEntity).getScoreboardName());
-
         // Remember in slot
         actuallysize$heldItemCounterparts.put(slot, dualityEntity);
+        /*HDA*/ActuallySizeInteractions.LogHDA(getClass(), "EMX", "{2} activated {1} for my slot {0}", slot, ((Entity) dualityEntity).getScoreboardName(), getScoreboardName());
     }
 
     @Override

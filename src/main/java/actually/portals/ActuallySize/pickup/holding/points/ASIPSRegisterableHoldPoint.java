@@ -95,4 +95,5 @@ public abstract class ASIPSRegisterableHoldPoint extends ASIPSHoldPoint {
      */
     @NotNull public ResourceLocation getNamespacedKey() { return namespacedKey; }
 
+    @Override public String toString() { return getNamespacedKey().toString(); }
 }

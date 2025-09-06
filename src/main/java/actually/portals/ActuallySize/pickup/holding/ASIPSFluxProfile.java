@@ -1,13 +1,13 @@
 package actually.portals.ActuallySize.pickup.holding;
 
 import actually.portals.ActuallySize.ActuallySizeInteractions;
+import actually.portals.ActuallySize.pickup.ASIPickupSystemManager;
 import actually.portals.ActuallySize.pickup.actions.ASIPSDualityAction;
 import actually.portals.ActuallySize.pickup.actions.ASIPSDualityDeactivationAction;
 import actually.portals.ActuallySize.pickup.actions.ASIPSDualityEscapeAction;
 import actually.portals.ActuallySize.pickup.actions.ASIPSDualityFluxAction;
 import actually.portals.ActuallySize.pickup.mixininterfaces.EntityDualityCounterpart;
 import net.minecraft.world.entity.Entity;
-import org.checkerframework.checker.units.qual.A;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -113,7 +113,7 @@ public class ASIPSFluxProfile {
 
         // Calculate the ultimate changes
         for (ASIPSDualityAction act : actions) {
-            /*HDA*/ActuallySizeInteractions.Log("ASI &a RDF &8 + &7 " + act.getClass().getSimpleName() + " &f " + (act.getStackLocation() == null ? "null" : act.getStackLocation().getStatement()));
+            /*HDA*/ActuallySizeInteractions.LogHDA(getClass(), "RDF", " + &7 {0} &f {1}", act.getClass().getSimpleName(), (act.getStackLocation() == null ? "null" : act.getStackLocation().getStatement()));
             boolean isFrom = (act instanceof ASIPSDualityDeactivationAction) || (act instanceof ASIPSDualityEscapeAction);
 
             // This action is removing the entity from somewhere
@@ -164,8 +164,8 @@ public class ASIPSFluxProfile {
      */
     @NotNull public ArrayList<ASIPSDualityAction> resolveFlux() {
         ArrayList<ASIPSDualityAction> flex = new ArrayList<>();
-        /*HDA*/ActuallySizeInteractions.Log("ASI &a RDF &7 Resolving From: &e " + (from == null ? "null" : (from.getStackLocation() == null ? "UNKNOWN" : from.getStackLocation().getStatement())));
-        /*HDA*/ActuallySizeInteractions.Log("ASI &a RDF &7 Resolving To: &6 " + (to == null ? "null" : (to.getStackLocation() == null ? "UNKNOWN" : to.getStackLocation().getStatement())));
+        /*HDA*/ActuallySizeInteractions.LogHDA(ASIPickupSystemManager.class, "RDF", "[FROM] &6 {0}", (from == null ? "null" : (from.getStackLocation() == null ? "UNKNOWN" : from.getStackLocation().getStatement())));
+        /*HDA*/ActuallySizeInteractions.LogHDA(ASIPickupSystemManager.class, "RDF", "[TO] &e {0}", (to == null ? "null" : (to.getStackLocation() == null ? "UNKNOWN" : to.getStackLocation().getStatement())));
 
         // There is no destination?
         if (to == null) {
@@ -175,7 +175,7 @@ public class ASIPSFluxProfile {
 
                 // Give it one more pass and then let it resolve
                 if (from.getAttempts() < 1) {
-                    /*HDA*/ActuallySizeInteractions.Log("ASI &a RDF &f Flux [From] Deferred: &e " + (from.getStackLocation() == null ? "UNKNOWN" : from.getStackLocation().getStatement()));
+                    /*HDA*/ActuallySizeInteractions.LogHDA(ASIPickupSystemManager.class, "RDF", "Deferred [FROM] &f {0}", (from == null ? "null" : (from.getStackLocation() == null ? "UNKNOWN" : from.getStackLocation().getStatement())));
                     flex.add(from);
                     from.logAttempt();
 
@@ -208,7 +208,7 @@ public class ASIPSFluxProfile {
 
                 // Give it one more pass and then let it resolve
                 if (to.getAttempts() < 1) {
-                    /*HDA*/ActuallySizeInteractions.Log("ASI &a RDF &f Flux [To] Deferred: &e " + (to.getStackLocation() == null ? "UNKNOWN" : to.getStackLocation().getStatement()));
+                    /*HDA*/ActuallySizeInteractions.LogHDA(ASIPickupSystemManager.class, "RDF", "Deferred [TO] &f {0}", (to == null ? "null" : (to.getStackLocation() == null ? "UNKNOWN" : to.getStackLocation().getStatement())));
                     flex.add(to);
                     to.logAttempt();
 

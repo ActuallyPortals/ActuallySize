@@ -43,7 +43,7 @@ public class ASIClientsidePacketHandler {
         // Kinda need a reference to the server
         LocalPlayer local = Minecraft.getInstance().player;
         if (local == null) { return; }
-        /*HPC*/ActuallySizeInteractions.Log("ASI &dPS REG &7 Received Hold points configuration for &3 #" + packet.getPlayerIndex() + " &b (local #" + local.getId() + ")");
+        //HPC//ActuallySizeInteractions.Log("ASI &dPS REG &7 Received Hold points configuration for &3 #" + packet.getPlayerIndex() + " &b (local #" + local.getId() + ")");
 
         // Look for this player
         Entity byID = local.level().getEntity(packet.getPlayerIndex());
@@ -53,8 +53,8 @@ public class ASIClientsidePacketHandler {
         HoldPointConfigurable config = (HoldPointConfigurable) byID;
         config.actuallysize$setLocalHoldPoints(packet.produceRegistry());
 
-        /*HPC*/ActuallySizeInteractions.Log("ASI &dPS REG&7 Accepted for REMOTE" + (local.getId() == packet.getPlayerIndex() ? " (except it is actually LOCAL)" : "") + ": ");
-        /*HPC*/config.actuallysize$getLocalHoldPoints().log();
+        //HPC//ActuallySizeInteractions.Log("ASI &dPS REG&7 Accepted for REMOTE" + (local.getId() == packet.getPlayerIndex() ? " (except it is actually LOCAL)" : "") + ": ");
+        //HPC//config.actuallysize$getLocalHoldPoints().log();
     }
 
     /**
@@ -78,8 +78,8 @@ public class ASIClientsidePacketHandler {
         ASIPSHoldPointRegistry asRegistry = ASIPickupSystemManager.buildLocalPlayerPreferredHoldPoints();
         asConfigurable.actuallysize$setLocalHoldPoints(asRegistry);
 
-        /*HPC*/ActuallySizeInteractions.Log("ASI &dPS REG&7 Accepted for LOCAL: ");
-        /*HPC*/asRegistry.log();
+        //HPC//ActuallySizeInteractions.Log("ASI &dPS REG&7 Accepted for LOCAL: ");
+        //HPC//asRegistry.log();
 
         // Sync to the server
         ASINSHoldPointsConfigurationSync sync = new ASINSHoldPointsConfigurationSync(asRegistry.getRegisteredPoints());
@@ -101,7 +101,7 @@ public class ASIClientsidePacketHandler {
                 /*HDA*/ActuallySizeInteractions.Log("ASI &6CPH-HDE &c UNKNOWN WORLD");
                 return null; }
             world = Minecraft.getInstance().player.level(); }
-        /*HDA*/ActuallySizeInteractions.Log("ASI &6CPH &r Received Packet World " + world.isClientSide);
+        /*HDA*/ActuallySizeInteractions.LogHDA(ASIClientsidePacketHandler.class, "CPH", "Packet world identified, clientside? {0}", world.isClientSide);
 
         return world;
     }
@@ -114,16 +114,17 @@ public class ASIClientsidePacketHandler {
      * @author Actually Portals
      */
     public static void handleItemEntityAction(@NotNull ASIPSDualityAction action, @NotNull Supplier<NetworkEvent.Context> contextSupplier) {
-        /*HDA*/ActuallySizeInteractions.Log("ASI &6CPH-HDF &r Evaluating action packet " + action.getClass().getSimpleName());
+        /*HDA*/ActuallySizeInteractions.LogHDA(true, ASIClientsidePacketHandler.class, "CPH", "{0} Packet Handling", action.getClass().getSimpleName());
 
         // Attempt to handle the entity activation
         if (!action.isVerified()) {
-            /*HDA*/ActuallySizeInteractions.Log("ASI &6CPH &c NETWORK SERIALIZATION ERROR for " + action.getClass().getSimpleName());
+            /*HDA*/ActuallySizeInteractions.LogHDA(ASIClientsidePacketHandler.class, "CPH", "&c Network serialization error");
+            /*HDA*/ActuallySizeInteractions.LogHDA(false, ASIClientsidePacketHandler.class, "CPH", "{0} Packet Handling", action.getClass().getSimpleName());
             return; }
 
         // Resolve
         if (!action.tryResolve()) {
-            /*HDA*/ActuallySizeInteractions.Log("ASI &6CPH &3 Could not resolve " + action.getClass().getSimpleName() + ", DELAYING. ");
+            /*HDA*/ActuallySizeInteractions.LogHDA(ASIClientsidePacketHandler.class, "CPH", "&3 Unresolvable at this time, delaying");
 
             // Find the enqueued actions
             UUID player = action.getStackLocation().getHolder().getUUID();
@@ -133,6 +134,8 @@ public class ASIClientsidePacketHandler {
             // Add this one to the list
             perPlayer.add(action);
             enqueuedDualityActivations.put(player, perPlayer); }
+
+        /*HDA*/ActuallySizeInteractions.LogHDA(false, ASIClientsidePacketHandler.class, "CPH", "{0} Packet Handling", action.getClass().getSimpleName());
     }
 
     /**
@@ -143,16 +146,17 @@ public class ASIClientsidePacketHandler {
      * @author Actually Portals
      */
     public static void handleItemEntityFlux(@NotNull ASINCItemEntityFluxPacket packet, @NotNull Supplier<NetworkEvent.Context> contextSupplier) {
-        /*HDA*/ActuallySizeInteractions.Log("ASI &6CPH-HDF &r Evaluating flux packet ");
+        /*HDA*/ActuallySizeInteractions.LogHDA(true, ASIClientsidePacketHandler.class, "CPH", "{0} Packet Handling", packet.getClass().getSimpleName());
 
         // Attempt to handle the entity activation
         ASIPSDualityFluxAction action = new ASIPSDualityFluxAction(packet, getDualityActionWorld(contextSupplier));
         if (!action.isVerified()) {
-            /*HDA*/ActuallySizeInteractions.Log("ASI &6CPH-HDF &c NETWORK SERIALIZATION ERROR for ASIPSDualityFluxAction. ");
+            /*HDA*/ActuallySizeInteractions.LogHDA(ASIClientsidePacketHandler.class, "CPH", "&c Network serialization error");
+            /*HDA*/ActuallySizeInteractions.LogHDA(false, ASIClientsidePacketHandler.class, "CPH", "{0} Packet Handling", packet.getClass().getSimpleName());
             return; }
 
         if (!action.tryResolve()) {
-            /*HDA*/ActuallySizeInteractions.Log("ASI &6CPH-HDF &3 Could not resolve ASIPSDualityFluxAction, DELAYING. ");
+            /*HDA*/ActuallySizeInteractions.LogHDA(ASIClientsidePacketHandler.class, "CPH", "&3 Unresolvable at this time, delaying");
 
             // Find the enqueued actions
             UUID player = packet.getTo().getStackLocation().getHolder().getUUID();
@@ -163,6 +167,8 @@ public class ASIClientsidePacketHandler {
             perPlayer.add(action);
             enqueuedDualityActivations.put(player, perPlayer);
         }
+
+        /*HDA*/ActuallySizeInteractions.LogHDA(false, ASIClientsidePacketHandler.class, "CPH", "{0} Packet Handling", packet.getClass().getSimpleName());
     }
 
     /**
@@ -189,13 +195,15 @@ public class ASIClientsidePacketHandler {
      */
     public static void tryResolveAllEnqueued() {
         if (enqueuedDualityActivations.isEmpty()) { return; }
-        /*HDA*/ActuallySizeInteractions.Log("ASI &6CPH-HDA &3 Retrying UUIDs &b x" + enqueuedDualityActivations.size());
+        /*HDA*/ActuallySizeInteractions.LogHDA(true, ASIClientsidePacketHandler.class, "CPH", "{0}x Holders Enqueue Retry", enqueuedDualityActivations.size());
 
         // Make a copy to avoid editing something while iterating it
         ArrayList<UUID> enqueued = new ArrayList<>(enqueuedDualityActivations.keySet());
 
         // Enqueue
         for (UUID uuid : enqueued) { resolveEnqueuedDualityActivationsFor(uuid); }
+
+        /*HDA*/ActuallySizeInteractions.LogHDA(false, ASIClientsidePacketHandler.class, "CPH", "{0}x Holders Enqueue Retry", enqueuedDualityActivations.size());
     }
 
     /**
@@ -214,10 +222,10 @@ public class ASIClientsidePacketHandler {
         // Store remainder
         ArrayList<APIFriendlyProcess> kept = new ArrayList<>();
 
-        /*HDA*/ActuallySizeInteractions.Log("ASI &6CPH-HDA &3 Processing delayed packets &b x" + perPlayer.size() + " for " + who);
+        /*HDA*/ActuallySizeInteractions.LogHDA(ASIClientsidePacketHandler.class, "CPH", "For holder &7 {0} &f x{1}", who, perPlayer.size());
         // Retry resolving them
         for (APIFriendlyProcess action : perPlayer) {
-            /*HDA*/ActuallySizeInteractions.Log("ASI &6CPH-HDA &3 + &b x" + action.getClass().getSimpleName());
+            /*HDA*/ActuallySizeInteractions.LogHDA(ASIClientsidePacketHandler.class, "CPH", "+ &3{0}", action.getClass().getSimpleName());
             
             // Try to resolve, postpone even further if that fails
             if (!action.tryResolve()) {
@@ -236,7 +244,7 @@ public class ASIClientsidePacketHandler {
                 if (action.isVerified()) { kept.add(action); }
             }
         }
-        /*HDA*/ActuallySizeInteractions.Log("ASI &6CPH-HDA &3 Remainder &b x" + kept.size());
+        /*HDA*/ActuallySizeInteractions.LogHDA(ASIClientsidePacketHandler.class, "CPH", "Remainder &f x{0}", kept.size());
 
         // Clear key when done
         if (kept.isEmpty()) {

@@ -121,15 +121,56 @@ public class ActuallySizeInteractions {
      * @since 1.0.0
      * @author Actually Portals
      */
-    public static void Log(@Nullable String log) {
+    public static void Log(@Nullable String log, @Nullable Object... replaces) {
+
+        // Bake replaces
+        String baked = log;
+        if (log != null && replaces.length > 0) {
+            for (int i = 0; i < replaces.length; i++) {
+                Object rep = replaces[i];
+                baked = baked.replace("{" + i + "}", rep == null ? "nulL" : String.valueOf(rep));
+            }
+        }
+
+        // Display in console
         if (IS_CLIENT_DEV) {
-            System.out.println("GREP [CHAT] <Dev> " + log);
+            System.out.println("GREP [CHAT] <Dev> " + baked);
 
             //Player local = Minecraft.getInstance().player;
-            //if (local != null) { local.sendSystemMessage(Component.literal("[ASI] " + log)); }
+            //if (local != null) { local.sendSystemMessage(Component.literal("[ASI] " + baked)); }
         } else {
-            System.out.println("GREP [Not Secure] <Dev> " + log);
+            System.out.println("GREP [Not Secure] <Dev> " + baked);
         }
+    }
+
+    /**
+     * Very often do I have to debug the holding of entities, it is worth
+     * to have an actual structure by which to log this system.
+     *
+     * @since 1.0.0
+     */
+    static final boolean HDA_LOGGING = true;
+
+    /**
+     * Logs specifically a line for the Holding System
+     *
+     * @author Actually Portals
+     * @since 1.0.0
+     */
+    public static void LogHDA(@NotNull Class<?> from, @NotNull String key, @NotNull String base, @Nullable Object... replaces) {
+        if (!HDA_LOGGING) { return; }
+        Log("ASI &a "+ key + " &8 [" + from.getSimpleName() + "] " + base, replaces);
+    }
+
+    /**
+     * Logs specifically a division line for the Holding System
+     *
+     * @author Actually Portals
+     * @since 1.0.0
+     */
+    public static void LogHDA(boolean start, @NotNull Class<?> from, @NotNull String key, @NotNull String base, @Nullable Object... replaces) {
+        if (!HDA_LOGGING) { return; }
+        Log("ASI &a "+ key + " &8 [" + from.getSimpleName() + "] ~~~~~~ " + base + (start ? " Start" : " End") + " ~~~~~~", replaces);
     }
 
     /**

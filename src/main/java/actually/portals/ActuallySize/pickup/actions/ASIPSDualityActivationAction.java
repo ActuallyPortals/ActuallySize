@@ -133,6 +133,7 @@ public class ASIPSDualityActivationAction extends ASIPSDualityAction {
      * @author Actually Portals
      */
     public ASIPSDualityActivationAction(@NotNull ASINCItemEntityActivationPacket fromPacket, @Nullable Level world) {
+        /*HDA*/ActuallySizeInteractions.LogHDA(true, getClass(), "HDA", "Packet Constructor");
 
         // I mean, we are checking that the world exists later on...
         if (world == null) { return; }
@@ -145,6 +146,8 @@ public class ASIPSDualityActivationAction extends ASIPSDualityAction {
             itemCounterpart = stackLocation.getItemStack();
             holdPoint = ((ItemEntityDualityHolder) stackLocation.getHolder()).actuallysize$getHoldPoint(stackLocation);
         }
+
+        /*HDA*/ActuallySizeInteractions.LogHDA(false, getClass(), "HDA", "Packet Constructor");
     }
 
     /**
@@ -159,6 +162,7 @@ public class ASIPSDualityActivationAction extends ASIPSDualityAction {
      * @author Actually Portals
      */
     public ASIPSDualityActivationAction(@NotNull ItemStackLocation<? extends Entity> stackLocation) {
+        /*HDA*/ActuallySizeInteractions.LogHDA(true, getClass(), "HDA", "Slot Constructor");
 
         // The location of the item gives us the item and entity
         this.stackLocation = stackLocation;
@@ -178,7 +182,8 @@ public class ASIPSDualityActivationAction extends ASIPSDualityAction {
         if (itemDuality != null) {
             if (itemDuality.actuallysize$isDualityActive()) {
                 entityCounterpart = itemDuality.actuallysize$getEntityCounterpart();
-                /*HDA*/ActuallySizeInteractions.Log("ASI &6 HDA &7 Linked to counterpart? " + (entityCounterpart != null ? entityCounterpart.getScoreboardName() : "null"));
+                /*HDA*/ActuallySizeInteractions.LogHDA(getClass(), "HDA", "Found {0} duality in world", (entityCounterpart != null ? entityCounterpart.getScoreboardName() : "null"));
+
             } else {
 
                 // Readies the enclosed entity for the non-player case
@@ -202,9 +207,11 @@ public class ASIPSDualityActivationAction extends ASIPSDualityAction {
                     entityCounterpart = itemDuality.actuallysize$readyEntityCounterpart(world);
                 }
 
-                /*HDA*/ActuallySizeInteractions.Log("ASI &6 HDA &7 Genned Entity? " + (entityCounterpart != null ? entityCounterpart.getScoreboardName() : "null"));
+                /*HDA*/ActuallySizeInteractions.LogHDA(getClass(), "HDA", "Used enclosed {0} from item", (entityCounterpart != null ? entityCounterpart.getScoreboardName() : "null"));
             }
         }
+
+        /*HDA*/ActuallySizeInteractions.LogHDA(false, getClass(), "HDA", "Slot Constructor");
     }
 
     /**
@@ -223,6 +230,7 @@ public class ASIPSDualityActivationAction extends ASIPSDualityAction {
      * @author Actually Portals
      */
     public ASIPSDualityActivationAction(@NotNull ItemStackLocation<? extends Entity> stackLocation, @NotNull ItemStack preparedItem, @NotNull Entity existing) {
+        /*HDA*/ActuallySizeInteractions.LogHDA(true, getClass(), "HDA", "All Explicit Constructor");
 
         // The stack location, item, and entity are provided
         this.stackLocation = stackLocation;
@@ -230,29 +238,40 @@ public class ASIPSDualityActivationAction extends ASIPSDualityAction {
         holdPoint = ((ItemEntityDualityHolder) stackLocation.getHolder()).actuallysize$getHoldPoint(stackLocation);
         entityCounterpart = existing;
         itemCounterpart = preparedItem;
+
+        /*HDA*/ActuallySizeInteractions.LogHDA(false, getClass(), "HDA", "All Explicit Constructor");
     }
 
     @Override
     public boolean isVerified() {
-        /*HDA*/ActuallySizeInteractions.Log("ASI &6 HDA &3 [" + (world == null ? "null" : world.isClientSide) + "] &8 Verifying " + getClass().getSimpleName() + " " + (stackLocation == null ? "null ISL" : stackLocation.getStatement().toString()) + "... ");
+        /*HDA*/ActuallySizeInteractions.LogHDA(true, getClass(), "HDA", "Verifying");
+        /*HDA*/ActuallySizeInteractions.LogHDA(getClass(), "HDA", "Clientside &f {0}", (world == null ? "null" : world.isClientSide));
+        /*HDA*/ActuallySizeInteractions.LogHDA(getClass(), "HDA", "Slot &e {0}", (stackLocation == null ? "null" : stackLocation));
+        /*HDA*/ActuallySizeInteractions.LogHDA(getClass(), "HDA", "Hold Point &b {0}", holdPoint);
+        /*HDA*/ActuallySizeInteractions.LogHDA(getClass(), "HDA", "Item &b {0}", (itemCounterpart == null ? "null" : itemCounterpart.getDisplayName().getString()));
+        /*HDA*/ActuallySizeInteractions.LogHDA(getClass(), "HDA", "Entity &f {0}", (entityCounterpart == null ? "null" : entityCounterpart.getScoreboardName()));
 
         // Need world
         if (world == null) {
-            /*HDA*/ActuallySizeInteractions.Log("ASI &6 HDA &c World Unverified");
+            /*HDA*/ActuallySizeInteractions.LogHDA(getClass(), "HDA", "&c Null World");
+            /*HDA*/ActuallySizeInteractions.LogHDA(false, getClass(), "HDA", "Verifying");
             return false; }
 
         // Need Item, always
         if (stackLocation == null) {
-            /*HDA*/ActuallySizeInteractions.Log("ASI &6 HDA &c Stack Location Unverified");
+            /*HDA*/ActuallySizeInteractions.LogHDA(getClass(), "HDA", "&c Null Slot");
+            /*HDA*/ActuallySizeInteractions.LogHDA(false, getClass(), "HDA", "Verifying");
             return false; }
 
         if (holdPoint == null) {
-            /*HDA*/ActuallySizeInteractions.Log("ASI &6 HDA &c No hold point was found for this ItemStack Location");
+            /*HDA*/ActuallySizeInteractions.LogHDA(getClass(), "HDA", "&c Null Hold Point");
+            /*HDA*/ActuallySizeInteractions.LogHDA(false, getClass(), "HDA", "Verifying");
             return false; }
 
         // The entity must exist (it should already have been assigned in the constructor)
         if (entityCounterpart == null) {
-            /*HDA*/ActuallySizeInteractions.Log("ASI &6 HDA &c Entity Unverified");
+            /*HDA*/ActuallySizeInteractions.LogHDA(getClass(), "HDA", "&c Null Tiny");
+            /*HDA*/ActuallySizeInteractions.LogHDA(false, getClass(), "HDA", "Verifying");
             return false; }
 
         /*
@@ -266,7 +285,8 @@ public class ASIPSDualityActivationAction extends ASIPSDualityAction {
 
             // Item must have an enclosed entity, naturally
             if (itemCounterpart == null) {
-                /*HDA*/ActuallySizeInteractions.Log("ASI &6 HDA &c Item Duality Unverified");
+                /*HDA*/ActuallySizeInteractions.LogHDA(getClass(), "HDA", "&c Null Item Stack");
+                /*HDA*/ActuallySizeInteractions.LogHDA(false, getClass(), "HDA", "Verifying");
                 return false; }
 
             // When binding a player to an item, it gets a pass whether it is enclosed in the item
@@ -274,26 +294,29 @@ public class ASIPSDualityActivationAction extends ASIPSDualityAction {
 
                 // But any non-player MUST be registered within the item.
                 if (ASIPickupSystemManager.getInscribedPlayer(itemCounterpart) == null) {
-                    /*HDA*/ActuallySizeInteractions.Log("ASI &6 HDA &c No inscribed player :(");
+                    /*HDA*/ActuallySizeInteractions.LogHDA(getClass(), "HDA", "&c Item {0} had no inscribed player", itemCounterpart.getDisplayName().getString());
+                    /*HDA*/ActuallySizeInteractions.LogHDA(false, getClass(), "HDA", "Verifying");
                     return false; }
 
             } else {
 
                 // But any non-player MUST be registered within the item.
                 if (!((ItemDualityCounterpart) (Object) itemCounterpart).actuallysize$hasEnclosedEntity(world)) {
-                    /*HDA*/ActuallySizeInteractions.Log("ASI &6 HDA &c No enclosing entity :(");
+                    /*HDA*/ActuallySizeInteractions.LogHDA(getClass(), "HDA", "&c Item {0} had no enclosed entity", itemCounterpart.getDisplayName().getString());
+                    /*HDA*/ActuallySizeInteractions.LogHDA(false, getClass(), "HDA", "Verifying");
+
                     return false; }
             }
         }
 
-        /*HDA*/ActuallySizeInteractions.Log("ASI &6 HDA &3 [" + (world == null ? "null" : world.isClientSide) + "] &2 Verified " + getClass().getSimpleName() + " " + (stackLocation == null ? "null ISL" : stackLocation.getStatement().toString()) + "... ");
-        // Requirements met
+        /*HDA*/ActuallySizeInteractions.LogHDA(getClass(), "HDA", "&2 VERIFIED");
+        /*HDA*/ActuallySizeInteractions.LogHDA(false, getClass(), "HDA", "Verifying");
         return true;
     }
 
     @Override
     public boolean isAllowed() {
-        /*HDA*/ActuallySizeInteractions.Log("ASI &6 HDA &3 [" + (world == null ? "null" : world.isClientSide) + "] &8 Allowing " + getClass().getSimpleName() + " " + (stackLocation == null ? "null ISL" : stackLocation.getStatement().toString()) + "... ");
+        /*HDA*/ActuallySizeInteractions.LogHDA(true, getClass(), "HDA", "Allowing");
 
         // Some of these should have been confirmed during verification step but
         if (world == null) { return false; }
@@ -307,26 +330,35 @@ public class ASIPSDualityActivationAction extends ASIPSDualityAction {
         // Identify further
         ItemDualityCounterpart itemDuality = (ItemDualityCounterpart) (Object) itemCounterpart;
         if (itemDuality == null) { return false; }
-        /*HDA*/ActuallySizeInteractions.Log("ASI &6 HDA &r Allow-checking item &2 " + itemCounterpart.getDisplayName().getString() + " in " + stackLocation.getStatement());
+
+        /*HDA*/ActuallySizeInteractions.LogHDA(getClass(), "HDA", "Clientside &f {0}", (world == null ? "null" : world.isClientSide));
+        /*HDA*/ActuallySizeInteractions.LogHDA(getClass(), "HDA", "Slot &e {0}", (stackLocation == null ? "null" : stackLocation));
+        /*HDA*/ActuallySizeInteractions.LogHDA(getClass(), "HDA", "Hold Point &b {0}", holdPoint);
+        /*HDA*/ActuallySizeInteractions.LogHDA(getClass(), "HDA", "Item &f {0}", itemCounterpart.getDisplayName().getString());
+        /*HDA*/ActuallySizeInteractions.LogHDA(getClass(), "HDA", "Entity &f {0}", entityCounterpart.getScoreboardName());
 
         // Ignore the redundant operation of re-activating the same item
         if (itemDuality.actuallysize$isDualityActive()) {
             EntityDualityCounterpart dualityEntity = (EntityDualityCounterpart) entityCounterpart;
             ItemStackLocation<? extends Entity> dualityLocation = dualityEntity.actuallysize$getItemStackLocation();
-            if (isClientSide && dualityLocation == null) { return false; }  // If the stack is null... that's kinda silly uuh try again later
-            /*HDA*/ActuallySizeInteractions.Log("ASI &6 HDA &e Is Active? " + stackLocation.getStatement() + " VS " + dualityLocation.getStatement());
+
+            // If the stack is null... that's kinda silly uuh try again later
+            if (isClientSide && dualityLocation == null) {
+                /*HDA*/ActuallySizeInteractions.LogHDA(getClass(), "HDA", "&6 This item is already active, but its entity has no slot. Try again later");
+                /*HDA*/ActuallySizeInteractions.LogHDA(false, getClass(), "HDA", "Allowing");
+                return false; }
 
             // Same exact location (holder & slot)?! Skip!
             if (stackLocation.equals(dualityLocation)) {
-                /*HDA*/ActuallySizeInteractions.Log("ASI &6 HDA &6 Identical duality at location");
 
                 // In the clientside, a repeat here is a duplicate packet sent somewhere
                 if (isClientSide) {
-                    /*HDA*/ActuallySizeInteractions.Log("ASI &6 HDA &6 Clientside duplicate packet invalidation");
-                    stackLocation = null;
-                }
+                    /*HDA*/ActuallySizeInteractions.LogHDA(getClass(), "HDA", "&6 Clientside duplicate packet invalidation");
+                    stackLocation = null; }
 
                 // Done
+                /*HDA*/ActuallySizeInteractions.LogHDA(getClass(), "HDA", "&6 The entity duality is active already in this same slot");
+                /*HDA*/ActuallySizeInteractions.LogHDA(false, getClass(), "HDA", "Allowing");
                 return false;
             }
         }
@@ -356,17 +388,20 @@ public class ASIPSDualityActivationAction extends ASIPSDualityAction {
                 // If not a player, verify that the item here has this entity enclosed within itself
                 if (entityCounterpart instanceof Player) {
                     if (!ASIPickupSystemManager.isPlayerInscribedInNBT((Player) entityCounterpart, itemCounterpart)) {
-                        /*HDA*/ActuallySizeInteractions.Log("ASI &6 HDA &c Mismatched/missing inscribed player");
+                        /*HDA*/ActuallySizeInteractions.LogHDA(getClass(), "HDA", "&6 Mismatched inscribed player. Try again later");
+                        /*HDA*/ActuallySizeInteractions.LogHDA(false, getClass(), "HDA", "Allowing");
                         return false; }
 
                 } else {
                     if (!itemDuality.actuallysize$hasEnclosedEntity(world)) {
-                        /*HDA*/ActuallySizeInteractions.Log("ASI &6 HDA &c No enclosing entity :(");
+                        /*HDA*/ActuallySizeInteractions.LogHDA(getClass(), "HDA", "&6 Missing enclosed entity. Try again later");
+                        /*HDA*/ActuallySizeInteractions.LogHDA(false, getClass(), "HDA", "Allowing");
                         return false; }
 
                     // The client must check that the entity is the correct type
                     if (!itemDuality.actuallysize$getEnclosedEntity(world).getType().equals(entityCounterpart.getType())) {
-                        /*HDA*/ActuallySizeInteractions.Log("ASI &6 HDA &c Different Entity Types");
+                        /*HDA*/ActuallySizeInteractions.LogHDA(getClass(), "HDA", "&6 Mismatched enclosed entity. Try again later");
+                        /*HDA*/ActuallySizeInteractions.LogHDA(false, getClass(), "HDA", "Allowing");
                         return false; }
                 }
             }
@@ -375,20 +410,21 @@ public class ASIPSDualityActivationAction extends ASIPSDualityAction {
         } else {
 
                 // If the event is not cancelled, we are allowed!
-                /*HDA*/ActuallySizeInteractions.Log("ASI &6 HDA &r Running try activation event");
                 ASIPSTryActivateItemEntityEvent event = new ASIPSTryActivateItemEntityEvent(stackLocation, entityCounterpart);
                 if (MinecraftForge.EVENT_BUS.post(event)) {
-                    /*HDA*/ActuallySizeInteractions.Log("ASI &6 HDA &c Failed Try Activate Event");
+                    /*HDA*/ActuallySizeInteractions.LogHDA(getClass(), "HDA", "&6 Activation event disallowed. Try again later");
+                    /*HDA*/ActuallySizeInteractions.LogHDA(false, getClass(), "HDA", "Allowing");
                     return false; }
         }
 
-        /*HDA*/ActuallySizeInteractions.Log("ASI &6 HDA &3 [" + (world == null ? "null" : world.isClientSide) + "] &a Allowed " + getClass().getSimpleName() + " " + (stackLocation == null ? "null ISL" : stackLocation.getStatement().toString()) + "... ");
+        /*HDA*/ActuallySizeInteractions.LogHDA(getClass(), "HDA", "&6 ALLOWED");
+        /*HDA*/ActuallySizeInteractions.LogHDA(false, getClass(), "HDA", "Allowing");
         return true;
     }
 
     @Override
     public void resolve() {
-        /*HDA*/ActuallySizeInteractions.Log("ASI &6 HDA &3 [" + (world == null ? "null" : world.isClientSide) + "] &b Resolving " + getClass().getSimpleName() + " " + (stackLocation == null ? "null ISL" : stackLocation.getStatement().toString()) + "... ");
+        /*HDA*/ActuallySizeInteractions.LogHDA(true, getClass(), "HDA", "Resolving");
 
         // Full identify
         ItemDualityCounterpart itemDuality = (ItemDualityCounterpart) (Object) itemCounterpart;
@@ -398,7 +434,6 @@ public class ASIPSDualityActivationAction extends ASIPSDualityAction {
         if (entityDuality == null) { return; }
         if (stackLocation == null) { return; }
         boolean isServer = world instanceof ServerLevel;
-        /*HDA*/ActuallySizeInteractions.Log("ASI &6 HDA &b (Clientside: " + !isServer + ")");
 
         /*
          * In the client-side, remote players do not have a cursor
@@ -425,11 +460,16 @@ public class ASIPSDualityActivationAction extends ASIPSDualityAction {
         if (entityCounterpart == null) { return; }
         ItemEntityDualityHolder dualityHolder = (ItemEntityDualityHolder) stackLocation.getHolder();
 
+        /*HDA*/ActuallySizeInteractions.LogHDA(getClass(), "HDA", "Clientside &f {0}", world.isClientSide);
+        /*HDA*/ActuallySizeInteractions.LogHDA(getClass(), "HDA", "Slot &e {0}", stackLocation);
+        /*HDA*/ActuallySizeInteractions.LogHDA(getClass(), "HDA", "Hold Point &b {0}", holdPoint);
+        /*HDA*/ActuallySizeInteractions.LogHDA(getClass(), "HDA", "Item &b {0}", (itemCounterpart == null ? "null" : itemCounterpart.getDisplayName().getString()));
+        /*HDA*/ActuallySizeInteractions.LogHDA(getClass(), "HDA", "Entity &f {0}", entityCounterpart.getScoreboardName());
+
         /*
          * #1   Deactivate this entity if previously active, resetting it to inactive
          */
         if (isServer && itemDuality.actuallysize$isDualityActive()) {
-            /*HDA*/ActuallySizeInteractions.Log("ASI &6 HDA &e DEACTIVATING FIRST");
 
             /*
              * Is this Item-Entity duality already active? We should remove the old version first.
@@ -446,7 +486,7 @@ public class ASIPSDualityActivationAction extends ASIPSDualityAction {
 
             // If there is indeed such a thing as the old duality holder, tell them to deactivate this entity
             if (oldDualityHolder != null && oldDualityLocation != null) {
-                /*HDA*/ActuallySizeInteractions.Log("ASI &6 HDA &e Deactivate Pass");
+                /*HDA*/ActuallySizeInteractions.LogHDA(getClass(), "HDA", "This item is already active, it must be deactivated first");
 
                 /*
                  * Use the previous Item Stack Location to de-register this Item-Entity
@@ -456,7 +496,6 @@ public class ASIPSDualityActivationAction extends ASIPSDualityAction {
 
                 ASIPSDualityDeactivationAction removeOld = new ASIPSDualityDeactivationAction(itemDuality);
                 removeOld.tryResolve();
-                /*HDA*/ActuallySizeInteractions.Log("ASI &6 HDA &e Deactivate Passed");
             }
         }
 
@@ -464,13 +503,13 @@ public class ASIPSDualityActivationAction extends ASIPSDualityAction {
          * #2   Deactivate the previous Item-Entity in this slot of the holder
          * #3   Register this Item-Entity duality onto the holder
          */
-        /*HDA*/ActuallySizeInteractions.Log("ASI &6 HDA &r Registering onto holder");
+        /*HDA*/ActuallySizeInteractions.LogHDA(getClass(), "HDA", "Registering onto holder");
         dualityHolder.actuallysize$setHeldItemEntityDuality(holdPoint, (EntityDualityCounterpart) entityCounterpart);
 
         /*
          * #4   Registering onto the entity counterpart
          */
-        /*HDA*/ActuallySizeInteractions.Log("ASI &6 HDA &r Registering onto entity counterpart");
+        /*HDA*/ActuallySizeInteractions.LogHDA(getClass(), "HDA", "Registering onto entity counterpart");
         entityDuality.actuallysize$setItemEntityHolder(dualityHolder);
         entityDuality.actuallysize$setItemCounterpart((ItemStack) (Object) itemDuality);
         entityDuality.actuallysize$setItemStackLocation(stackLocation);
@@ -479,7 +518,7 @@ public class ASIPSDualityActivationAction extends ASIPSDualityAction {
         /*
          * #5   Registering onto the item counterpart
          */
-        /*HDA*/ActuallySizeInteractions.Log("ASI &6 HDA &r Registering onto item counterpart");
+        /*HDA*/ActuallySizeInteractions.LogHDA(getClass(), "HDA", "Registering onto item counterpart");
         itemDuality.actuallysize$setItemEntityHolder(dualityHolder);
         itemDuality.actuallysize$setEntityCounterpart(entityCounterpart);
         itemDuality.actuallysize$setItemStackLocation(stackLocation);
@@ -487,12 +526,15 @@ public class ASIPSDualityActivationAction extends ASIPSDualityAction {
         /*
          * #6   Run event
          */
-        /*HDA*/ActuallySizeInteractions.Log("ASI &6 HDA &r Entity activation event run");
+        /*HDA*/ActuallySizeInteractions.LogHDA(getClass(), "HDA", "Activation event run");
         ASIPSActivateItemEntityEvent broadcast = new ASIPSActivateItemEntityEvent(stackLocation, entityCounterpart);
         MinecraftForge.EVENT_BUS.post(broadcast);
 
         // Done for clientside
-        if (!isServer) { return; }
+        if (!isServer) {
+            /*HDA*/ActuallySizeInteractions.LogHDA(getClass(), "HDA", "&3 RESOLVED");
+            /*HDA*/ActuallySizeInteractions.LogHDA(false, getClass(), "HDA", "Resolving");
+            return; }
 
         /*
          * #7   Spawn the entity
@@ -504,7 +546,7 @@ public class ASIPSDualityActivationAction extends ASIPSDualityAction {
              */
 
             // Create packet to send over the network and send to those tracking this entity
-            /*HDA*/ActuallySizeInteractions.Log("ASI &6 HDA &r Activation packet send. ");
+            /*HDA*/ActuallySizeInteractions.LogHDA(getClass(), "HDA", "&f Network Packet Sent");
             ASINCItemEntityActivationPacket packet = new ASINCItemEntityActivationPacket(stackLocation, entityCounterpart);
             ASINetworkManager.broadcastEntityUpdate(entityCounterpart, packet);
 
@@ -513,7 +555,7 @@ public class ASIPSDualityActivationAction extends ASIPSDualityAction {
             //todo HELD-RIDE Maybe someday allow riding of held entities
 
             // Spawn entity
-            /*HDA*/ActuallySizeInteractions.Log("ASI &6 HDA &r Entity counterpart spawn. ");
+            /*HDA*/ActuallySizeInteractions.LogHDA(getClass(), "HDA", "Spawning entity counterpart");
             if (holdPoint != null) {
                 holdPoint.serversidePositionHeldEntity(dualityHolder, entityDuality);
             } else {
@@ -526,7 +568,7 @@ public class ASIPSDualityActivationAction extends ASIPSDualityAction {
                  */
 
                 // Create packet to send over the network and send to those tracking this entity
-                /*HDA*/ActuallySizeInteractions.Log("ASI &6 HDA &r Activation packet send. ");
+                /*HDA*/ActuallySizeInteractions.LogHDA(getClass(), "HDA", "&f Network Packet Sent");
                 ASINCItemEntityActivationPacket packet = new ASINCItemEntityActivationPacket(stackLocation, entityCounterpart);
                 ASINetworkManager.broadcastEntityUpdate(entityCounterpart, packet);
             }
@@ -536,6 +578,7 @@ public class ASIPSDualityActivationAction extends ASIPSDualityAction {
          * #9 Register to Item-Entity duality kitty
          */
         ASIPickupSystemManager.registerActiveEntityCounterpart(entityCounterpart);
-        /*HDA*/ActuallySizeInteractions.Log("ASI &6 HDA &r Item-Entity duality activation &a COMPLETED ");
+        /*HDA*/ActuallySizeInteractions.LogHDA(getClass(), "HDA", "&3 RESOLVED");
+        /*HDA*/ActuallySizeInteractions.LogHDA(false, getClass(), "HDA", "Resolving");
     }
 }

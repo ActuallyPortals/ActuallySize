@@ -51,9 +51,7 @@ public class ASIClientsideRequests {
         if (me == null) { return; }
         if (me.getId() == event.getEntity().getId()) {
 
-            // Identify world
-            //HDA//ActuallySizeInteractions.Log("ASI OWL &ePLAYER JOINED WORLD FOR THE FIRST TIME");
-
+            // Initial world join sync
             SchedulingManager.scheduleTask(() -> {
 
                 // Resolve without asking

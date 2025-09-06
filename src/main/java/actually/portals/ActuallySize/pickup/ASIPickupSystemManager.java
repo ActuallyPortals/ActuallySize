@@ -2,6 +2,7 @@ package actually.portals.ActuallySize.pickup;
 
 import actually.portals.ActuallySize.ActuallyClientConfig;
 import actually.portals.ActuallySize.ActuallySizeInteractions;
+import actually.portals.ActuallySize.controlling.execution.ASIEventExecutionListener;
 import actually.portals.ActuallySize.netcode.packets.clientbound.ASINCHoldPointsSyncReply;
 import actually.portals.ActuallySize.pickup.actions.ASIPSDualityAction;
 import actually.portals.ActuallySize.pickup.actions.ASIPSDualityEscapeAction;
@@ -517,16 +518,15 @@ public class ASIPickupSystemManager {
      * @author Actually Portals
      */
     public static boolean probableDualityFlux(@NotNull ASIPSDualityAction action) {
-
         if (dualityFluxing) { return false; }
 
         // Duality flux operations only make sense while the Entity Counterpart exists in the world
         Entity entityCounterpart = action.getEntityCounterpart();
         if (entityCounterpart == null) {
-            /*HDA*/ActuallySizeInteractions.Log("ASI &3 IED 1F &7 Probable-Flux REJECTION: &c No Entity");
+            /*HDA*/ActuallySizeInteractions.LogHDA(ASIPickupSystemManager.class, "RDF", "Probable-Flux &c No entity counterpart, rejected");
             return false; }
         if (entityCounterpart.level().isClientSide) {
-            /*HDA*/ActuallySizeInteractions.Log("ASI &3 IED 1F &7 Probable-Flux REJECTION: &c No CLIENT-SIDE!");
+            /*HDA*/ActuallySizeInteractions.LogHDA(ASIPickupSystemManager.class, "RDF", "Probable-Flux &c Clientside, rejected");
             return false; }
 
         // Fetch the list of duality flux for this tick
@@ -534,7 +534,7 @@ public class ASIPickupSystemManager {
 
         // Include this action
         acts.add(action);
-        /*HDA*/ActuallySizeInteractions.Log("ASI &3 IED 1F &7 Probable-Flux &a ACCEPTED " + entityCounterpart.getScoreboardName() + " " + action.getClass().getSimpleName());
+        /*HDA*/ActuallySizeInteractions.LogHDA(ASIPickupSystemManager.class, "RDF", "Probable-Flux &2 Accepted");
         return true;
     }
 
@@ -573,7 +573,7 @@ public class ASIPickupSystemManager {
     public static void resolveDualityFlux() {
         if (dualityFlux.isEmpty()) { return; }
         dualityFluxing = true;
-        /*HDA*/ActuallySizeInteractions.Log("ASI &a RDF &8 ~~~~~~ Flux Resolution Pass ~~~~~~");
+        /*HDA*/ActuallySizeInteractions.LogHDA(true, ASIPickupSystemManager.class, "RDF", "Duality Flux Resolution");
 
         // Clear map
         HashMap<UUID, ASIPSFluxProfile> fluxx = new HashMap<>();
@@ -583,7 +583,8 @@ public class ASIPickupSystemManager {
             ArrayList<ASIPSDualityAction> actions = flux.getActions();
             if (actions.isEmpty()) { continue; }
             Entity entityCounterpart = flux.getEntityCounterpart();
-            /*HDA*/ActuallySizeInteractions.Log("ASI &a RDF &8 >>> &7 " + entityCounterpart.getClass().getSimpleName() + " &f " + entityCounterpart.getUUID() + " &e x" + actions.size());
+
+            /*HDA*/ActuallySizeInteractions.LogHDA(true, ASIPickupSystemManager.class, "RDF", "Entity {0} Flux x{1}", entityCounterpart.getScoreboardName(), actions.size());
 
             // Results of flux
             flux.computeFlux();
@@ -598,14 +599,16 @@ public class ASIPickupSystemManager {
             // For now, quote me the event
             /*HDA*/ASIPSDualityAction from = flux.getFrom();
             /*HDA*/ASIPSDualityAction to = flux.getTo();
-            /*HDA*/ActuallySizeInteractions.Log("ASI &a RDF &7 Flux From: &e " + (from == null ? "null" : (from.getStackLocation() == null ? "UNKNOWN" : from.getStackLocation().getStatement())));
-            /*HDA*/ActuallySizeInteractions.Log("ASI &a RDF &7 Flux To: &6 " + (to == null ? "null" : (to.getStackLocation() == null ? "UNKNOWN" : to.getStackLocation().getStatement())));
+            /*HDA*/ActuallySizeInteractions.LogHDA(ASIPickupSystemManager.class, "RDF", "[FROM] &6 {0}", (from == null ? "null" : (from.getStackLocation() == null ? "UNKNOWN" : from.getStackLocation().getStatement())));
+            /*HDA*/ActuallySizeInteractions.LogHDA(ASIPickupSystemManager.class, "RDF", "[TO] &e {0}", (to == null ? "null" : (to.getStackLocation() == null ? "UNKNOWN" : to.getStackLocation().getStatement())));
+
+            /*HDA*/ActuallySizeInteractions.LogHDA(false, ASIPickupSystemManager.class, "RDF", "Entity {0} Flux x{1}", entityCounterpart.getScoreboardName(), flex.size());
         }
 
         // The duality flux of last tick is officially resolved
         dualityFlux = fluxx;
         dualityFluxing = false;
-        /*HDA*/ActuallySizeInteractions.Log("ASI &a RDF &8 ~~~~~~ Flux Resolution Conclusion ~~~~~~");
+        /*HDA*/ActuallySizeInteractions.LogHDA(false, ASIPickupSystemManager.class, "RDF", "Duality Flux Resolution");
     }
 
     //region Hold Points
@@ -640,6 +643,9 @@ public class ASIPickupSystemManager {
         HOLD_POINT_REGISTRY.registerHoldPoint(null, ASIPSHoldPoints.LEFT_POCKET);
         HOLD_POINT_REGISTRY.registerHoldPoint(null, ASIPSHoldPoints.RIGHT_THIGH);
         HOLD_POINT_REGISTRY.registerHoldPoint(null, ASIPSHoldPoints.LEFT_BOOT);
+        HOLD_POINT_REGISTRY.registerHoldPoint(null, ASIPSHoldPoints.FLUSH);
+        HOLD_POINT_REGISTRY.registerHoldPoint(null, ASIPSHoldPoints.SHED);
+        HOLD_POINT_REGISTRY.registerHoldPoint(null, ASIPSHoldPoints.NOMF);
     }
 
     /**

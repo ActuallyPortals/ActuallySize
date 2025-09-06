@@ -3,6 +3,7 @@ package actually.portals.ActuallySize.pickup.actions;
 import actually.portals.ActuallySize.ASIUtilities;
 import actually.portals.ActuallySize.ActuallyServerConfig;
 import actually.portals.ActuallySize.ActuallySizeInteractions;
+import actually.portals.ActuallySize.controlling.execution.ASIEventExecutionListener;
 import actually.portals.ActuallySize.pickup.ASIPickupSystemManager;
 import actually.portals.ActuallySize.pickup.events.ASIPSPickupToInventoryEvent;
 import actually.portals.ActuallySize.pickup.holding.ASIPSHoldPoint;
@@ -219,8 +220,7 @@ public class ASIPSPickupAction implements APIFriendlyProcess {
      */
     @Override
     public boolean isVerified() {
-        if (tiny instanceof LivingEntity) {
-            return !((LivingEntity) tiny).isDeadOrDying(); }
+        if (tiny instanceof LivingEntity) { return !((LivingEntity) tiny).isDeadOrDying(); }
         return true;
     }
 
@@ -333,7 +333,9 @@ public class ASIPSPickupAction implements APIFriendlyProcess {
      * @author Actually Portals
      */
     void resolveForNonPlayer() {
-        //HDA//ActuallySizeInteractions.Log("ASI &b HDP &7 Picking up " + tiny.getScoreboardName());
+        /*HDA*/ActuallySizeInteractions.LogHDA(true, getClass(), "PCK", "Pickup Non-Player");
+        /*HDA*/ActuallySizeInteractions.LogHDA(getClass(), "PCK", "Beeg &f {0}", this.beeg.getScoreboardName());
+        /*HDA*/ActuallySizeInteractions.LogHDA(getClass(), "PCK", "Tiny &f {0}", this.tiny.getScoreboardName());
 
         // Wake
         if (tiny instanceof LivingEntity && ((LivingEntity) tiny).isSleeping()) { ((LivingEntity) tiny).stopSleeping(); }
@@ -341,7 +343,7 @@ public class ASIPSPickupAction implements APIFriendlyProcess {
         // Is it an entity duality? YOINK then? LMAO
         EntityDualityCounterpart entityDuality = (EntityDualityCounterpart) tiny;
         if (entityDuality.actuallysize$isActive()) {
-            //HDA//ActuallySizeInteractions.Log("ASI &b HDP &7 Escaping from previous hold...");
+            /*HDA*/ActuallySizeInteractions.LogHDA(getClass(), "PCK", "Escaping from previous hold...");
 
             // It must escape before we can pick it up. Force escape this entity
             ASIPSDualityEscapeAction escape = new ASIPSDualityEscapeAction(entityDuality);
@@ -352,13 +354,13 @@ public class ASIPSPickupAction implements APIFriendlyProcess {
         ItemStack drop = ASIPickupSystemManager.generateHeldItem(tiny);
         stackLocation.setItemStack(drop);
         drop.setPopTime(5);
-        //HDA//ActuallySizeInteractions.Log("ASI &b HDP &7 Given drop!");
+        /*HDA*/ActuallySizeInteractions.LogHDA(getClass(), "PCK", "Item created and given");
 
         // Delete the entity from the world (real)
         if (!isPickupAndHold() || !chainIntoActivation(drop)) {
-            getTiny().remove(Entity.RemovalReason.UNLOADED_WITH_PLAYER);
-        }
-        //HDA//ActuallySizeInteractions.Log("ASI &b HDP &a Entity pickup COMPLETED ");
+            getTiny().remove(Entity.RemovalReason.UNLOADED_WITH_PLAYER); }
+
+        /*HDA*/ActuallySizeInteractions.LogHDA(false, getClass(), "PCK", "Pickup Non-Player");
     }
 
     /**
@@ -376,7 +378,7 @@ public class ASIPSPickupAction implements APIFriendlyProcess {
 
         // Build the action
         ASIPSDualityActivationAction action = new ASIPSDualityActivationAction(stackLocation, item, tiny);
-        //HDA//ActuallySizeInteractions.Log("ASI &b HDP &7 Chaining activation...");
+        /*HDA*/ActuallySizeInteractions.LogHDA(getClass(), "PCK", "Chaining activation...");
 
         // Verify it and run it
         return action.tryResolve();

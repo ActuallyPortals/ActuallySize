@@ -27,8 +27,7 @@ public class ASIServerInteractionListener {
     @SubscribeEvent
     public static void OnPlayerInteract(PlayerInteractEvent.EntityInteract event) {
         if (event.getTarget().level().isClientSide()) { return; }
-        //HDA//ActuallySizeInteractions.Log("ASI &b HDA &7 Entity " + event.getTarget().getName().getString() + " practical scale is &e x" + ASIUtilities.getEffectiveSize(event.getTarget()) + " at " + event.getHand() + ", while I am at x" + ASIUtilities.getEffectiveSize(event.getEntity()));
-        
+
         // Do not bother if cancelled
         if (event.isCancelable()) { if (event.isCanceled()) { return; } }
 

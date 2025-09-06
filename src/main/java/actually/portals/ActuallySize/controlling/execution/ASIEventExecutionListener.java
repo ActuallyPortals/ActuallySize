@@ -70,8 +70,7 @@ public class ASIEventExecutionListener {
             if (prefs == null) { return; }
 
             // Apply prefs
-            prefs.applyTo((ServerPlayer) event.getEntity());
-        }
+            prefs.applyTo((ServerPlayer) event.getEntity()); }
 
         // Sync hold points and dualities to client
         HoldPointConfigurable newer = (HoldPointConfigurable) event.getEntity();
@@ -81,7 +80,7 @@ public class ASIEventExecutionListener {
         syncing.withBroadcast(newer.actuallysize$getLocalHoldPoints().getRegisteredPoints());
         syncing.resolve();
 
-        /*HDA*/ActuallySizeInteractions.Log("ASI &6 DTR &7 (" + event.getEntity().getClass().getSimpleName() + ") Respawn copied over hold points &e x" + newer.actuallysize$getLocalHoldPoints().getRegisteredPoints().size());
+        /*HDA*/ActuallySizeInteractions.LogHDA(ASIEventExecutionListener.class, "DTR", "Respawn copy over hold points &e x{0}", newer.actuallysize$getLocalHoldPoints().getRegisteredPoints().size());
     }
 
     /**
@@ -131,7 +130,7 @@ public class ASIEventExecutionListener {
             syncing.withBroadcast(asConfigurable.actuallysize$getLocalHoldPoints().getRegisteredPoints());
             syncing.resolve();
 
-            /*HDA*/ActuallySizeInteractions.Log("ASI &6 DTR &7 (" + event.getEntity().getClass().getSimpleName() + ") Teleportation requested dualities");
+            /*HDA*/ActuallySizeInteractions.LogHDA(ASIEventExecutionListener.class, "DTR", "Teleportation synced dualities");
         }
     }
 
@@ -145,7 +144,8 @@ public class ASIEventExecutionListener {
 
         // Transfer server-side hold point configuration
         HoldPointConfigurable asConfigurableOld = (HoldPointConfigurable) event.getEntity();
-        /*HDA*/ActuallySizeInteractions.Log("ASI &6 DTR &7 (" + event.getEntity().getClass().getSimpleName() + ") Dimensional copied over hold points &e x" + asConfigurableOld.actuallysize$getLocalHoldPoints().getRegisteredPoints().size());
+
+        /*HDA*/ActuallySizeInteractions.LogHDA(ASIEventExecutionListener.class, "DTR", "Dimensional copied over hold points &e x{0}", asConfigurableOld.actuallysize$getLocalHoldPoints().getRegisteredPoints().size());
         //asConfigurableOld.actuallysize$getLocalHoldPoints().log();
 
         // Sync hold point configurations to client
@@ -173,12 +173,16 @@ public class ASIEventExecutionListener {
     @SubscribeEvent(priority = EventPriority.LOW)
     public static void OnEquipmentChange(@NotNull ServersideEntityEquipmentChangeEvent event) {
         if (!ActuallyServerConfig.enableEntityHolding) { return; }
-        /*HDA*/ActuallySizeInteractions.Log("ASI &3 IED 1 &7 Intercepted &f " + event.getReason() + " &b " + event.getStackLocation().getStatement() + " &e Player " + event.getEntity().getScoreboardName() + " &r Item " + event.getCurrentItemStack().getDisplayName().getString() + ", VERIFYING...");
+        /*HDA*/ActuallySizeInteractions.LogHDA(true, ASIEventExecutionListener.class, "EQP", "ServersideEntityEquipmentChangeEvent");
+        /*HDA*/ActuallySizeInteractions.LogHDA(ASIEventExecutionListener.class, "EQP", "Reason &f {0}", event.getReason());
+        /*HDA*/ActuallySizeInteractions.LogHDA(ASIEventExecutionListener.class, "EQP", "Entity &f {0}", event.getEntity().getScoreboardName());
+        /*HDA*/ActuallySizeInteractions.LogHDA(ASIEventExecutionListener.class, "EQP", "Slot &e {0}", event.getStackLocation().getStatement());
+        /*HDA*/ActuallySizeInteractions.LogHDA(ASIEventExecutionListener.class, "EQP", "Item &e {0}", event.getCurrentItemStack().getDisplayName().getString());
 
         // Create an action and try to resolve it :based:
         ASIPSDualityActivationAction action = new ASIPSDualityActivationAction(event.getStackLocation());
         if (!action.isVerified()) {
-            /*HDA*/ActuallySizeInteractions.Log("ASI &3 IED 1 &7 Unverified, registering [FROM] into Probable-Flux: " + event.getStackLocation().getStatement());
+            /*HDA*/ActuallySizeInteractions.LogHDA(ASIEventExecutionListener.class, "EQP", "Unverified, registering [FROM] into Probable-Flux:");
 
             /*
              * So we failed to verify a new Item Duality. Most
@@ -188,15 +192,21 @@ public class ASIEventExecutionListener {
              * if existing a current one in this slot :p
              */
             ASIPSDualityDeactivationAction inaction = new ASIPSDualityDeactivationAction(event.getStackLocation());
-            if (!ASIPickupSystemManager.probableDualityFlux(inaction)) { inaction.tryResolve(); }   // If it makes no flux sense, resolve instant
+            if (!ASIPickupSystemManager.probableDualityFlux(inaction)) {
+                /*HDA*/ActuallySizeInteractions.LogHDA(ASIEventExecutionListener.class, "EQP", "Inadmissible to Probable-Flux, resolving:");
+                inaction.tryResolve(); }
 
         // If it verifies, attempt to activate it
         } else {
-            /*HDA*/ActuallySizeInteractions.Log("ASI &3 IED 1 &7 Verified, registering [TO] into Probable-Flux: " + event.getStackLocation().getStatement());
+            /*HDA*/ActuallySizeInteractions.LogHDA(ASIEventExecutionListener.class, "EQP", "Verified, registering [TO] into Probable-Flux:");
 
             // Register to flux evaluation
-            if (!ASIPickupSystemManager.probableDualityFlux(action)) { action.tryResolve(); }   // If it makes no flux sense, resolve instant
+            if (!ASIPickupSystemManager.probableDualityFlux(action)) {
+                /*HDA*/ActuallySizeInteractions.LogHDA(ASIEventExecutionListener.class, "EQP", "Inadmissible to Probable-Flux, resolving:");
+                action.tryResolve(); }
         }
+
+        /*HDA*/ActuallySizeInteractions.LogHDA(false, ASIEventExecutionListener.class, "EQP", "ServersideEntityEquipmentChangeEvent");
     }
 
     /**
@@ -211,7 +221,7 @@ public class ASIEventExecutionListener {
      * @author Actually Portals
      */
     @SubscribeEvent
-    public static void OnEntityPickup(@NotNull ASIPSPickupToInventoryEvent event) {
+    public static void OnASIEntityPickup(@NotNull ASIPSPickupToInventoryEvent event) {
 
         // This should always only ever run server-side
 
@@ -244,7 +254,7 @@ public class ASIEventExecutionListener {
      * @author Actually Portals
      */
     @SubscribeEvent
-    public static void OnEveryTick(@NotNull SCHTenTicksEvent event) {
+    public static void OnEveryTenTicks(@NotNull SCHTenTicksEvent event) {
 
         // Client resolves enqueued packets
         if (event.isClientSide()) {
