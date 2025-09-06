@@ -3,6 +3,7 @@ package actually.portals.ActuallySize.mixin;
 import actually.portals.ActuallySize.ActuallySizeInteractions;
 import actually.portals.ActuallySize.netcode.ASINetworkManager;
 import actually.portals.ActuallySize.netcode.packets.clientbound.ASINCItemEntityActivationPacket;
+import actually.portals.ActuallySize.pickup.ASIPickupSystemManager;
 import actually.portals.ActuallySize.pickup.mixininterfaces.ItemDualityCounterpart;
 import gunging.ootilities.GungingOotilitiesMod.exploring.ItemStackLocation;
 import net.minecraft.server.level.ServerPlayer;
@@ -32,18 +33,18 @@ public abstract class ContainerSynchronizerMixin {
         if (update.isEmpty()) { return; }
 
         // Only the business of ASI when syncing an Item-Entity duality that is active
-        ItemDualityCounterpart dualityItem = (ItemDualityCounterpart) (Object) update;
-        if (dualityItem == null) { return; }
-        if (!dualityItem.actuallysize$isDualityActive()) { return; }
+        ItemDualityCounterpart itemDuality = (ItemDualityCounterpart) (Object) update;
+        if (itemDuality == null) { return; }
+        if (!itemDuality.actuallysize$isDualityActive()) { return; }
 
         // I suppose, if it is about to get changed, re-send the activation packet at least
-        Entity entityCounterpart = dualityItem.actuallysize$getEntityCounterpart();
-        ItemStackLocation<? extends Entity> itemCounterpart = dualityItem.actuallysize$getItemStackLocation();
-        if (itemCounterpart == null || entityCounterpart == null) { return; }
+        Entity entityCounterpart = itemDuality.actuallysize$getEntityCounterpart();
+        ItemStackLocation<? extends Entity> stackLocation = itemDuality.actuallysize$getItemStackLocation();
+        if (stackLocation == null || entityCounterpart == null) { return; }
 
         // Send another packet to link entity
-        //HDA//ActuallySizeInteractions.Log("ASI &1 EDS &r ContainerSynchronizerMixin.onSendSlotChangeReturn(AbstractContainerMenu, int, ItemStack, CallbackInfo) ");
-        ASINCItemEntityActivationPacket packet = new ASINCItemEntityActivationPacket(itemCounterpart, entityCounterpart);
+        /*HDA*/ActuallySizeInteractions.LogHDA(getClass(), "EDS", "&f SendSlotChange activation packet for {0}", stackLocation);
+        ASINCItemEntityActivationPacket packet = new ASINCItemEntityActivationPacket(stackLocation, entityCounterpart);
         ASINetworkManager.serverToPlayer(this$0, packet);
     }
 }

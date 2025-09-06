@@ -2,6 +2,7 @@ package actually.portals.ActuallySize.mixin;
 
 import actually.portals.ActuallySize.ASIUtilities;
 import actually.portals.ActuallySize.ActuallyServerConfig;
+import actually.portals.ActuallySize.ActuallySizeInteractions;
 import actually.portals.ActuallySize.netcode.ASINetworkManager;
 import actually.portals.ActuallySize.netcode.packets.clientbound.ASINCItemEntityActivationPacket;
 import actually.portals.ActuallySize.pickup.mixininterfaces.*;
@@ -126,12 +127,11 @@ public abstract class LivingEntityMixin extends Entity implements Edacious, Atta
             if (!(stackLocation.getStatement() instanceof ISEEquipmentSlotted)) { continue; }
             EquipmentSlot expected = ((ISEEquipmentSlotted) stackLocation.getStatement()).getEquipmentSlot();
             if (!expected.equals(slot.getKey())) { continue; }
-            //HDA//ActuallySizeInteractions.Log("ASI &1 EDS &r Duality entity &f " + entityCounterpart.getScoreboardName() + " &7 in &e " + expected);
 
             // Send another packet to link entity
-            //HDA//ActuallySizeInteractions.Log("ASI &1 EDS &r LivingEntityMixin.onHandleEquipmentChangesReturn(Map, CallbackInfo) ");
-            ASINCItemEntityActivationPacket packet = new ASINCItemEntityActivationPacket(stackLocation, entityCounterpart);
-            ASINetworkManager.broadcastEntityUpdate(this, packet);
+            /*HDA*/ActuallySizeInteractions.LogHDA(getClass(), "EDS", "&9 HandleEquipmentChanges activation packet for {0} (disabled)", stackLocation);
+            //ASINCItemEntityActivationPacket packet = new ASINCItemEntityActivationPacket(stackLocation, entityCounterpart);
+            //ASINetworkManager.broadcastEntityUpdate(this, packet);
         }
     }
 

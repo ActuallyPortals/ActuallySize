@@ -1,5 +1,6 @@
 package actually.portals.ActuallySize.netcode.packets.serverbound;
 
+import actually.portals.ActuallySize.ActuallySizeInteractions;
 import actually.portals.ActuallySize.netcode.ASINetworkManager;
 import actually.portals.ActuallySize.netcode.packets.clientbound.ASINCItemEntityActivationPacket;
 import actually.portals.ActuallySize.pickup.mixininterfaces.EntityDualityCounterpart;
@@ -88,9 +89,10 @@ public class ASINSEntityDualitySyncRequest {
             EntityDualityCounterpart dualityEntity = (EntityDualityCounterpart) target;
             if (!dualityEntity.actuallysize$isActive()) { return; }
             ItemDualityCounterpart dualityItem = (ItemDualityCounterpart) (Object) dualityEntity.actuallysize$getItemCounterpart();
+            if (dualityItem == null) { return; }
 
             // Send information
-            //HDA//ActuallySizeInteractions.Log("ASI &1 EDS &r EntityDualitySyncRequest.handle(Supplier) ");
+            /*HDA*/ActuallySizeInteractions.LogHDA(getClass(), "EDS", "&f Handling sync activation packet for {0}", dualityItem.actuallysize$getItemStackLocation());
             ASINCItemEntityActivationPacket packet = new ASINCItemEntityActivationPacket(dualityItem.actuallysize$getItemStackLocation(), target);
             ASINetworkManager.serverToPlayer(player, packet);
         });

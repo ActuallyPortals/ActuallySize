@@ -101,7 +101,7 @@ public class ASIClientsidePacketHandler {
                 /*HDA*/ActuallySizeInteractions.Log("ASI &6CPH-HDE &c UNKNOWN WORLD");
                 return null; }
             world = Minecraft.getInstance().player.level(); }
-        /*HDA*/ActuallySizeInteractions.LogHDA(ASIClientsidePacketHandler.class, "CPH", "Packet world identified, clientside? {0}", world.isClientSide);
+        //HDA//ActuallySizeInteractions.LogHDA(ASIClientsidePacketHandler.class, "CPH", "Packet world identified, clientside? {0}", world.isClientSide);
 
         return world;
     }

@@ -223,7 +223,7 @@ public class ASIPSFluxProfile {
                 if (action.isAllowed()) {
                     action.resolve();
 
-                    // If the flux fails to resolve, resolve the two parts individually
+                // If the flux fails to resolve, resolve the two parts individually
                 } else {
                     from.tryResolve();
                     to.tryResolve();

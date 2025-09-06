@@ -149,7 +149,7 @@ public class ActuallySizeInteractions {
      *
      * @since 1.0.0
      */
-    static final boolean HDA_LOGGING = true;
+    static final boolean HDA_LOGGING = false;
 
     /**
      * Logs specifically a line for the Holding System

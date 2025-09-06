@@ -249,6 +249,7 @@ public class ASIPSHoldingSyncAction implements APIFriendlyProcess {
                 //HDA//ActuallySizeInteractions.Log("ASI OWL &6 + &7 Broadcasting dualities data on &e " + nearby.getScoreboardName());
 
                 // Send information
+                /*HDA*/ActuallySizeInteractions.LogHDA(getClass(), "EDS", "&f Broadcasting activation packet for {0}", stackLocation);
                 ASINCItemEntityActivationPacket packet = new ASINCItemEntityActivationPacket(stackLocation, nearby);
                 ASINetworkManager.serverToPlayer(target, packet);
             }
