@@ -14,6 +14,7 @@
     "EntityRendererMixin",
     "InventoryScreenMixin$Pehkui",
     "ItemInHandRendererMixin",
+    "LivingEntityRendererMixin",
     "LocalPlayerMixin",
     "ModelPartMixin",
     "PlayerRendererMixin",
