@@ -40,6 +40,13 @@ public class ASIClientsideRequests {
     public static boolean RENDERING_LEVEL_ENTITIES;
 
     /**
+     * True after the AFTER_RENDERING_LEVEL render step and before AFTER_RENDERING_SKY
+     *
+     * @since 1.0.0
+     */
+    public static boolean OFF_LEVEL_RENDERING;
+
+    /**
      * @param entity The entity being rendered
      *
      * @return If it should not be rendered because the GUI overlay is going to render it
@@ -84,9 +91,13 @@ public class ASIClientsideRequests {
     @SubscribeEvent
     public static void OnRenderStageAdvance(RenderLevelStageEvent event) {
         if (event.getStage().equals(RenderLevelStageEvent.Stage.AFTER_SKY)) {
+            OFF_LEVEL_RENDERING = false;
             RENDERING_LEVEL_ENTITIES = true;
         } else if (event.getStage().equals(RenderLevelStageEvent.Stage.AFTER_ENTITIES)) {
-            RENDERING_LEVEL_ENTITIES = false; }
+            RENDERING_LEVEL_ENTITIES = false;
+        } else if (event.getStage().equals(RenderLevelStageEvent.Stage.AFTER_LEVEL)) {
+            OFF_LEVEL_RENDERING = true;
+        }
     }
 
     /**

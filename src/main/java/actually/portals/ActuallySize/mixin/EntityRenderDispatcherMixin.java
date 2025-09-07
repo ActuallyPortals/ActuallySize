@@ -1,5 +1,6 @@
 package actually.portals.ActuallySize.mixin;
 
+import actually.portals.ActuallySize.controlling.execution.ASIClientsideRequests;
 import actually.portals.ActuallySize.pickup.holding.ASIPSHoldPoint;
 import actually.portals.ActuallySize.pickup.mixininterfaces.GraceImpulsable;
 import actually.portals.ActuallySize.pickup.mixininterfaces.VASIPoseStack;
@@ -42,8 +43,8 @@ public abstract class EntityRenderDispatcherMixin implements ResourceManagerRelo
         asDeque.actuallysize$setPoseChildren(null);
         asDeque.actuallysize$setRenderer(instance);
 
-        // If it has children, record them
-        if (!dualityHolder.actuallysize$getHeldEntityDualities().isEmpty()) {
+        // If it has children, record them, but only while rendering in the actual world!
+        if (!dualityHolder.actuallysize$getHeldEntityDualities().isEmpty() && !ASIClientsideRequests.OFF_LEVEL_RENDERING) {
             ArrayList<EntityDualityCounterpart> children = new ArrayList<>();
 
             // Add held entities (not simple dualities)

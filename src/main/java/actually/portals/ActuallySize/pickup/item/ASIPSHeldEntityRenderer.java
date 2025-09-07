@@ -1,9 +1,14 @@
 package actually.portals.ActuallySize.pickup.item;
 
 import actually.portals.ActuallySize.ASIUtilities;
+import actually.portals.ActuallySize.ActuallySizeInteractions;
+import actually.portals.ActuallySize.controlling.execution.ASIClientsideRequests;
+import actually.portals.ActuallySize.pickup.holding.model.ASIPSModelPartInfo;
 import actually.portals.ActuallySize.pickup.mixininterfaces.*;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
+import gunging.ootilities.GungingOotilitiesMod.ootilityception.OotilityNumbers;
+import gunging.ootilities.GungingOotilitiesMod.scheduling.SchedulingManager;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.geom.EntityModelSet;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
@@ -19,7 +24,9 @@ import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import org.jetbrains.annotations.NotNull;
-import org.joml.Quaternionf;
+
+import java.util.Deque;
+import java.util.Iterator;
 
 /**
  * A class that renders the entity encoded within a {@link ASIPSHeldEntityItem}
@@ -114,22 +121,6 @@ public class ASIPSHeldEntityRenderer extends BlockEntityWithoutLevelRenderer {
                 return; }
         }
 
-        /*
-         * When this is being rendered in the world, we don't render held dualities.
-         */
-        switch (pDisplayContext) {
-            case HEAD:
-            case THIRD_PERSON_LEFT_HAND:
-            case THIRD_PERSON_RIGHT_HAND:
-
-                // We don't display item when the entity is held
-                if (((EntityDualityCounterpart) entityCounterpart).actuallysize$isHeld()) {
-                    return; }
-
-                break;
-
-            default: break; }
-
         // Render this entity
         //RBI//ActuallySizeInteractions.Log("ASI PS HEI&a Rendered");
         ItemEntityDualityHolder dualityHolder = itemDuality.actuallysize$getItemEntityHolder();
@@ -138,6 +129,31 @@ public class ASIPSHeldEntityRenderer extends BlockEntityWithoutLevelRenderer {
 
         // Apparently holding yourself makes it recursive! LMAO
         if (holder != null) { if (entityCounterpart.getUUID().equals(holder.getUUID())) { return; } }
+
+        /*
+         * When this is being rendered in the world, we don't render held dualities.
+         */
+        switch (pDisplayContext) {
+            case HEAD:
+            case THIRD_PERSON_LEFT_HAND:
+            case THIRD_PERSON_RIGHT_HAND:
+
+                ASIPSModelPartInfo info = ((ModelPartHoldable) entityCounterpart).actuallysize$getHeldModelPart();
+
+                // We don't display item when the entity is held and its model part is updated.
+                if (((EntityDualityCounterpart) entityCounterpart).actuallysize$isHeld()
+                        && info != null && !info.isEmpty()
+                        && holder instanceof LivingEntity) {
+
+                    // While rendering off-level... I guess try to at least display it on the player model
+                    if (ASIClientsideRequests.OFF_LEVEL_RENDERING) {
+                        renderHandPostWorld(pPoseStack, entityCounterpart, (LivingEntity) holder, pBuffer, pPackedLight); }
+                    return;
+                }
+
+                break;
+
+            default: break; }
 
         double scale;
         switch (pDisplayContext) {
@@ -246,12 +262,82 @@ public class ASIPSHeldEntityRenderer extends BlockEntityWithoutLevelRenderer {
         boolean hitbox = renderer.shouldRenderHitBoxes();
         renderer.setRenderShadow(false);
         renderer.setRenderHitBoxes(false);
-        renderer.render(entityCounterpart, 0, 0, 0, 0, 1, pPoseStack, pBuffer, pPackedLight);
+        renderer.render(entityCounterpart, 0, 0, 0, 0, 0, pPoseStack, pBuffer, pPackedLight);
         renderer.setRenderShadow(shadows);
         renderer.setRenderHitBoxes(hitbox);
 
         // Escape
         pPoseStack.popPose();
+    }
+
+    /**
+     * Consider the player model rendering in a GUI Overlay or something,
+     * that happens "post-world." When this happens and the entity-item
+     * duality is being rendered in either hand (due to being held) third
+     * person view, then it is possible to render the entity on the player
+     * model by checking their ModelPartInfo.
+     *
+     * @param pPoseStack The original pose stack
+     * @param entityCounterpart The held tiny
+     * @param holder The beeg
+     * @param pBuffer The original multi-buffer source
+     * @param pPackedLight The original packed light
+     *
+     * @author Actually Portals
+     * @since 1.0.0
+     */
+    public void renderHandPostWorld(@NotNull PoseStack pPoseStack, @NotNull Entity entityCounterpart, @NotNull LivingEntity holder, @NotNull MultiBufferSource pBuffer, int pPackedLight) {
+
+        VASIPoseStack poseStack = (VASIPoseStack) pPoseStack;
+        Deque<PoseStack.Pose> poseDeque = poseStack.actuallysize$getDeque();
+
+        // Copy over that pose stack to a simulated pose stack
+        PoseStack simulation = new PoseStack();
+        VASIPoseStack simulationStack = (VASIPoseStack) simulation;
+        Deque<PoseStack.Pose> simulationDeque = simulationStack.actuallysize$getDeque();
+        simulationDeque.clear();
+        simulationDeque.addAll(poseDeque);
+
+        // Return to entity model space (before the hand is rendered)
+        simulation.popPose();
+        simulation.popPose();
+        simulation.popPose();
+        simulation.popPose();
+        simulation.popPose();
+        simulation.popPose();
+
+        // Actually translate entity
+        simulation.pushPose();
+
+        Vec3 holdPosition = entityCounterpart.position();
+        Vec3 originPosition = holder.position();
+        Vec3 transform = holdPosition.subtract(originPosition);
+        double scale = getRestitutionScale(holder, entityCounterpart);
+        double revolveDegrees = holder.yBodyRotO + 180D;
+        double diffDegrees = 180 - holder.yBodyRot;
+        revolveDegrees += diffDegrees;
+        //double spinDegrees = 0;
+
+        // Only because restitution scale is 1/[Non-Functional Beeg Scale]
+        transform = transform.scale(scale);
+
+        simulation.mulPose(Axis.YP.rotationDegrees((float) revolveDegrees));
+        simulation.translate(transform.x, transform.y, transform.z);
+        simulation.scale((float) scale, (float) scale, (float) scale);
+        //simulation.mulPose(Axis.YP.rotationDegrees((float) spinDegrees));
+
+        // Draw again to be sure
+        EntityRenderDispatcher renderer = Minecraft.getInstance().getEntityRenderDispatcher();
+        boolean shadows = ((GraceImpulsable) renderer).actuallysize$isInGraceImpulse();
+        boolean hitbox = renderer.shouldRenderHitBoxes();
+        renderer.setRenderShadow(false);
+        renderer.setRenderHitBoxes(false);
+        renderer.render(entityCounterpart, 0, 0, 0, 0, 1, simulation, pBuffer, pPackedLight);
+        renderer.setRenderShadow(shadows);
+        renderer.setRenderHitBoxes(hitbox);
+
+        // Escape
+        simulation.popPose();
     }
 
     /**
