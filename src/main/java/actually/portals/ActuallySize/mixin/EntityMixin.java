@@ -755,17 +755,4 @@ public abstract class EntityMixin extends net.minecraftforge.common.capabilities
         // Otherwise, ASI has no business with this operation
         return original.call();
     }
-
-    @Inject(method = "isControlledByLocalInstance", at = @At("HEAD"), cancellable = true)
-    public void onLocalPlayerAuthority(CallbackInfoReturnable<Boolean> cir) {
-
-        // When held in a hold point, it becomes our business
-        if (this.actuallysize$isActive()) {
-            ASIPSHoldPoint hold = this.actuallysize$getHoldPoint();
-            if (hold != null && hold.isClientsidePositionable()) {
-                cir.setReturnValue(true);
-                cir.cancel();
-                return; }
-        }
-    }
 }

@@ -22,7 +22,7 @@ public abstract class ServerPlayerMixin extends Player {
     public ServerPlayerMixin(Level pLevel, BlockPos pPos, float pYRot, GameProfile pGameProfile) { super(pLevel, pPos, pYRot, pGameProfile); }
 
     @Inject(method = "startSleepInBed", at = @At(value = "HEAD"), cancellable = true)
-    public void onStartRiding(BlockPos pAt, CallbackInfoReturnable<Either<BedSleepingProblem, Unit>> cir) {
+    public void onStartSleeping(BlockPos pAt, CallbackInfoReturnable<Either<BedSleepingProblem, Unit>> cir) {
 
         // If held, you cannot sleep
         EntityDualityCounterpart dualityEntity = (EntityDualityCounterpart) this;

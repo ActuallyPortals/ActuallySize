@@ -1,7 +1,10 @@
 package actually.portals.ActuallySize.mixin;
 
-import actually.portals.ActuallySize.ActuallySizeInteractions;
 import actually.portals.ActuallySize.netcode.ASIClientsidePacketHandler;
+import actually.portals.ActuallySize.pickup.holding.ASIPSHoldPoint;
+import actually.portals.ActuallySize.pickup.mixininterfaces.EntityDualityCounterpart;
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.multiplayer.ClientPacketListener;
@@ -46,4 +49,19 @@ public abstract class ClientPacketListenerMixin {
         ASIClientsidePacketHandler.resolveEnqueuedDualityActivationsFor(this.minecraft.player.getUUID());
     }
      //*/
+
+    @WrapOperation(method = "handleMoveEntity", at = @At(value = "INVOKE", target = "Lnet/minecraft/network/protocol/game/ClientboundMoveEntityPacket;hasPosition()Z"))
+    public boolean onLocalPlayerAuthority(ClientboundMoveEntityPacket instance, Operation<Boolean> original) {
+
+        Entity entity = instance.getEntity(this.level);
+        EntityDualityCounterpart entityCounterpart = (EntityDualityCounterpart) entity;
+        ASIPSHoldPoint hold = entityCounterpart.actuallysize$getHoldPoint();
+
+        // When held in a hold point, it becomes our business
+        if (hold != null && hold.isClientsidePositionable()) {
+            return false; }
+
+        // Otherwise proceed as normal
+        return original.call(instance);
+    }
 }
