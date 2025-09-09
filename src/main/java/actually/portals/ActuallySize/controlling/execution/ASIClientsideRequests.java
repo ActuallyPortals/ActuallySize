@@ -18,7 +18,9 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.RenderLevelStageEvent;
+import net.minecraftforge.client.event.RenderNameTagEvent;
 import net.minecraftforge.event.entity.EntityJoinLevelEvent;
+import net.minecraftforge.eventbus.api.Event;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import org.jetbrains.annotations.NotNull;
@@ -45,6 +47,21 @@ public class ASIClientsideRequests {
      * @since 1.0.0
      */
     public static boolean OFF_LEVEL_RENDERING;
+
+    @SubscribeEvent
+    public static void onNametagRender(@NotNull RenderNameTagEvent event) {
+
+        // Nametag rendering of held entities is only blocked off-level
+        if (!OFF_LEVEL_RENDERING) { return; }
+
+        // Must be held
+        Entity entity = event.getEntity();
+        EntityDualityCounterpart entityCounterpart = (EntityDualityCounterpart) entity;
+        if (!entityCounterpart.actuallysize$isHeld()) { return; }
+
+        // Deny
+        event.setResult(Event.Result.DENY);
+    }
 
     /**
      * @param entity The entity being rendered

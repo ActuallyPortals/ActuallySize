@@ -17,6 +17,8 @@ import net.minecraft.world.entity.Entity;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.ArrayList;
 import java.util.Map;
@@ -25,6 +27,13 @@ import java.util.Map;
 public abstract class EntityRenderDispatcherMixin implements ResourceManagerReloadListener, GraceImpulsable {
 
     @Shadow private boolean shouldRenderShadow;
+
+    @Inject(method = "render", at = @At("HEAD"), cancellable = true)
+    public <E extends Entity> void onRenderEntity(E pEntity, double pX, double pY, double pZ, float pRotationYaw, float pPartialTicks, PoseStack pPoseStack, MultiBufferSource pBuffer, int pPackedLight, CallbackInfo ci) {
+
+        // Do not render AT ALL if invisible due to being held
+        if (ASIClientsideRequests.isInvisibleBecauseHeld(pEntity)) { ci.cancel(); }
+    }
 
     @WrapOperation(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/entity/EntityRenderer;render(Lnet/minecraft/world/entity/Entity;FFLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V"))
     private <T extends Entity> void onRenderCall(EntityRenderer<T> instance, T pEntity, float pEntityYaw, float pPartialTick, PoseStack pPoseStack, MultiBufferSource pBuffer, int pPackedLight, Operation<Void> original) {
