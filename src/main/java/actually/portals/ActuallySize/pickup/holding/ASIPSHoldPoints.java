@@ -37,9 +37,9 @@ public class ASIPSHoldPoints {
      */
     @NotNull public static final ASIPSRegisterableHoldPoint MAINHAND =  new ASIPSModelPartHoldPoint(
             ResourceLocation.fromNamespaceAndPath(ActuallySizeInteractions.MODID, "mainhand"),
-            new SVFLBit(0D/16D, 1.5D/16D, 10D/16D),
+            new SVFLBit(0D/16D, -10D/16D, 1.5D/16D),
             new SVFLBit(-0.4, 0, 0, 0.2, 0, 1.2, 0),
-            new ASIMPLForwardYVerticalNZ("right_arm"));
+            new ASIMPLForwardNZVerticalNY("right_arm"));
 
     /**
      * A hold point that positions the held entity in the offhand of the player model.
@@ -48,9 +48,9 @@ public class ASIPSHoldPoints {
      */
     @NotNull public static final ASIPSRegisterableHoldPoint OFFHAND =  new ASIPSModelPartHoldPoint(
             ResourceLocation.fromNamespaceAndPath(ActuallySizeInteractions.MODID, "offhand"),
-            new SVFLBit(0D/16D, 1.5D/16D, 10D/16D),
+            new SVFLBit(0D/16D, -10D/16D, 1.5D/16D),
             new SVFLBit(0.4, 0, 0, 0.2, 0, 1.2, 0),
-            new ASIMPLForwardYVerticalNZ("left_arm"));
+            new ASIMPLForwardNZVerticalNY("left_arm"));
 
     /**
      * A hold point that positions the held entity in the head of the player model.

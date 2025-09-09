@@ -9,10 +9,19 @@ import org.joml.Matrix4f;
 
 /**
  * A renderer linker to link the right arm model part
+ * Except it has problems when the vertical axis gets
+ * a negative Y component, since the correct metric
+ * should have been that it breaks the plane defined by
+ * it, not having a negative Y component.
+ * <br><br>
+ * Because this vertical axis is sideways, it makes the
+ * funny when its Y component is negative and its side
+ * and forward get inverted 90° off from when they should
  *
  * @author Actually Portals
  * @since 1.0.0
  */
+@Deprecated
 public class ASIMPLForwardYVerticalNZ extends ASIMPLRendererLinker {
 
     /**

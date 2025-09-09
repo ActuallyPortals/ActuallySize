@@ -170,10 +170,10 @@ public class ASIPSHeldEntityRenderer extends BlockEntityWithoutLevelRenderer {
             case FIRST_PERSON_RIGHT_HAND:
             case HEAD:
                 scale = Math.sqrt(getNormalizationScale(entityCounterpart));
-                if (holder == null) {
-                    scale *= 0.4D;
-                } else {
-                    scale *= 0.7D * ASIUtilities.beegBalanceEnhance(ASIUtilities.getRelativeScale(holder, false, entityCounterpart, false), 2, 0.25); }
+                scale *= 0.4D;
+                if (holder != null) {
+                    double relative = ASIUtilities.getRelativeScale(holder, false, entityCounterpart, false);
+                    scale *= 0.4D * ASIUtilities.beegBalanceEnhance(relative, 2, 0.25); }
                 break;
 
             case THIRD_PERSON_LEFT_HAND:
