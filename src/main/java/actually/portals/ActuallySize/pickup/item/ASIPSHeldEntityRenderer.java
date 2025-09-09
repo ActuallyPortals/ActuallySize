@@ -20,10 +20,12 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.phys.Vec2;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import org.jetbrains.annotations.NotNull;
+import org.joml.Quaternionf;
 
 import java.util.Deque;
 import java.util.Iterator;
@@ -173,7 +175,7 @@ public class ASIPSHeldEntityRenderer extends BlockEntityWithoutLevelRenderer {
                 scale *= 0.4D;
                 if (holder != null) {
                     double relative = ASIUtilities.getRelativeScale(holder, false, entityCounterpart, false);
-                    scale *= 0.4D * ASIUtilities.beegBalanceEnhance(relative, 2, 0.25); }
+                    scale *= 0.6D * ASIUtilities.beegBalanceEnhance(relative, 2, 0.25); }
                 break;
 
             case THIRD_PERSON_LEFT_HAND:
@@ -209,10 +211,13 @@ public class ASIPSHeldEntityRenderer extends BlockEntityWithoutLevelRenderer {
                 break;
 
             case GROUND:
-            case FIRST_PERSON_LEFT_HAND:
-            case FIRST_PERSON_RIGHT_HAND:
             case HEAD:
                 transform = new Vec3(0.5D, 0.5D, 0.5D);
+                break;
+
+            case FIRST_PERSON_LEFT_HAND:
+            case FIRST_PERSON_RIGHT_HAND:
+                transform = new Vec3(0.5D, 0.6D, 0.5D);
                 break;
 
             case THIRD_PERSON_LEFT_HAND:
@@ -228,20 +233,47 @@ public class ASIPSHeldEntityRenderer extends BlockEntityWithoutLevelRenderer {
                 transform = new Vec3(0, 0, 0);
         }
 
-        double spinDegrees = entityCounterpart instanceof LivingEntity ? ((LivingEntity) entityCounterpart).yBodyRotO : 0;
+        double spinDegrees = 0;
+        if (entityCounterpart instanceof LivingEntity) { spinDegrees = ((LivingEntity) entityCounterpart).yBodyRotO; }
+
+        boolean tilting = false;
         switch (pDisplayContext) {
             case GUI:
                 spinDegrees += 45;
                 break;
 
             case THIRD_PERSON_RIGHT_HAND:
-            case FIRST_PERSON_RIGHT_HAND:
-                spinDegrees -= 25;
+                spinDegrees -= 35;
                 break;
 
             case THIRD_PERSON_LEFT_HAND:
+                spinDegrees += 35;
+                break;
+
+            case FIRST_PERSON_RIGHT_HAND:
+                if (entityCounterpart instanceof Player) {
+
+                    // Players are spun differently
+                    spinDegrees = ((LivingEntity) entityCounterpart).yHeadRotO;
+                    spinDegrees -= 45;
+                    if (holder instanceof Player) {
+                        double diffDeg = ((Player) holder).yHeadRotO - ((Player) entityCounterpart).yHeadRotO;
+                        spinDegrees += diffDeg + 180;
+                        tilting = true; }
+                } else { spinDegrees -= 35; }
+                break;
+
             case FIRST_PERSON_LEFT_HAND:
-                spinDegrees += 25;
+                if (entityCounterpart instanceof Player) {
+
+                    // Players are spun differently
+                    spinDegrees = ((LivingEntity) entityCounterpart).yHeadRotO;
+                    spinDegrees += 45;
+                    if (holder instanceof Player) {
+                        double diffDeg = ((Player) holder).yHeadRotO - ((Player) entityCounterpart).yHeadRotO;
+                        spinDegrees += diffDeg + 180;
+                        tilting = true; }
+                } else { spinDegrees += 35; }
                 break;
 
             case HEAD:
@@ -262,7 +294,10 @@ public class ASIPSHeldEntityRenderer extends BlockEntityWithoutLevelRenderer {
         boolean hitbox = renderer.shouldRenderHitBoxes();
         renderer.setRenderShadow(false);
         renderer.setRenderHitBoxes(false);
+        float tiltDegrees = entityCounterpart.xRotO;
+        if (tilting && tiltDegrees < 0) { entityCounterpart.xRotO *= 0.25F; }
         renderer.render(entityCounterpart, 0, 0, 0, 0, 0, pPoseStack, pBuffer, pPackedLight);
+        entityCounterpart.xRotO = tiltDegrees;
         renderer.setRenderShadow(shadows);
         renderer.setRenderHitBoxes(hitbox);
 
