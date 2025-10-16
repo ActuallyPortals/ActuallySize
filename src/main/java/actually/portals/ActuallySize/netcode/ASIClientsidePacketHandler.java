@@ -6,11 +6,15 @@ import actually.portals.ActuallySize.netcode.packets.clientbound.*;
 import actually.portals.ActuallySize.netcode.packets.serverbound.ASINSHoldPointsConfigurationSync;
 import actually.portals.ActuallySize.pickup.ASIPickupSystemManager;
 import actually.portals.ActuallySize.pickup.actions.*;
+import actually.portals.ActuallySize.pickup.holding.model.ASIPSModelPartInfo;
 import actually.portals.ActuallySize.pickup.holding.points.ASIPSHoldPointRegistry;
 import actually.portals.ActuallySize.pickup.mixininterfaces.HoldPointConfigurable;
+import actually.portals.ActuallySize.pickup.mixininterfaces.ModelPartHoldable;
 import gunging.ootilities.GungingOotilitiesMod.ootilityception.APIFriendlyProcess;
+import gunging.ootilities.GungingOotilitiesMod.scheduling.SchedulingManager;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
@@ -254,5 +258,38 @@ public class ASIClientsidePacketHandler {
         } else {
             enqueuedDualityActivations.put(who, kept);
         }
+    }
+
+    /**
+     * @param packet Data arriving from the network regarding Model Part Coordinates
+     * @param contextSupplier The network context by which this is taking place
+     *
+     * @since 1.0.0
+     * @author Actually Portals
+     */
+    public static void handleModelPartCoordinate(@NotNull ASINCModelPartCoordinateSync packet, @NotNull Supplier<NetworkEvent.Context> contextSupplier) {
+
+        // Identify the world
+        Level world = getDualityActionWorld(contextSupplier);
+        if (world == null) { return; }
+
+        // Identify the sender
+        Entity found = world.getEntity(packet.getID());
+        if (found == null) { return; }
+
+        // Only if we ourselves haven't sent this entity position lately
+        ModelPartHoldable hold = (ModelPartHoldable) found;
+        long lastPacket = hold.actuallysize$getModelPartTime();
+
+        // The last packet must have been sent longer than the timeout interval
+        if ((SchedulingManager.getClientTicks() - lastPacket) < ASIPSModelPartInfo.PACKET_INTERVAL) { return; }
+
+        // Update model info with these specs
+        ASIPSModelPartInfo info = ((ModelPartHoldable) found).actuallysize$getHeldModelPart();
+        if (info == null) { return; }
+
+        // Register update
+        if (info.serversideUpdateModelPart(packet.getOrigin(), packet.getPitch(), packet.getYaw(), packet.getRoll())) {
+            ((ModelPartHoldable) found).actuallysize$setModelPartTime(SchedulingManager.getClientTicks()); }
     }
 }

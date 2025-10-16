@@ -3,6 +3,9 @@ package actually.portals.ActuallySize.netcode;
 import actually.portals.ActuallySize.ActuallySizeInteractions;
 import actually.portals.ActuallySize.netcode.packets.clientbound.*;
 import actually.portals.ActuallySize.netcode.packets.serverbound.*;
+import actually.portals.ActuallySize.pickup.holding.model.ASIPSModelPartInfo;
+import actually.portals.ActuallySize.pickup.mixininterfaces.ModelPartHoldable;
+import gunging.ootilities.GungingOotilitiesMod.scheduling.SchedulingManager;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
@@ -102,6 +105,11 @@ public class ASINetworkManager {
                 .encoder(ASINSModelPartCoordinateSync::encode)
                 .decoder(ASINSModelPartCoordinateSync::new)
                 .consumerMainThread(ASINSModelPartCoordinateSync::handle).add();
+
+        MAIN_CHANNEL.messageBuilder(ASINCModelPartCoordinateSync.class, i++, NetworkDirection.PLAY_TO_CLIENT)
+                .encoder(ASINCModelPartCoordinateSync::encode)
+                .decoder(ASINCModelPartCoordinateSync::new)
+                .consumerMainThread(ASINCModelPartCoordinateSync::handle).add();
     }
 
     /**

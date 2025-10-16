@@ -1,8 +1,6 @@
-package actually.portals.ActuallySize.netcode.packets.serverbound;
+package actually.portals.ActuallySize.netcode.packets.clientbound;
 
-import actually.portals.ActuallySize.ActuallySizeInteractions;
-import actually.portals.ActuallySize.netcode.ASINetworkManager;
-import actually.portals.ActuallySize.netcode.packets.clientbound.ASINCModelPartCoordinateSync;
+import actually.portals.ActuallySize.netcode.ASIClientsidePacketHandler;
 import actually.portals.ActuallySize.pickup.holding.model.ASIPSModelPartInfo;
 import actually.portals.ActuallySize.pickup.mixininterfaces.ModelPartHoldable;
 import gunging.ootilities.GungingOotilitiesMod.scheduling.SchedulingManager;
@@ -10,24 +8,22 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.Vec3;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.network.NetworkEvent;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Supplier;
 
 /**
- * Sent from clients rendering an item-entity duality
- * so the server has an approximate position of where
- * the entity should be (real).
- * <br><br>
- * It would be a security concern to trust the clients
- * fully, tho. These coordinates are just suggestions
- * then.
+ * Sent from clients to server, then the server broadcasts
+ * it to the holder of this entity if the holder is not
+ * sending packets - they are in first person!
  *
  * @since 1.0.0
  * @author Actually Portals
  */
-public class ASINSModelPartCoordinateSync {
+public class ASINCModelPartCoordinateSync {
 
     /**
      * The origin of the model part
@@ -40,7 +36,7 @@ public class ASINSModelPartCoordinateSync {
      * @since 1.0.0
      * @author Actually Portals
      */
-    @NotNull Vec3 getOrigin() { return origin; }
+    @NotNull public Vec3 getOrigin() { return origin; }
 
     /**
      * Rotation around the X axis
@@ -98,7 +94,7 @@ public class ASINSModelPartCoordinateSync {
      * @since 1.0.0
      * @author Actually Portals
      */
-    public ASINSModelPartCoordinateSync(@NotNull Entity who, @NotNull Vec3 origin, double pitch, double yaw, double roll) {
+    public ASINCModelPartCoordinateSync(@NotNull Entity who, @NotNull Vec3 origin, double pitch, double yaw, double roll) {
         this.id = who.getId();
         this.origin = origin;
         this.pitch = pitch;
@@ -110,7 +106,7 @@ public class ASINSModelPartCoordinateSync {
      * @since 1.0.0
      * @author Actually Portals
      */
-    public ASINSModelPartCoordinateSync(@NotNull FriendlyByteBuf buff) {
+    public ASINCModelPartCoordinateSync(@NotNull FriendlyByteBuf buff) {
         this.id = buff.readVarInt();
         this.origin = new Vec3(buff.readDouble(), buff.readDouble(), buff.readDouble());
         this.pitch = buff.readDouble();
@@ -142,24 +138,7 @@ public class ASINSModelPartCoordinateSync {
      */
     public void handle(@NotNull Supplier<NetworkEvent.Context> contextSupplier) {
         contextSupplier.get().enqueueWork(() -> {
-
-            // Identify the sender
-            ServerPlayer player = contextSupplier.get().getSender();
-            if (player == null) { return; }
-
-            Entity found = player.level().getEntity(id);
-            if (found == null) { return; }
-
-            // Update model info with these specs
-            ASIPSModelPartInfo info = ((ModelPartHoldable) found).actuallysize$getHeldModelPart();
-            if (info == null) { return; }
-
-            // Register update
-            if (info.serversideUpdateModelPart(origin, pitch, yaw, roll)) {
-                ((ModelPartHoldable) found).actuallysize$setModelPartTime(SchedulingManager.getServerTicks()); }
-
-            // Tracking players sync
-            ASINetworkManager.broadcastEntityUpdate(found, new ASINCModelPartCoordinateSync(found, origin, pitch, yaw, roll));
+            DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> ASIClientsidePacketHandler.handleModelPartCoordinate(this, contextSupplier));
         });
         contextSupplier.get().setPacketHandled(true);
     }
