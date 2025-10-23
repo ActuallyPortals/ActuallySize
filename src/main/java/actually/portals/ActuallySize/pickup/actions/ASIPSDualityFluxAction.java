@@ -279,7 +279,7 @@ public class ASIPSDualityFluxAction implements APIFriendlyProcess, ASINetworkDel
         /*HDA*/ActuallySizeInteractions.LogHDA(getClass(), "HDE", "&f Network Packet Sent");
         ASINCItemEntityFluxPacket packet = new ASINCItemEntityFluxPacket(
                 new ASINCItemEntityDeactivationPacket(getFrom().getEntityCounterpart()),
-                new ASINCItemEntityActivationPacket(getTo().getStackLocation(), getTo().getEntityCounterpart()));
+                new ASINCItemEntityActivationPacket(getTo().getStackLocation(), getTo().getEntityCounterpart(), getTo().getHoldPoint()));
         ASINetworkManager.broadcastEntityUpdate(entityCounterpart, packet);
 
         /*HDA*/ActuallySizeInteractions.LogHDA(getClass(), "HDF", "&3 RESOLVED");

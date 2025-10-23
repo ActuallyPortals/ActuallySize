@@ -144,7 +144,8 @@ public class ASIPSDualityActivationAction extends ASIPSDualityAction {
         this.world = world;
         if (stackLocation != null) {
             itemCounterpart = stackLocation.getItemStack();
-            holdPoint = ((ItemEntityDualityHolder) stackLocation.getHolder()).actuallysize$getHoldPoint(stackLocation);
+            holdPoint = fromPacket.getHoldPoint();
+            if (holdPoint == null) { holdPoint = ((ItemEntityDualityHolder) stackLocation.getHolder()).actuallysize$getHoldPoint(stackLocation); }
         }
 
         /*HDA*/ActuallySizeInteractions.LogHDA(false, getClass(), "HDA", "Packet Constructor");
@@ -211,6 +212,7 @@ public class ASIPSDualityActivationAction extends ASIPSDualityAction {
             }
         }
 
+        holdPoint = ASIPickupSystemManager.adjustHoldPoint(stackLocation.getHolder(), entityCounterpart, holdPoint, stackLocation);
         /*HDA*/ActuallySizeInteractions.LogHDA(false, getClass(), "HDA", "Slot Constructor");
     }
 
@@ -235,9 +237,10 @@ public class ASIPSDualityActivationAction extends ASIPSDualityAction {
         // The stack location, item, and entity are provided
         this.stackLocation = stackLocation;
         world = stackLocation.getHolder().level();
-        holdPoint = ((ItemEntityDualityHolder) stackLocation.getHolder()).actuallysize$getHoldPoint(stackLocation);
         entityCounterpart = existing;
         itemCounterpart = preparedItem;
+        holdPoint = ((ItemEntityDualityHolder) stackLocation.getHolder()).actuallysize$getHoldPoint(stackLocation);
+        holdPoint = ASIPickupSystemManager.adjustHoldPoint(stackLocation.getHolder(), entityCounterpart, holdPoint, stackLocation);
 
         /*HDA*/ActuallySizeInteractions.LogHDA(false, getClass(), "HDA", "All Explicit Constructor");
     }
@@ -547,7 +550,7 @@ public class ASIPSDualityActivationAction extends ASIPSDualityAction {
 
             // Create packet to send over the network and send to those tracking this entity
             /*HDA*/ActuallySizeInteractions.LogHDA(getClass(), "HDA", "&f Network Packet Sent");
-            ASINCItemEntityActivationPacket packet = new ASINCItemEntityActivationPacket(stackLocation, entityCounterpart);
+            ASINCItemEntityActivationPacket packet = new ASINCItemEntityActivationPacket(stackLocation, entityCounterpart, holdPoint);
             ASINetworkManager.broadcastEntityUpdate(entityCounterpart, packet);
 
         } else {
@@ -569,7 +572,7 @@ public class ASIPSDualityActivationAction extends ASIPSDualityAction {
 
                 // Create packet to send over the network and send to those tracking this entity
                 /*HDA*/ActuallySizeInteractions.LogHDA(getClass(), "HDA", "&f Network Packet Sent");
-                ASINCItemEntityActivationPacket packet = new ASINCItemEntityActivationPacket(stackLocation, entityCounterpart);
+                ASINCItemEntityActivationPacket packet = new ASINCItemEntityActivationPacket(stackLocation, entityCounterpart, holdPoint);
                 ASINetworkManager.broadcastEntityUpdate(entityCounterpart, packet);
             }
         }

@@ -3,6 +3,7 @@ package actually.portals.ActuallySize.mixin;
 import actually.portals.ActuallySize.ASIUtilities;
 import actually.portals.ActuallySize.ActuallyServerConfig;
 import actually.portals.ActuallySize.ActuallySizeInteractions;
+import actually.portals.ActuallySize.netcode.packets.serverbound.ASINSPreferredSize;
 import actually.portals.ActuallySize.pickup.ASIPickupSystemManager;
 import actually.portals.ActuallySize.pickup.actions.*;
 import actually.portals.ActuallySize.pickup.holding.ASIPSHoldPoint;

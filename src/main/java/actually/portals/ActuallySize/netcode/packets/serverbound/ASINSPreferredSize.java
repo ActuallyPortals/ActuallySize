@@ -2,6 +2,8 @@ package actually.portals.ActuallySize.netcode.packets.serverbound;
 
 import actually.portals.ActuallySize.ASIUtilities;
 import actually.portals.ActuallySize.ActuallyServerConfig;
+import actually.portals.ActuallySize.ActuallySizeInteractions;
+import actually.portals.ActuallySize.world.mixininterfaces.PreferentialOptionable;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.RemoteChatSession;
 import net.minecraft.server.level.ServerPlayer;
@@ -24,6 +26,19 @@ import java.util.function.Supplier;
  * @author Actually Portals
  */
 public class ASINSPreferredSize {
+
+    /**
+     * The scale the local player prefers to be
+     *
+     * @since 1.0.0
+     */
+    private final boolean specialHoldPlayers;
+
+    /**
+     * @since 1.0.0
+     * @author Actually Portals
+     */
+    public boolean isSpecialHoldPlayers() { return specialHoldPlayers; }
 
     /**
      * The scale the local player prefers to be
@@ -70,10 +85,11 @@ public class ASINSPreferredSize {
      * @since 1.0.0
      * @author Actually Portals
      */
-    public ASINSPreferredSize(double preferredSize, boolean beeg, boolean smol) {
+    public ASINSPreferredSize(double preferredSize, boolean beeg, boolean smol, boolean holdOnlyPlayers) {
         this.preferredSize = preferredSize;
         this.preferredBeeg = beeg;
         this.preferredSmol = smol;
+        this.specialHoldPlayers = holdOnlyPlayers;
     }
 
     /**
@@ -84,7 +100,7 @@ public class ASINSPreferredSize {
      * @author Actually Portals
      */
     public ASINSPreferredSize(@NotNull FriendlyByteBuf buff) {
-        this(buff.readDouble(), buff.readBoolean(), buff.readBoolean());
+        this(buff.readDouble(), buff.readBoolean(), buff.readBoolean(), buff.readBoolean());
     }
 
     /**
@@ -98,6 +114,7 @@ public class ASINSPreferredSize {
         buff.writeDouble(preferredSize);
         buff.writeBoolean(preferredBeeg);
         buff.writeBoolean(preferredSmol);
+        buff.writeBoolean(specialHoldPlayers);
     }
 
     /**
@@ -113,6 +130,10 @@ public class ASINSPreferredSize {
      * @author Actually Portals
      */
     public void applyTo(@NotNull ServerPlayer someone) {
+
+        // Formalities~
+        PreferentialOptionable optionable = (PreferentialOptionable) someone;
+        optionable.actuallysize$setPreferredOptionsApplied(true);
 
         // Interpret settings
         double serverBeeg = ActuallyServerConfig.beegSize;
@@ -164,9 +185,10 @@ public class ASINSPreferredSize {
             // Find the player who is sending this packet
             ServerPlayer player = contextSupplier.get().getSender();
             if (player == null) { return; }
+            PreferentialOptionable optionable = (PreferentialOptionable) player;
 
             // First time? Apply these
-            if (GetPreferredSize(player) == null) { applyTo(player); }
+            if (!optionable.actuallysize$isPreferredOptionsApplied()) { applyTo(player); }
 
             // Apply those settings
             SetPreferredSize(player, this);

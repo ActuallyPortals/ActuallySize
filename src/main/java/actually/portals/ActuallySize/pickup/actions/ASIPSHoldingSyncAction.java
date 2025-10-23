@@ -250,7 +250,7 @@ public class ASIPSHoldingSyncAction implements APIFriendlyProcess {
 
                 // Send information
                 /*HDA*/ActuallySizeInteractions.LogHDA(getClass(), "EDS", "&f Broadcasting activation packet for {0}", stackLocation);
-                ASINCItemEntityActivationPacket packet = new ASINCItemEntityActivationPacket(stackLocation, nearby);
+                ASINCItemEntityActivationPacket packet = new ASINCItemEntityActivationPacket(stackLocation, nearby, dualityEntity.actuallysize$getHoldPoint());
                 ASINetworkManager.serverToPlayer(target, packet);
             }
         }

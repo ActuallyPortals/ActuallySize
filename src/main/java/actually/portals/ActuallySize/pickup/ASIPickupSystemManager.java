@@ -4,11 +4,13 @@ import actually.portals.ActuallySize.ActuallyClientConfig;
 import actually.portals.ActuallySize.ActuallySizeInteractions;
 import actually.portals.ActuallySize.controlling.execution.ASIEventExecutionListener;
 import actually.portals.ActuallySize.netcode.packets.clientbound.ASINCHoldPointsSyncReply;
+import actually.portals.ActuallySize.netcode.packets.serverbound.ASINSPreferredSize;
 import actually.portals.ActuallySize.pickup.actions.ASIPSDualityAction;
 import actually.portals.ActuallySize.pickup.actions.ASIPSDualityEscapeAction;
 import actually.portals.ActuallySize.pickup.events.ASIHoldPointRegistryEvent;
 import actually.portals.ActuallySize.pickup.events.ASIPSBuildLocalPlayerHoldPointsEvent;
 import actually.portals.ActuallySize.pickup.holding.ASIPSFluxProfile;
+import actually.portals.ActuallySize.pickup.holding.ASIPSHoldPoint;
 import actually.portals.ActuallySize.pickup.holding.points.ASIPSHoldPointRegistry;
 import actually.portals.ActuallySize.pickup.holding.ASIPSHoldPoints;
 import actually.portals.ActuallySize.pickup.holding.points.ASIPSRegisterableHoldPoint;
@@ -21,6 +23,7 @@ import gunging.ootilities.GungingOotilitiesMod.exploring.entities.ISEExplorerSta
 import gunging.ootilities.GungingOotilitiesMod.exploring.players.ISPExplorerStatements;
 import net.minecraft.nbt.*;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
@@ -156,7 +159,7 @@ public class ASIPickupSystemManager {
 
             // Skip player, those need no saving in the item
             if (entityCounterpart instanceof Player) {
-                /*HDA*/ActuallySizeInteractions.Log("ASI &4 HDM &r Ticking player duality " + entityCounterpart.getScoreboardName() + " held by " + ((Entity) dualityEntity.actuallysize$getItemEntityHolder()).getScoreboardName());
+                /*HDA*/ActuallySizeInteractions.LogHDA(ASIPickupSystemManager.class, "HDM", "Ticking player duality {0} held by {1}. ", entityCounterpart.getScoreboardName(), ((Entity) dualityEntity.actuallysize$getItemEntityHolder()).getScoreboardName());
                 continue; }
 
             // Save it
@@ -703,6 +706,36 @@ public class ASIPickupSystemManager {
             found.setOrdinal(syn.getValue());
             HOLD_POINT_REGISTRY.getByOrdinal().put(syn.getValue(), found);
         }
+    }
+
+    /**
+     * @param holder The entity doing the holding
+     * @param entityCounterpart The entity being held
+     * @param original The custom hold point for this slot
+     * @param index The index by which this hold point was obtained
+     *
+     * @return The custom hold point if player, or the default if non-player, or the custom hold point if custom hold points apply to non-player too
+     *
+     * @since 1.0.0
+     * @author Actually Portals
+     */
+    @Nullable public static ASIPSHoldPoint adjustHoldPoint(@NotNull Entity holder, @NotNull Entity entityCounterpart, @Nullable ASIPSHoldPoint original, @Nullable Object index) {
+        if (!(holder instanceof ServerPlayer)) {
+            /*HDA*/ActuallySizeInteractions.LogHDA(false, ASIPickupSystemManager.class, "HDA", "No adjustment - not player");
+            return original; }
+        ASINSPreferredSize prefs = ASINSPreferredSize.GetPreferredSize((ServerPlayer) holder);
+
+        // Players are held special by default, but it may be disabled
+        boolean specialHold = entityCounterpart instanceof Player;
+        if (prefs != null && specialHold) { specialHold = prefs.isSpecialHoldPlayers(); }
+
+        // If using the overridden hold preferences
+        if (specialHold) {
+            /*HDA*/ActuallySizeInteractions.LogHDA(false, ASIPickupSystemManager.class, "HDA", "No adjustment - player holding player");
+            return original; }
+
+        /*HDA*/ActuallySizeInteractions.LogHDA(false, ASIPickupSystemManager.class, "HDA", "Adjustment - player holding non-player");
+        return ASIPickupSystemManager.HOLD_POINT_REGISTRY.getHoldPoint(index);
     }
     //endregion
 

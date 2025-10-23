@@ -16,6 +16,7 @@ import actually.portals.ActuallySize.pickup.mixininterfaces.EntityDualityCounter
 import actually.portals.ActuallySize.pickup.mixininterfaces.HoldPointConfigurable;
 import actually.portals.ActuallySize.pickup.mixininterfaces.ItemEntityDualityHolder;
 import actually.portals.ActuallySize.pickup.mixininterfaces.UseTimed;
+import actually.portals.ActuallySize.world.mixininterfaces.PreferentialOptionable;
 import gunging.ootilities.GungingOotilitiesMod.events.extension.ServersideEntityEquipmentChangeEvent;
 import gunging.ootilities.GungingOotilitiesMod.ootilityception.OotilityNumbers;
 import gunging.ootilities.GungingOotilitiesMod.scheduling.SCHTenTicksEvent;
@@ -61,16 +62,19 @@ public class ASIEventExecutionListener {
 
         // Only runs on server
         if (!(event.getEntity() instanceof ServerPlayer)) { return; }
+        ServerPlayer player = (ServerPlayer) event.getEntity();
 
         // On death, restore prefs
         if (event.isWasDeath()) {
+            PreferentialOptionable optionable = (PreferentialOptionable) player;
+            optionable.actuallysize$setPreferredOptionsApplied(false);
 
             // Get prefs
-            ASINSPreferredSize prefs = ASINSPreferredSize.GetPreferredSize((ServerPlayer) event.getEntity());
+            ASINSPreferredSize prefs = ASINSPreferredSize.GetPreferredSize(player);
             if (prefs == null) { return; }
 
             // Apply prefs
-            prefs.applyTo((ServerPlayer) event.getEntity()); }
+            prefs.applyTo(player); }
 
         // Sync hold points and dualities to client
         HoldPointConfigurable newer = (HoldPointConfigurable) event.getEntity();

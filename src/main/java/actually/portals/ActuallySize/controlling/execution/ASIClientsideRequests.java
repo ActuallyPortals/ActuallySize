@@ -130,7 +130,7 @@ public class ASIClientsideRequests {
          * Ideally this would happen when logging in the server rather than
          * joining the world, but there is no event readily accessible for that
          */
-        ASINSPreferredSize prefs = new ASINSPreferredSize(ActuallyClientConfig.preferredScale, ActuallyClientConfig.isPreferBeeg, ActuallyClientConfig.isPreferTiny);
+        ASINSPreferredSize prefs = new ASINSPreferredSize(ActuallyClientConfig.preferredScale, ActuallyClientConfig.isPreferBeeg, ActuallyClientConfig.isPreferTiny, ActuallyClientConfig.onlySpecialHoldPlayers);
         ASINetworkManager.playerToServer(prefs);
     }
 

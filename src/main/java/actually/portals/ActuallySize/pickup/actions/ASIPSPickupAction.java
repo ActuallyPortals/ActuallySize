@@ -236,7 +236,7 @@ public class ASIPSPickupAction implements APIFriendlyProcess {
         //double relativeScale = ASIUtilities.inverseRelativeScale(caster, victim);
         //ActuallySizeInteractions.Log("&b&l Relativity: x" + (0.01 * Math.round((relativeScale * 100))));
         ItemEntityDualityHolder holder = (ItemEntityDualityHolder) beeg;
-        ASIPSHoldPoint holdPoint = holder.actuallysize$getHoldPoint(stackLocation);
+        ASIPSHoldPoint holdPoint = ASIPickupSystemManager.adjustHoldPoint(beeg, tiny, holder.actuallysize$getHoldPoint(stackLocation), stackLocation);
 
         // Must be big enough to pick up in the hold point
         if (holdPoint != null && !holdPoint.canSustainHold(holder, (EntityDualityCounterpart) tiny)) {

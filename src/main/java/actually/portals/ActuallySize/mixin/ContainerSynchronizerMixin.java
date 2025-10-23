@@ -4,6 +4,7 @@ import actually.portals.ActuallySize.ActuallySizeInteractions;
 import actually.portals.ActuallySize.netcode.ASINetworkManager;
 import actually.portals.ActuallySize.netcode.packets.clientbound.ASINCItemEntityActivationPacket;
 import actually.portals.ActuallySize.pickup.ASIPickupSystemManager;
+import actually.portals.ActuallySize.pickup.mixininterfaces.EntityDualityCounterpart;
 import actually.portals.ActuallySize.pickup.mixininterfaces.ItemDualityCounterpart;
 import gunging.ootilities.GungingOotilitiesMod.exploring.ItemStackLocation;
 import net.minecraft.server.level.ServerPlayer;
@@ -44,7 +45,7 @@ public abstract class ContainerSynchronizerMixin {
 
         // Send another packet to link entity
         /*HDA*/ActuallySizeInteractions.LogHDA(getClass(), "EDS", "&f SendSlotChange activation packet for {0}", stackLocation);
-        ASINCItemEntityActivationPacket packet = new ASINCItemEntityActivationPacket(stackLocation, entityCounterpart);
+        ASINCItemEntityActivationPacket packet = new ASINCItemEntityActivationPacket(stackLocation, entityCounterpart, ((EntityDualityCounterpart) entityCounterpart).actuallysize$getHoldPoint());
         ASINetworkManager.serverToPlayer(this$0, packet);
     }
 }

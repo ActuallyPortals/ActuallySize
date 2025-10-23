@@ -116,7 +116,11 @@ public class ASIPSDualityDeactivationAction extends ASIPSDualityAction {
 
                 // Otherwise, fetch the hold point directly from the holder
                 stackLocation == null ? null :
-                        ((ItemEntityDualityHolder) stackLocation.getHolder()).actuallysize$getHoldPoint(stackLocation);
+                        ASIPickupSystemManager.adjustHoldPoint(
+                                stackLocation.getHolder(),
+                                entityCounterpart,
+                                ((ItemEntityDualityHolder) stackLocation.getHolder()).actuallysize$getHoldPoint(stackLocation),
+                                stackLocation);
 
         /*HDA*/ActuallySizeInteractions.LogHDA(false, getClass(), "HDD", "Item Constructor");
     }
@@ -189,12 +193,30 @@ public class ASIPSDualityDeactivationAction extends ASIPSDualityAction {
         this.stackLocation = stackLocation;
         itemCounterpart = stackLocation.getItemStack();
         ItemEntityDualityHolder dualityHolder = ((ItemEntityDualityHolder) this.stackLocation.getHolder());
-        holdPoint = dualityHolder.actuallysize$getHoldPoint(this.stackLocation);
 
-        // First priority is any active entity duality in the target hold point. We are deactivating that.
-        if (holdPoint != null) {
-            entityCounterpart = (Entity) dualityHolder.actuallysize$getHeldItemEntityDuality(holdPoint);
-            /*HDA*/ActuallySizeInteractions.LogHDA(getClass(), "HDD", "Found {0} duality in holder", (entityCounterpart != null ? entityCounterpart.getScoreboardName() : "null"));
+        for (EntityDualityCounterpart possibleEntityCounterpart : dualityHolder.actuallysize$getHeldEntityDualities().values()) {
+            ItemStackLocation<? extends Entity> possibleStackLocation = possibleEntityCounterpart.actuallysize$getItemStackLocation();
+            if (possibleStackLocation == null) { continue; }
+
+            // This entity is in this location? This is the one
+            if (stackLocation.getStatement().equals(possibleStackLocation.getStatement())) {
+                holdPoint = possibleEntityCounterpart.actuallysize$getHoldPoint();
+                entityCounterpart = (Entity) possibleEntityCounterpart;
+
+                /*HDA*/ActuallySizeInteractions.LogHDA(getClass(), "HDD", "Found {0} duality in inventory", entityCounterpart.getScoreboardName());
+            }
+        }
+        if (holdPoint == null && entityCounterpart == null) {
+            holdPoint = dualityHolder.actuallysize$getHoldPoint(this.stackLocation);
+
+            // First priority is any active entity duality in the target hold point. We are deactivating that.
+            if (holdPoint != null) {
+                entityCounterpart = (Entity) dualityHolder.actuallysize$getHeldItemEntityDuality(holdPoint);
+                /*HDA*/ActuallySizeInteractions.LogHDA(getClass(), "HDD", "Found {0} duality in holder", (entityCounterpart != null ? entityCounterpart.getScoreboardName() : "null"));
+            }
+
+            // Adjust hold point based on entity
+            holdPoint = ASIPickupSystemManager.adjustHoldPoint(stackLocation.getHolder(), entityCounterpart, holdPoint, stackLocation);
         }
 
         // Second priority is deactivating the entity duality linked to this item, we'd be deactivating that

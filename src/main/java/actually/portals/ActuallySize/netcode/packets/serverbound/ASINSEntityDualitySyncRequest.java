@@ -93,7 +93,7 @@ public class ASINSEntityDualitySyncRequest {
 
             // Send information
             /*HDA*/ActuallySizeInteractions.LogHDA(getClass(), "EDS", "&f Handling sync activation packet for {0}", dualityItem.actuallysize$getItemStackLocation());
-            ASINCItemEntityActivationPacket packet = new ASINCItemEntityActivationPacket(dualityItem.actuallysize$getItemStackLocation(), target);
+            ASINCItemEntityActivationPacket packet = new ASINCItemEntityActivationPacket(dualityItem.actuallysize$getItemStackLocation(), target, dualityEntity.actuallysize$getHoldPoint());
             ASINetworkManager.serverToPlayer(player, packet);
         });
         contextSupplier.get().setPacketHandled(true);

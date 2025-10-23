@@ -2,7 +2,10 @@ package actually.portals.ActuallySize.netcode.packets.clientbound;
 
 import actually.portals.ActuallySize.ActuallySizeInteractions;
 import actually.portals.ActuallySize.netcode.ASIClientsidePacketHandler;
+import actually.portals.ActuallySize.pickup.ASIPickupSystemManager;
 import actually.portals.ActuallySize.pickup.actions.ASIPSDualityActivationAction;
+import actually.portals.ActuallySize.pickup.holding.ASIPSHoldPoint;
+import actually.portals.ActuallySize.pickup.holding.points.ASIPSRegisterableHoldPoint;
 import gunging.ootilities.GungingOotilitiesMod.exploring.*;
 import gunging.ootilities.GungingOotilitiesMod.exploring.entities.ISEEntityLocation;
 import gunging.ootilities.GungingOotilitiesMod.exploring.entities.ISEEntityStatement;
@@ -131,18 +134,32 @@ public class ASINCItemEntityActivationPacket {
     @Nullable public ItemStackLocation<? extends Entity> getStackLocation() { return stackLocation; }
 
     /**
+     * The hold point where this entity is being activated
+     *
+     * @since 1.0.0
+     */
+    @Nullable ASIPSRegisterableHoldPoint holdPoint;
+
+    /**
+     * @since 1.0.0
+     * @author Actually Portals
+     */
+    @Nullable public ASIPSRegisterableHoldPoint getHoldPoint() { return holdPoint; }
+
+    /**
      * @param location The location of the Item counterpart of this Item-Entity
      * @param entityCounterpart The entity counterpart of the Item-Entity
      *
      * @since 1.0.0
      * @author Actually Portals
      */
-    public ASINCItemEntityActivationPacket(@NotNull ItemStackLocation<? extends Entity> location, @NotNull Entity entityCounterpart) {
+    public ASINCItemEntityActivationPacket(@NotNull ItemStackLocation<? extends Entity> location, @NotNull Entity entityCounterpart, @Nullable ASIPSHoldPoint holdPoint) {
         this.holderID = location.getHolder().getId();
         this.stackLocation = location;
         this.statement = location.getStatement();
         entityCounterpartID = entityCounterpart.getId();
         this.entityCounterpart = entityCounterpart;
+        this.holdPoint = holdPoint instanceof ASIPSRegisterableHoldPoint ? (ASIPSRegisterableHoldPoint) holdPoint : null;
     }
 
     /**
@@ -155,6 +172,7 @@ public class ASINCItemEntityActivationPacket {
         holderID = buff.readVarInt();
         entityCounterpartID = buff.readVarInt();
         this.statement = ExplorerManager.decode(buff);
+        holdPoint = ASIPickupSystemManager.HOLD_POINT_REGISTRY.getByOrdinal().get(buff.readVarInt());
     }
 
     /**
@@ -167,6 +185,7 @@ public class ASINCItemEntityActivationPacket {
         buff.writeVarInt(holderID);
         buff.writeVarInt(entityCounterpartID);
         statement.encode(buff);
+        buff.writeVarInt(holdPoint == null ? -1 :holdPoint.getOrdinal());
     }
 
     /**

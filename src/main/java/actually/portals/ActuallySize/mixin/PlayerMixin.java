@@ -2,8 +2,9 @@ package actually.portals.ActuallySize.mixin;
 
 import actually.portals.ActuallySize.ASIUtilities;
 import actually.portals.ActuallySize.ActuallyServerConfig;
-import actually.portals.ActuallySize.ActuallySizeInteractions;
+import actually.portals.ActuallySize.pickup.actions.ASIPSDualityActivationAction;
 import actually.portals.ActuallySize.pickup.actions.ASIPSDualityEscapeAction;
+import actually.portals.ActuallySize.pickup.actions.ASIPSDualityFluxAction;
 import actually.portals.ActuallySize.pickup.consumption.ASIPSCInstantKill;
 import actually.portals.ActuallySize.pickup.events.ASIPSConsumeMobEvent;
 import actually.portals.ActuallySize.pickup.events.ASIPSConsumeTinyEvent;
@@ -12,12 +13,15 @@ import actually.portals.ActuallySize.pickup.holding.points.ASIPSHoldPointRegistr
 import actually.portals.ActuallySize.pickup.holding.points.ASIPSRegisterableHoldPoint;
 import actually.portals.ActuallySize.pickup.item.ASIPSHeldEntityItem;
 import actually.portals.ActuallySize.pickup.mixininterfaces.*;
+import actually.portals.ActuallySize.world.mixininterfaces.PreferentialOptionable;
 import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.mojang.datafixers.util.Either;
 import gunging.ootilities.GungingOotilitiesMod.exploring.ItemExplorerStatement;
+import gunging.ootilities.GungingOotilitiesMod.exploring.ItemStackLocation;
 import net.minecraft.core.BlockPos;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Unit;
 import net.minecraft.world.entity.Entity;
@@ -42,7 +46,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import java.util.Map;
 
 @Mixin(Player.class)
-public abstract class PlayerMixin extends LivingEntity implements HoldPointConfigurable, GraceImpulsable {
+public abstract class PlayerMixin extends LivingEntity implements HoldPointConfigurable, GraceImpulsable, PreferentialOptionable {
 
     @Shadow public abstract FoodData getFoodData();
 
@@ -69,6 +73,7 @@ public abstract class PlayerMixin extends LivingEntity implements HoldPointConfi
 
         // When these change in the server, they must be synced to clients and flux
         if (!level().isClientSide) {
+            ItemEntityDualityHolder asHolder = (ItemEntityDualityHolder) this;
 
             // Compare the new point to the old point
             for (Map.Entry<ItemExplorerStatement<?,?>, ASIPSRegisterableHoldPoint> newPoint : reg.getRegisteredPoints().entrySet()) {
@@ -76,8 +81,29 @@ public abstract class PlayerMixin extends LivingEntity implements HoldPointConfi
 
                 // If it existed and was different
                 if (oldPoint != null && !oldPoint.equals(newPoint)) {
+                    EntityDualityCounterpart entityCounterpart = asHolder.actuallysize$getHeldItemEntityDuality(oldPoint);
 
-                    //todo Flux from old hold point to new hold point
+                    // If an entity was previously held in this hold point
+                    if (entityCounterpart != null) {
+                        ItemStack itemCounterpart = entityCounterpart.actuallysize$getItemCounterpart();
+                        ItemStackLocation<? extends Entity> stackLocation = entityCounterpart.actuallysize$getItemStackLocation();
+                        ASIPSDualityEscapeAction escape = new ASIPSDualityEscapeAction(entityCounterpart);
+
+                        // Escape in failure
+                        if (itemCounterpart == null || stackLocation == null) {
+                            escape.tryResolve();
+                        } else {
+
+                            // Flux ready
+                            ASIPSDualityFluxAction flux = new ASIPSDualityFluxAction(
+                                    new ASIPSDualityEscapeAction(entityCounterpart),
+                                    new ASIPSDualityActivationAction(stackLocation, itemCounterpart, (Entity) entityCounterpart)
+                            );
+
+                            // Escape if failure
+                            if (!flux.tryResolve()) { escape.tryResolve(); }
+                        }
+                    }
                 }
             }
         }
@@ -260,4 +286,23 @@ public abstract class PlayerMixin extends LivingEntity implements HoldPointConfi
         asASI.actuallysize$setEdaciousProperties(((Edacious) tiny).actuallysize$getEdaciousProperties());
         asASIItem.resetFoodTick();
     }
+
+    @Inject(method = "readAdditionalSaveData", at = @At("RETURN"))
+    public void onReadSaveData(CompoundTag pCompound, CallbackInfo ci) {
+        this.actuallysize$preferredOptionsApplied = pCompound.getBoolean("ASILoginPrefs");
+    }
+
+    @Inject(method = "addAdditionalSaveData", at = @At("RETURN"))
+    public void onAddSaveData(CompoundTag pCompound, CallbackInfo ci) {
+        pCompound.putBoolean("ASILoginPrefs", actuallysize$preferredOptionsApplied);
+    }
+
+    @Unique
+    boolean actuallysize$preferredOptionsApplied;
+
+    @Override
+    public boolean actuallysize$isPreferredOptionsApplied() { return actuallysize$preferredOptionsApplied; }
+
+    @Override
+    public void actuallysize$setPreferredOptionsApplied(boolean state) { actuallysize$preferredOptionsApplied = state; }
 }
