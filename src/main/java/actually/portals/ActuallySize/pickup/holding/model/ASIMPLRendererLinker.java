@@ -6,6 +6,7 @@ import actually.portals.ActuallySize.netcode.packets.serverbound.ASINSModelPartC
 import actually.portals.ActuallySize.pickup.mixininterfaces.*;
 import com.mojang.blaze3d.vertex.PoseStack;
 import gunging.ootilities.GungingOotilitiesMod.ootilityception.OotilityNumbers;
+import gunging.ootilities.GungingOotilitiesMod.ootilityception.OotilityVectors;
 import gunging.ootilities.GungingOotilitiesMod.scheduling.SchedulingManager;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.renderer.entity.EntityRenderer;
@@ -81,14 +82,32 @@ public abstract class ASIMPLRendererLinker implements ASIPSModelPartLinker {
         // Identify basis to read PITCH and YAW
         Vec3 basis = getBasis(part, poseStack, pose).normalize();
         Vec3 sense = getSense(part, poseStack, pose).normalize();
-        double pitch = Math.asin(- basis.y); // Normally  Math.asin(- basis.y / basis.length), but it's been normalized
+        Vec3 side = sense.cross(basis);
         double lenXZ = Math.sqrt((basis.x * basis.x) + (basis.z * basis.z));
-        double yaw;
+        double pitch, yaw, roll;
         if (lenXZ > 0) {
-            yaw = Math.acos(basis.z / lenXZ);
 
-            // Arccosine only works for half of the circle
-            if (basis.x > 0) { yaw = -yaw; }
+            // basis = < #, #, # >
+            // sense = < #, #, # >
+            // side  = < #, #, # >
+
+            // Extract yaw rotation
+            yaw = - Math.atan2(basis.x, basis.z);
+            Vec3 basis1 = OotilityVectors.yawRotate(basis, -yaw);   // = < 0, #, # >
+            Vec3 sense1 = OotilityVectors.yawRotate(sense, -yaw);   // = < #, #, # >
+            Vec3 side1 = OotilityVectors.yawRotate(side, -yaw);     // = < #, #, # >
+
+            // Extract pitch rotation
+            pitch = - Math.atan2(basis1.y, basis1.z);
+            //Vec3 basis2 = OotilityVectors.pitchRotate(basis1, -pitch); // = < 0, 0, 1 >
+            //Vec3 sense2 = OotilityVectors.pitchRotate(sense1, -pitch); // = < #, #, 0 >
+            Vec3 side2 = OotilityVectors.pitchRotate(side1, -pitch);   // = < #, #, 0 >
+
+            // Extract roll rotation
+            roll = Math.atan2(side2.y, side2.x);
+            //Vec3 basis3 = OotilityVectors.rollRotate(basis2, -roll); // = < 0, 0, 1 >
+            //Vec3 sense3 = OotilityVectors.rollRotate(sense2, -roll); // = < 0, 1, 0 >
+            //Vec3 side3 = OotilityVectors.rollRotate(side2, -roll);   // = < 1, 0, 0 >
 
         /*
          * The entire component of the basis is in the Y-direction, that means we cant use
@@ -96,22 +115,27 @@ public abstract class ASIMPLRendererLinker implements ASIPSModelPartLinker {
          * ripe to be used for calculating the yaw
          */
         } else {
-            lenXZ = Math.sqrt((sense.x * sense.x) + (sense.z * sense.z));
-            yaw = Math.acos(sense.z / lenXZ);
-            if (basis.y > 0) { yaw = yaw + Math.PI; } // The vertical direction is 180° off when forward points up
 
-            // Arccosine only works for half of the circle
-            if (sense.x > 0) { yaw = -yaw; }
+            // The idea here is to calculate yaw as the angle to revert side to align with the X-axis
+            // basis = < 0, B, 0 >, where B is either +1 or -1
+            // sense = < #, 0, # >
+            // side  = < #, 0, # >
 
+            // Extract yaw rotation
+            yaw = Math.atan2(side.z, side.x);
+            //Vec3 basis1 = OotilityVectors.yawRotate(basis, -yaw); // = < 0, B, 0 >, no change
+            //Vec3 sense1 = OotilityVectors.yawRotate(sense, -yaw); // = < 0, 0, -B >
+            //Vec3 side1 = OotilityVectors.yawRotate(side, -yaw);   // = < 1, 0, 0 >
+
+            // Extract pitch rotation
+            pitch = basis.y >= 0 ? (1.5 * Math.PI) : (0.5 * Math.PI); // = - Math.atan2(basis1.y, basis1.z) = - Math.atan2(basis1.y, 0)
+            //Vec3 basis2 = OotilityVectors.pitchRotate(basis1, -pitch);  // = < 0, 0, 1 >
+            //Vec3 sense2 = OotilityVectors.pitchRotate(sense1, -pitch);  // = < 0, 1, 0 >
+            //Vec3 side2 = OotilityVectors.pitchRotate(side1, -pitch);    // = < 1, 0, 0 >, no change
+
+            // Extract roll rotation
+            roll = 0;
         }
-        if (sense.y < 0) { pitch = Math.PI - pitch; yaw = yaw + Math.PI; }
-
-        // Calculate roll based on the side vector
-        Vec3 side = sense.cross(basis);
-        Vec3 sideFlat = new Vec3(side.x, 0, side.z).normalize();
-        double dot = OotilityNumbers.round((side.x * sideFlat.x) + (side.z * sideFlat.z), 6);
-        double roll = Math.acos(dot); // From dot product with its horizontal-plane (XZ) projection
-        if (side.y < 0) { roll = -roll; }
 
         long lastUpdated = holdableTiny.actuallysize$getModelPartTime();
         if (SchedulingManager.getClientTicks() - lastUpdated > ASIPSModelPartInfo.PACKET_INTERVAL) {
