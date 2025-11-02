@@ -3,8 +3,6 @@ package actually.portals.ActuallySize.mixin;
 import actually.portals.ActuallySize.ASIUtilities;
 import actually.portals.ActuallySize.ActuallyServerConfig;
 import actually.portals.ActuallySize.ActuallySizeInteractions;
-import actually.portals.ActuallySize.netcode.ASINetworkManager;
-import actually.portals.ActuallySize.netcode.packets.clientbound.ASINCItemEntityActivationPacket;
 import actually.portals.ActuallySize.pickup.item.ASIPSHeldEntityItem;
 import actually.portals.ActuallySize.pickup.mixininterfaces.*;
 import actually.portals.ActuallySize.world.ASIWorldSystemManager;
@@ -26,6 +24,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Final;
@@ -377,5 +376,24 @@ public abstract class LivingEntityMixin extends Entity implements Edacious, Atta
                 }
             }
         }
+    }
+
+    @WrapOperation(method = "spawnItemParticles", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/phys/Vec3;add(DDD)Lnet/minecraft/world/phys/Vec3;"))
+    public Vec3 onMunchParticles(Vec3 instance, double pX, double pY, double pZ, Operation<Vec3> original) {
+
+        /*
+         * This is called when the entity has calculated
+         * the position difference to its eye location that
+         * the particles will spawn, and is about to add
+         * its absolute position to get the finished vector
+         */
+
+        // Scale instance by scale
+        double size = ASIUtilities.getEntityScale(this);
+        if (size < 1) { instance = instance.scale(size); }
+        if (size > 1) { instance = instance.scale(ASIUtilities.beegBalanceEnhance(size, 4, 1)); }
+
+        // Done
+        return original.call(instance, pX, pY, pZ);
     }
 }
