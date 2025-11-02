@@ -2,10 +2,11 @@ package actually.portals.ActuallySize.pickup.holding;
 
 import actually.portals.ActuallySize.ActuallySizeInteractions;
 import actually.portals.ActuallySize.pickup.holding.model.ASIPSModelPartHoldPoint;
+import actually.portals.ActuallySize.pickup.holding.pose.poses.ASIPSItemPoserHold;
 import actually.portals.ActuallySize.pickup.holding.model.vanilla.ASIMPLForwardNZVerticalNY;
-import actually.portals.ActuallySize.pickup.holding.model.vanilla.ASIMPLForwardYVerticalNZ;
 import actually.portals.ActuallySize.pickup.holding.points.ASIPSRegisterableHoldPoint;
 import actually.portals.ActuallySize.pickup.holding.points.ASIPSRelativeFacingHold;
+import actually.portals.ActuallySize.pickup.holding.pose.poses.ASIPSTestPoserHold;
 import gunging.ootilities.GungingOotilitiesMod.ootilityception.SVFLBit;
 import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.NotNull;
@@ -35,7 +36,7 @@ public class ASIPSHoldPoints {
      *
      * @since 1.0.0
      */
-    @NotNull public static final ASIPSRegisterableHoldPoint MAINHAND =  new ASIPSModelPartHoldPoint(
+    @NotNull public static final ASIPSRegisterableHoldPoint MAINHAND =  new ASIPSItemPoserHold(
             ResourceLocation.fromNamespaceAndPath(ActuallySizeInteractions.MODID, "mainhand"),
             new SVFLBit(0D/16D, -10D/16D, 1.5D/16D),
             new SVFLBit(-0.4, 0, 0, 0.2, 0, 1.2, 0),
@@ -46,7 +47,7 @@ public class ASIPSHoldPoints {
      *
      * @since 1.0.0
      */
-    @NotNull public static final ASIPSRegisterableHoldPoint OFFHAND =  new ASIPSModelPartHoldPoint(
+    @NotNull public static final ASIPSRegisterableHoldPoint OFFHAND =  new ASIPSItemPoserHold(
             ResourceLocation.fromNamespaceAndPath(ActuallySizeInteractions.MODID, "offhand"),
             new SVFLBit(0D/16D, -10D/16D, 1.5D/16D),
             new SVFLBit(0.4, 0, 0, 0.2, 0, 1.2, 0),

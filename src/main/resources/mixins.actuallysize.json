@@ -12,6 +12,7 @@
     "ClientPacketListenerMixin",
     "EntityRenderDispatcherMixin",
     "EntityRendererMixin",
+    "HumanoidModelMixin",
     "InventoryScreenMixin$Pehkui",
     "ItemInHandRendererMixin",
     "LivingEntityRendererMixin",

@@ -12,7 +12,7 @@ import java.util.ArrayList;
 
 /**
  * <a href="https://discord.com/channels/643305700319297536/1301375936725254237/1319103823545110619">"There are other places for a smol..."</a>
- * <p>
+ * <br><br>
  * A hold point is a position and rotation relative to the holder's
  * position and rotation, with various settings, to adjust the rendering
  * of the tiny held in that hold point.

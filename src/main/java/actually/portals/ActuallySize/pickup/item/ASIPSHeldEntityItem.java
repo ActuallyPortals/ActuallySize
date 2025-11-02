@@ -244,7 +244,9 @@ public class ASIPSHeldEntityItem extends Item {
         // Only makes sense when used by a player
         Player holderPlayer = useContext.getPlayer();
         if (holderPlayer == null) { return InteractionResult.PASS; }
-        if (holderPlayer.isCrouching()) { return InteractionResult.PASS; }
+
+        // Needs to be crouching to place, otherwise eaten as foodie
+        if (!holderPlayer.isCrouching()) { return InteractionResult.PASS; }
 
         // Fetch the entity to be placed down
         ItemDualityCounterpart itemDuality = (ItemDualityCounterpart) (Object) itemCounterpart;

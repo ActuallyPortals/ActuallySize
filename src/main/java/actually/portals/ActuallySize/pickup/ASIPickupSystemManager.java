@@ -302,7 +302,7 @@ public class ASIPickupSystemManager {
      * @author Actually Portals
      */
     public static void saveNonPlayerIntoItemNBT(@NotNull Entity tiny, @NotNull ItemStack item) {
-        if (tiny instanceof Player) { throw new UnsupportedOperationException("The tiny cannot be a player, the method name explictly says so! "); }
+        if (tiny instanceof Player) { throw new UnsupportedOperationException("The tiny cannot be a player, the method name explicitly says so! "); }
 
         // Extract original UUID
         UUID original = null;

@@ -8,7 +8,8 @@ import org.jetbrains.annotations.NotNull;
 import org.joml.Matrix4f;
 
 /**
- * A renderer linker to link the head model part
+ * A renderer linker which forward axis is the negative of the third vector of the 4x4 matrix,
+ * and its vertical axis is the negative of the second vector of the 4x4 matrix of the pose stack.
  *
  * @author Actually Portals
  * @since 1.0.0
