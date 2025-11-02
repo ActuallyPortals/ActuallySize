@@ -110,6 +110,11 @@ public class ASINetworkManager {
                 .encoder(ASINCModelPartCoordinateSync::encode)
                 .decoder(ASINCModelPartCoordinateSync::new)
                 .consumerMainThread(ASINCModelPartCoordinateSync::handle).add();
+
+        MAIN_CHANNEL.messageBuilder(ASINSThrowTinyPacket.class, i++, NetworkDirection.PLAY_TO_SERVER)
+                .encoder(ASINSThrowTinyPacket::encode)
+                .decoder(ASINSThrowTinyPacket::new)
+                .consumerMainThread(ASINSThrowTinyPacket::handle).add();
     }
 
     /**

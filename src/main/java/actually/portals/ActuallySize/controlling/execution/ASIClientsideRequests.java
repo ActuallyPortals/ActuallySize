@@ -4,22 +4,30 @@ import actually.portals.ActuallySize.ActuallyClientConfig;
 import actually.portals.ActuallySize.ActuallySizeInteractions;
 import actually.portals.ActuallySize.netcode.ASINetworkManager;
 import actually.portals.ActuallySize.netcode.packets.serverbound.ASINSPreferredSize;
+import actually.portals.ActuallySize.netcode.packets.serverbound.ASINSThrowTinyPacket;
 import actually.portals.ActuallySize.pickup.actions.ASIPSHoldingSyncAction;
+import actually.portals.ActuallySize.pickup.item.ASIPSHeldEntityItem;
 import actually.portals.ActuallySize.pickup.mixininterfaces.EntityDualityCounterpart;
 import actually.portals.ActuallySize.pickup.mixininterfaces.ItemDualityCounterpart;
 import actually.portals.ActuallySize.pickup.mixininterfaces.ItemEntityDualityHolder;
 import gunging.ootilities.GungingOotilitiesMod.exploring.ItemStackLocation;
+import gunging.ootilities.GungingOotilitiesMod.exploring.entities.ISEEntityLocation;
 import gunging.ootilities.GungingOotilitiesMod.exploring.entities.ISEEquipmentSlotted;
+import gunging.ootilities.GungingOotilitiesMod.exploring.entities.ISEExplorerStatements;
 import gunging.ootilities.GungingOotilitiesMod.instants.GOOMClientsidePlayerLoginEvent;
 import gunging.ootilities.GungingOotilitiesMod.scheduling.SchedulingManager;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.RenderLevelStageEvent;
 import net.minecraftforge.client.event.RenderNameTagEvent;
 import net.minecraftforge.event.entity.EntityJoinLevelEvent;
+import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.eventbus.api.Event;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -164,5 +172,28 @@ public class ASIClientsideRequests {
 
                 }, 5, true);
         }
+    }
+
+    @SubscribeEvent
+    public static void OnEmptyLeftClick(@NotNull PlayerInteractEvent.LeftClickEmpty event) {
+
+        // If the event has been processed, ASI has no business with it
+        if (event.isCanceled()) { return; }
+        if (event.getCancellationResult() != InteractionResult.PASS) { return; }
+        Player me = Minecraft.getInstance().player;
+        if (me == null) { return; }
+
+        // Must be holding a duality item
+        ISEEntityLocation stackLocation = new ISEEntityLocation(me, ISEExplorerStatements.MAINHAND);
+        ItemStack itemCounterpart = stackLocation.getItemStack();
+        if (itemCounterpart == null) { return; }
+        if (!(itemCounterpart.getItem() instanceof ASIPSHeldEntityItem)) { return; }
+
+        // Okay, accept event and throw this entity
+        event.setCancellationResult(InteractionResult.CONSUME);
+
+        // Send packet
+        ASINSThrowTinyPacket packet = new ASINSThrowTinyPacket();
+        ASINetworkManager.playerToServer(packet);
     }
 }
