@@ -215,33 +215,30 @@ public abstract class PlayerMixin extends LivingEntity implements HoldPointConfi
         original.call(instance, cookedStrength, dx, dy);
     }
 
-    @Inject(method = "eat", at = @At("HEAD"), cancellable = true)
-    public void onEatCall(Level world, ItemStack itemCounterpart, CallbackInfoReturnable<ItemStack> cir) {
+    @WrapMethod(method = "eat")
+    public ItemStack onEatCall(Level world, ItemStack itemCounterpart, Operation<ItemStack> original) {
         Player thisEntity = (Player) (Object) this;
 
         // Preconditions
-        if (world == null) { return; }
-        if (itemCounterpart == null) { return; }
+        if (world == null) { return original.call(world, itemCounterpart); }
+        if (itemCounterpart == null) { return original.call(world, itemCounterpart); }
         ((PlayerBound) this.getFoodData()).actuallysize$setBoundPlayer(thisEntity);
-        if (!(thisEntity instanceof ServerPlayer)) { return; }
-        if (!itemCounterpart.isEdible()) { return; }
-        if (!(itemCounterpart.getItem() instanceof ASIPSHeldEntityItem)) { return; }
+        if (!(thisEntity instanceof ServerPlayer)) { return original.call(world, itemCounterpart); }
+        if (!itemCounterpart.isEdible()) { return original.call(world, itemCounterpart); }
+        if (!(itemCounterpart.getItem() instanceof ASIPSHeldEntityItem)) { return original.call(world, itemCounterpart); }
 
         // Identify
         ASIPSHeldEntityItem asASIItem = (ASIPSHeldEntityItem) itemCounterpart.getItem();
         ServerPlayer beeg = (ServerPlayer) thisEntity;
         Entity entityCounterpart = asASIItem.counterpartOrRebuild(world, itemCounterpart, beeg.getAbilities().instabuild, false);
         EntityDualityCounterpart entityDuality = (EntityDualityCounterpart) entityCounterpart;
-        if (entityCounterpart == null) { return; }
+        if (entityCounterpart == null) {return original.call(world, itemCounterpart); }
         //FOO//ActuallySizeInteractions.Log("ASI &1 PMX-FOO &r Edacious mob &6 " + entityCounterpart.getScoreboardName() + " " + entityCounterpart.getClass().getSimpleName());
 
         // Run event
         ASIPSConsumeMobEvent mobEvent = new ASIPSConsumeMobEvent(beeg, entityCounterpart, itemCounterpart);
         boolean cancelled = MinecraftForge.EVENT_BUS.post(mobEvent);
-        if (cancelled) {
-            cir.setReturnValue(itemCounterpart);
-            cir.cancel();
-            return; }
+        if (cancelled) { return itemCounterpart; }
         Edacious asASI = ((Edacious) (Object) itemCounterpart);
 
         // When not consuming a player, not much happens
@@ -249,7 +246,7 @@ public abstract class PlayerMixin extends LivingEntity implements HoldPointConfi
             //FOO//ActuallySizeInteractions.Log("ASI &1 PMX-FOO &r Edacious &9 NON-PLAYER");
 
             // If there is no event, or it is not set to consume, ASI is done.
-            if (!mobEvent.isConsumeMob()) { return; }
+            if (!mobEvent.isConsumeMob()) { return original.call(world, itemCounterpart); }
 
             // Break the entity-duality link between item and entity
             ASIPSDualityEscapeAction action = new ASIPSDualityEscapeAction(entityDuality);
@@ -272,24 +269,26 @@ public abstract class PlayerMixin extends LivingEntity implements HoldPointConfi
                 asASI.actuallysize$setEdaciousProperties(eda.actuallysize$getEdaciousProperties());
                 if (!(eda instanceof Slime)) { eda.actuallysize$setWasConsumed(false); } }
             asASIItem.resetFoodTick();
-            return; }
+            return original.call(world, itemCounterpart);
+        }
         //FOO//ActuallySizeInteractions.Log("ASI &1 PMX-FOO &r Edacious &5 PLAYER");
 
         // Consuming a player, that's special
         ServerPlayer tiny = (ServerPlayer) entityCounterpart;
         ASIPSConsumeTinyEvent playerEvent = new ASIPSConsumeTinyEvent(beeg, tiny, itemCounterpart, new ASIPSCInstantKill());
         boolean canceled = MinecraftForge.EVENT_BUS.post(playerEvent);
-        if (canceled) {
-            cir.setReturnValue(itemCounterpart);
-            cir.cancel();
-            return; }
-
-        // Apply consumer
-        playerEvent.getConsumer().snack(beeg, tiny);
+        if (canceled) { return itemCounterpart; }
 
         // Snack on the drops that were consumed
         asASI.actuallysize$setEdaciousProperties(((Edacious) tiny).actuallysize$getEdaciousProperties());
         asASIItem.resetFoodTick();
+        ItemStack ret = original.call(world, itemCounterpart);
+
+        // Apply consumer
+        playerEvent.getConsumer().snack(beeg, tiny);
+
+        // Done
+        return ret;
     }
 
     @Inject(method = "readAdditionalSaveData", at = @At("RETURN"))

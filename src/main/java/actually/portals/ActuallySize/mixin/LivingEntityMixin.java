@@ -5,6 +5,7 @@ import actually.portals.ActuallySize.ActuallyServerConfig;
 import actually.portals.ActuallySize.ActuallySizeInteractions;
 import actually.portals.ActuallySize.netcode.ASINetworkManager;
 import actually.portals.ActuallySize.netcode.packets.clientbound.ASINCItemEntityActivationPacket;
+import actually.portals.ActuallySize.pickup.item.ASIPSHeldEntityItem;
 import actually.portals.ActuallySize.pickup.mixininterfaces.*;
 import actually.portals.ActuallySize.world.ASIWorldSystemManager;
 import actually.portals.ActuallySize.world.mixininterfaces.AmountMatters;
@@ -360,5 +361,21 @@ public abstract class LivingEntityMixin extends Entity implements Edacious, Atta
 
         // Proceed
         return original.call(instance);
+    }
+
+    @Inject(method = "eat", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/LivingEntity;gameEvent(Lnet/minecraft/world/level/gameevent/GameEvent;)V"))
+    public void onHeldConsumption(Level pLevel, ItemStack pFood, CallbackInfoReturnable<ItemStack> cir) {
+        Object me = this;
+        if (me instanceof Player) {
+
+            // If creative mode player
+            if (((Player) me).getAbilities().instabuild) {
+
+                // If it is a player item that was eaten, it is deleted even from creative mode inventory
+                if (pFood.getItem() instanceof ASIPSHeldEntityItem) {
+                    if (((ASIPSHeldEntityItem) pFood.getItem()).isPlayer()) { pFood.setCount(0); }
+                }
+            }
+        }
     }
 }

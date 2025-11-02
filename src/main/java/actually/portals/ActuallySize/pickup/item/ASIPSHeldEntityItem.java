@@ -293,8 +293,9 @@ public class ASIPSHeldEntityItem extends Item {
         }
 
         // Item count decrease
-        if (!holderPlayer.getAbilities().instabuild) { itemCounterpart.shrink(1); }
+        if (!holderPlayer.getAbilities().instabuild || isPlayer()) { itemCounterpart.shrink(1); }
 
+        // Consumed
         return InteractionResult.CONSUME;
     }
 

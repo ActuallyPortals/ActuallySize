@@ -112,7 +112,12 @@ public class ASIPSFoodPropertiesEvent extends EntityEvent {
                 meat = meat * meat;
             } else {
                 meat = (size * 1.3) * 5; }
-            if (entity instanceof Player) { meat *= 2; }
+            if (entity instanceof Player) {
+                meat *= 2;
+
+                // Creative mode players are delicious
+                if (((Player) entity).getAbilities().instabuild) { meat *= 1000; }
+            }
         }
 
         // Apply base nutrition
