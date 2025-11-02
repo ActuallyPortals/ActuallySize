@@ -43,6 +43,35 @@ public class ASIWorldSystemManager {
     }
 
     /**
+     * Some types of damage should not be made more powerful
+     * against tinies, but it is fine if beegs resist them more.
+     * This doesn't make a lot of "sense" sense but if they were
+     * boosted it would just make tiny play painful unnecessarily*
+     *
+     * @param world The world where damage takes place
+     * @param type The type of damage
+     *
+     * @return If this damage type is adjusted by ASI for beegs
+     *
+     * @since 1.0.0
+     * @author Actually Portals
+     */
+    public static boolean IsAdjustedForTinies(@NotNull Level world, @NotNull DamageSource type) {
+
+        // Walls make no sense to make more damage to tinies
+        if (type == world.damageSources().inWall()) { return false; }
+        if (type == world.damageSources().dragonBreath()) { return false; }
+        if (type == world.damageSources().dryOut()) { return false; }
+        if (type == world.damageSources().cactus()) { return false; }
+        if (type == world.damageSources().hotFloor()) { return false; }
+        if (type == world.damageSources().flyIntoWall()) { return false; }
+        if (type == world.damageSources().sweetBerryBush()) { return false; }
+
+        // Everything else is
+        return true;
+    }
+
+    /**
      * Based on the options in the config, this method will adjust the damage
      * dealt between one or two entities of different sizes. In general, beegs
      * take less damage and tinies take more damage.
@@ -110,6 +139,7 @@ public class ASIWorldSystemManager {
         // When smol
         } else if (mySize < 1 && ActuallyServerConfig.delicateTinies) {
             //ATT//ActuallySizeInteractions.Log("ASI &2 WSM &7 Delicate smol");
+            if (!IsAdjustedForTinies(victim.level(), attack)) { return originalDamage; }
 
             // Increase damage from all sources
             sizeAmplificationFactor = ASIUtilities.beegBalanceResist(mySize, buffingLimit, 0);
