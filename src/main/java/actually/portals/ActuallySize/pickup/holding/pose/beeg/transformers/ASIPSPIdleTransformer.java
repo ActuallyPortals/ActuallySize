@@ -1,4 +1,4 @@
-package actually.portals.ActuallySize.pickup.holding.pose.transformers;
+package actually.portals.ActuallySize.pickup.holding.pose.beeg.transformers;
 
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.model.geom.ModelPart;

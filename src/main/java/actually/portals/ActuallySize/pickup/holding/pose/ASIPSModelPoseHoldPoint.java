@@ -2,12 +2,14 @@ package actually.portals.ActuallySize.pickup.holding.pose;
 
 import actually.portals.ActuallySize.pickup.holding.model.ASIMPLRendererLinker;
 import actually.portals.ActuallySize.pickup.holding.model.ASIPSModelPartHoldPoint;
+import actually.portals.ActuallySize.pickup.holding.pose.smol.ASIPSTinyPoseProfile;
 import gunging.ootilities.GungingOotilitiesMod.ootilityception.SVFLBit;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A hold point that puts the held entity at a specific set of
@@ -27,8 +29,8 @@ public abstract class ASIPSModelPoseHoldPoint extends ASIPSModelPartHoldPoint im
      * @author Actually Portals
      * @since 1.0.0
      */
-    public ASIPSModelPoseHoldPoint(@NotNull ResourceLocation nk, @NotNull SVFLBit svf, @NotNull ASIMPLRendererLinker... linkers) {
-        super(nk, svf, linkers);
+    public ASIPSModelPoseHoldPoint(@NotNull ResourceLocation nk, @Nullable ASIPSTinyPoseProfile tinyPose, @NotNull SVFLBit svf, @NotNull ASIMPLRendererLinker... linkers) {
+        super(nk, tinyPose, svf, linkers);
     }
 
     /**
@@ -44,8 +46,8 @@ public abstract class ASIPSModelPoseHoldPoint extends ASIPSModelPartHoldPoint im
      * @author Actually Portals
      * @since 1.0.0
      */
-    public ASIPSModelPoseHoldPoint(@NotNull ResourceLocation nk, @NotNull SVFLBit svf, @NotNull SVFLBit defaultOrigin, @NotNull ASIMPLRendererLinker... linkers) {
-        super(nk, svf, defaultOrigin, linkers);
+    public ASIPSModelPoseHoldPoint(@NotNull ResourceLocation nk, @Nullable ASIPSTinyPoseProfile tinyPose, @NotNull SVFLBit svf, @NotNull SVFLBit defaultOrigin, @NotNull ASIMPLRendererLinker... linkers) {
+        super(nk, tinyPose, svf, defaultOrigin, linkers);
     }
 
     /**

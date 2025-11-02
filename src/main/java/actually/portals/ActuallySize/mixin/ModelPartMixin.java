@@ -33,7 +33,7 @@ public abstract class ModelPartMixin implements VASIModelPart {
         // Make it answer to its name
         if (ret != null) {
             VASIModelPart asDeq = ((VASIModelPart) (Object) ret);
-            if (asDeq.actuallysize$getModelName() != null) { ActuallySizeInteractions.Log("ASI &3 DEQ &7 Renamed model part &b " + asDeq.actuallysize$getModelName() + " &r to &e " + pName); }
+            //if (asDeq.actuallysize$getModelName() != null) { ActuallySizeInteractions.Log("ASI &3 DEQ &7 Renamed model part &b " + asDeq.actuallysize$getModelName() + " &r to &e " + pName); }
             asDeq.actuallysize$setModelName(pName); }
     }
 

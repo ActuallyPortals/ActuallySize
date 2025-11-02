@@ -1,7 +1,7 @@
 package actually.portals.ActuallySize.pickup.holding.points;
 
 import actually.portals.ActuallySize.ASIUtilities;
-import actually.portals.ActuallySize.ActuallySizeInteractions;
+import actually.portals.ActuallySize.pickup.holding.pose.smol.ASIPSTinyPoseProfile;
 import actually.portals.ActuallySize.pickup.mixininterfaces.EntityDualityCounterpart;
 import actually.portals.ActuallySize.pickup.mixininterfaces.ItemEntityDualityHolder;
 import gunging.ootilities.GungingOotilitiesMod.ootilityception.OotilityNumbers;
@@ -9,9 +9,9 @@ import gunging.ootilities.GungingOotilitiesMod.ootilityception.OotilityVectors;
 import gunging.ootilities.GungingOotilitiesMod.ootilityception.SVFLBit;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A hold point that puts the held entity at a specific set of
@@ -20,7 +20,7 @@ import org.jetbrains.annotations.NotNull;
  * @author Actually Portals
  * @since 1.0.0
  */
-public abstract class RelativeCoordinateHold extends ASIPSRegisterableHoldPoint {
+public abstract class RelativeCoordinateHold extends ASIPSImplementedHoldPoint {
 
     /**
      * A ride point relative to the holder's pitch, yaw, and world coordinates.
@@ -31,8 +31,8 @@ public abstract class RelativeCoordinateHold extends ASIPSRegisterableHoldPoint 
      * @author Actually Portals
      * @since 1.0.0
      */
-    public RelativeCoordinateHold(@NotNull ResourceLocation nk, @NotNull SVFLBit svf) {
-        super(nk);
+    public RelativeCoordinateHold(@NotNull ResourceLocation nk, @Nullable ASIPSTinyPoseProfile tinyPose, @NotNull SVFLBit svf) {
+        super(nk, tinyPose);
         this.coordinates = svf;
     }
 

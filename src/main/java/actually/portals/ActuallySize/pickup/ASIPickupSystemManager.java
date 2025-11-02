@@ -646,6 +646,8 @@ public class ASIPickupSystemManager {
         HOLD_POINT_REGISTRY.registerHoldPoint(null, ASIPSHoldPoints.LEFT_POCKET);
         HOLD_POINT_REGISTRY.registerHoldPoint(null, ASIPSHoldPoints.RIGHT_THIGH);
         HOLD_POINT_REGISTRY.registerHoldPoint(null, ASIPSHoldPoints.LEFT_BOOT);
+        HOLD_POINT_REGISTRY.registerHoldPoint(null, ASIPSHoldPoints.RIGHT_FIST);
+        HOLD_POINT_REGISTRY.registerHoldPoint(null, ASIPSHoldPoints.LEFT_FIST);
         HOLD_POINT_REGISTRY.registerHoldPoint(null, ASIPSHoldPoints.FLUSH);
         HOLD_POINT_REGISTRY.registerHoldPoint(null, ASIPSHoldPoints.SHED);
         HOLD_POINT_REGISTRY.registerHoldPoint(null, ASIPSHoldPoints.NOMF);

@@ -1,11 +1,13 @@
 package actually.portals.ActuallySize.pickup.holding.points;
 
+import actually.portals.ActuallySize.pickup.holding.pose.smol.ASIPSTinyPoseProfile;
 import actually.portals.ActuallySize.pickup.mixininterfaces.EntityDualityCounterpart;
 import gunging.ootilities.GungingOotilitiesMod.ootilityception.SVFLBit;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class ASIPSRelativeFacingHold extends RelativeCoordinateHold {
 
@@ -18,8 +20,8 @@ public class ASIPSRelativeFacingHold extends RelativeCoordinateHold {
      * @author Actually Portals
      * @since 1.0.0
      */
-    public ASIPSRelativeFacingHold(@NotNull ResourceLocation nk, @NotNull SVFLBit svf) {
-        super(nk, svf);
+    public ASIPSRelativeFacingHold(@NotNull ResourceLocation nk, @Nullable ASIPSTinyPoseProfile tinyPose, @NotNull SVFLBit svf) {
+        super(nk, tinyPose, svf);
     }
 
     @Override

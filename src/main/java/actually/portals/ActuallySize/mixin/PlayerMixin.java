@@ -11,6 +11,8 @@ import actually.portals.ActuallySize.pickup.events.ASIPSConsumeTinyEvent;
 import actually.portals.ActuallySize.pickup.holding.ASIPSHoldPoint;
 import actually.portals.ActuallySize.pickup.holding.points.ASIPSHoldPointRegistry;
 import actually.portals.ActuallySize.pickup.holding.points.ASIPSRegisterableHoldPoint;
+import actually.portals.ActuallySize.pickup.holding.pose.ASIPSTinyPosedHold;
+import actually.portals.ActuallySize.pickup.holding.pose.smol.ASIPSTinyPoseProfile;
 import actually.portals.ActuallySize.pickup.item.ASIPSHeldEntityItem;
 import actually.portals.ActuallySize.pickup.mixininterfaces.*;
 import actually.portals.ActuallySize.world.mixininterfaces.PreferentialOptionable;
@@ -27,6 +29,7 @@ import net.minecraft.util.Unit;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.Pose;
 import net.minecraft.world.entity.monster.Slime;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.food.FoodData;
@@ -49,6 +52,8 @@ import java.util.Map;
 public abstract class PlayerMixin extends LivingEntity implements HoldPointConfigurable, GraceImpulsable, PreferentialOptionable {
 
     @Shadow public abstract FoodData getFoodData();
+
+    @Shadow @javax.annotation.Nullable private Pose forcedPose;
 
     protected PlayerMixin(EntityType<? extends LivingEntity> pEntityType, Level pLevel) { super(pEntityType, pLevel); }
 
@@ -305,4 +310,25 @@ public abstract class PlayerMixin extends LivingEntity implements HoldPointConfi
 
     @Override
     public void actuallysize$setPreferredOptionsApplied(boolean state) { actuallysize$preferredOptionsApplied = state; }
+
+    @Inject(method = "updatePlayerPose", at = @At("HEAD"), cancellable = true)
+    public void onForcedPose(CallbackInfo ci) {
+
+        // Identify self
+        Player me = (Player) (Object) this;
+        EntityDualityCounterpart entityDuality = (EntityDualityCounterpart) me;
+
+        // ASI Yields priority to other forced poses
+        if (forcedPose == null && entityDuality.actuallysize$isHeld()) {
+
+            // Currently held? Query held pose
+            ASIPSHoldPoint holdPoint = entityDuality.actuallysize$getHoldPoint();
+            if (holdPoint instanceof ASIPSTinyPosedHold) {
+
+                // Override pose with that defined in the pose profile
+                ASIPSTinyPoseProfile profile = ((ASIPSTinyPosedHold) holdPoint).getTinyPose(me);
+                if (profile != null) { if (profile.applyPose(me)) { ci.cancel(); } }
+            }
+        }
+    }
 }

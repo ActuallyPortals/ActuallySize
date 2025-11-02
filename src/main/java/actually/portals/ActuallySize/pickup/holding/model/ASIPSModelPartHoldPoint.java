@@ -2,15 +2,16 @@ package actually.portals.ActuallySize.pickup.holding.model;
 
 import actually.portals.ActuallySize.ASIUtilities;
 import actually.portals.ActuallySize.pickup.holding.points.ASIPSRelativeFacingHold;
+import actually.portals.ActuallySize.pickup.holding.pose.smol.ASIPSTinyPoseProfile;
 import actually.portals.ActuallySize.pickup.mixininterfaces.EntityDualityCounterpart;
 import actually.portals.ActuallySize.pickup.mixininterfaces.ModelPartHoldable;
-import gunging.ootilities.GungingOotilitiesMod.ootilityception.OotilityNumbers;
 import gunging.ootilities.GungingOotilitiesMod.ootilityception.OotilityVectors;
 import gunging.ootilities.GungingOotilitiesMod.ootilityception.SVFLBit;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A hold point that puts the held entity at a specific set of
@@ -109,8 +110,8 @@ public class ASIPSModelPartHoldPoint extends ASIPSRelativeFacingHold {
      * @author Actually Portals
      * @since 1.0.0
      */
-    public ASIPSModelPartHoldPoint(@NotNull ResourceLocation nk, @NotNull SVFLBit svf, @NotNull ASIMPLRendererLinker... linkers) {
-        this(nk, svf, new SVFLBit(), linkers);
+    public ASIPSModelPartHoldPoint(@NotNull ResourceLocation nk, @Nullable ASIPSTinyPoseProfile tinyPose, @NotNull SVFLBit svf, @NotNull ASIMPLRendererLinker... linkers) {
+        this(nk, tinyPose, svf, new SVFLBit(), linkers);
     }
 
     /**
@@ -126,8 +127,8 @@ public class ASIPSModelPartHoldPoint extends ASIPSRelativeFacingHold {
      * @author Actually Portals
      * @since 1.0.0
      */
-    public ASIPSModelPartHoldPoint(@NotNull ResourceLocation nk, @NotNull SVFLBit svf, @NotNull SVFLBit defaultOrigin, @NotNull ASIMPLRendererLinker... linkers) {
-        super(nk, svf);
+    public ASIPSModelPartHoldPoint(@NotNull ResourceLocation nk, @Nullable ASIPSTinyPoseProfile tinyPose, @NotNull SVFLBit svf, @NotNull SVFLBit defaultOrigin, @NotNull ASIMPLRendererLinker... linkers) {
+        super(nk, tinyPose, svf);
         this.defaultOrigin = defaultOrigin;
         for (ASIMPLRendererLinker linker : linkers) { registerPartLink(linker); }
     }

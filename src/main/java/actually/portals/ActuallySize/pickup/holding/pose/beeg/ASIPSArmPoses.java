@@ -1,8 +1,8 @@
-package actually.portals.ActuallySize.pickup.holding;
+package actually.portals.ActuallySize.pickup.holding.pose.beeg;
 
-import actually.portals.ActuallySize.pickup.holding.pose.transformers.ASIPSPIdleTransformer;
-import actually.portals.ActuallySize.pickup.holding.pose.transformers.ASIPSPKissTransformer;
-import actually.portals.ActuallySize.pickup.holding.pose.transformers.ASIPSPTestTransformer;
+import actually.portals.ActuallySize.pickup.holding.pose.beeg.transformers.ASIPSPIdleTransformer;
+import actually.portals.ActuallySize.pickup.holding.pose.beeg.transformers.ASIPSPKissTransformer;
+import actually.portals.ActuallySize.pickup.holding.pose.beeg.transformers.ASIPSPTestTransformer;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;

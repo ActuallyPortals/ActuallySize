@@ -6,8 +6,8 @@ import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * A Hold Point that also modifies the arm pose of the entity
- * when the item-counterpart is held in a main hand.
+ * A Hold Point that also modifies the arm pose of the holder
+ * when the item-counterpart is held in a humanoid arm.
  *
  * @since 1.0.0
  * @author Actually Portals
