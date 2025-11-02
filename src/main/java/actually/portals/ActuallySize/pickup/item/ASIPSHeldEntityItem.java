@@ -1,8 +1,6 @@
 package actually.portals.ActuallySize.pickup.item;
 
 import actually.portals.ActuallySize.ASIUtilities;
-import actually.portals.ActuallySize.ActuallyServerConfig;
-import actually.portals.ActuallySize.ActuallySizeInteractions;
 import actually.portals.ActuallySize.pickup.ASIPickupSystemManager;
 import actually.portals.ActuallySize.pickup.actions.ASIPSDualityEscapeAction;
 import actually.portals.ActuallySize.pickup.events.ASIPSFoodPropertiesEvent;
@@ -10,13 +8,10 @@ import actually.portals.ActuallySize.pickup.holding.ASIPSHoldPoint;
 import actually.portals.ActuallySize.pickup.holding.ASIPSHoldPoints;
 import actually.portals.ActuallySize.pickup.mixininterfaces.*;
 import gunging.ootilities.GungingOotilitiesMod.instants.GOOMPlayerMomentumSync;
-import gunging.ootilities.GungingOotilitiesMod.ootilityception.OotilityNumbers;
 import gunging.ootilities.GungingOotilitiesMod.scheduling.SchedulingManager;
-import net.minecraft.client.Minecraft;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.server.MinecraftServer;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.InteractionResult;
@@ -389,7 +384,7 @@ public class ASIPSHeldEntityItem extends Item {
 
             // Find its hold point
             ASIPSHoldPoint holdPoint = entityDuality.actuallysize$getHoldPoint();
-            if (holdPoint == null) { holdPoint = ASIPSHoldPoints.MAINHAND; }
+            if (holdPoint == null) { holdPoint = ASIPSHoldPoints.RIGHT_HAND; }
 
             // Force new if creative (unless players, players cannot be duped)
             if (holderPlayer.getAbilities().instabuild && !isPlayer()) {
@@ -427,7 +422,7 @@ public class ASIPSHeldEntityItem extends Item {
              *  was thrown from the main hand.
              */
 
-            ASIPSHoldPoint simulation = ASIPSHoldPoints.MAINHAND;
+            ASIPSHoldPoint simulation = ASIPSHoldPoints.RIGHT_HAND;
             simulation.throwHeldEntity((ItemEntityDualityHolder) holderEntity, (EntityDualityCounterpart) rebuilt);
 
             // Deploy (added to world before slot adjusts position)

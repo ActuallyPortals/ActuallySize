@@ -38,8 +38,8 @@ public class ASIPSHoldPoints {
      *
      * @since 1.0.0
      */
-    @NotNull public static final ASIPSRegisterableHoldPoint MAINHAND =  new ASIPSItemPoserHold(
-            ResourceLocation.fromNamespaceAndPath(ActuallySizeInteractions.MODID, "mainhand"),
+    @NotNull public static final ASIPSRegisterableHoldPoint RIGHT_HAND =  new ASIPSItemPoserHold(
+            ResourceLocation.fromNamespaceAndPath(ActuallySizeInteractions.MODID, "right_hand"),
             new ASIPSVanillaPoseProfile(Pose.STANDING, Pose.CROUCHING),
             new SVFLBit(0D/16D, -9D/16D, 0.2D/16D),
             new SVFLBit(-0.4, 0, 0, 0.2, 0, 1.2, 0),
@@ -50,8 +50,8 @@ public class ASIPSHoldPoints {
      *
      * @since 1.0.0
      */
-    @NotNull public static final ASIPSRegisterableHoldPoint OFFHAND =  new ASIPSItemPoserHold(
-            ResourceLocation.fromNamespaceAndPath(ActuallySizeInteractions.MODID, "offhand"),
+    @NotNull public static final ASIPSRegisterableHoldPoint LEFT_HAND =  new ASIPSItemPoserHold(
+            ResourceLocation.fromNamespaceAndPath(ActuallySizeInteractions.MODID, "left_hand"),
             new ASIPSVanillaPoseProfile(Pose.STANDING, Pose.CROUCHING),
             new SVFLBit(0D/16D, -9D/16D, 0.2D/16D),
             new SVFLBit(0.4, 0, 0, 0.2, 0, 1.2, 0),

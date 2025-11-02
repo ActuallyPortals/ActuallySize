@@ -123,7 +123,7 @@ public class ActuallyClientConfig {
             .comment(" ")
             .comment(" #### ----|    Selected hotbar Slot    |----")
             .comment(" When holding an entity in your main hand, where does it show up on your player? ")
-            .define("mainhandHold", "actuallysize:mainhand");
+            .define("mainhandHold", "actuallysize:right_hand");
 
     /**
      * @since 1.0.0
@@ -132,7 +132,7 @@ public class ActuallyClientConfig {
             .comment(" ")
             .comment(" #### ----|    Offhand Slot    |----")
             .comment(" When holding an entity in your offhand, where does it show up on your player? ")
-            .define("offhandHold", "actuallysize:offhand");
+            .define("offhandHold", "actuallysize:left_fist");
 
     /**
      * @since 1.0.0

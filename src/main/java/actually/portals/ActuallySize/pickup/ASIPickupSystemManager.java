@@ -2,7 +2,6 @@ package actually.portals.ActuallySize.pickup;
 
 import actually.portals.ActuallySize.ActuallyClientConfig;
 import actually.portals.ActuallySize.ActuallySizeInteractions;
-import actually.portals.ActuallySize.controlling.execution.ASIEventExecutionListener;
 import actually.portals.ActuallySize.netcode.packets.clientbound.ASINCHoldPointsSyncReply;
 import actually.portals.ActuallySize.netcode.packets.serverbound.ASINSPreferredSize;
 import actually.portals.ActuallySize.pickup.actions.ASIPSDualityAction;
@@ -631,8 +630,8 @@ public class ASIPickupSystemManager {
     public static void registerASIHoldPoints() {
 
         // Entity Explorer Statements will be used by entities by default
-        HOLD_POINT_REGISTRY.registerHoldPoint(ISEExplorerStatements.MAINHAND, ASIPSHoldPoints.MAINHAND);
-        HOLD_POINT_REGISTRY.registerHoldPoint(ISEExplorerStatements.OFFHAND, ASIPSHoldPoints.OFFHAND);
+        HOLD_POINT_REGISTRY.registerHoldPoint(ISEExplorerStatements.MAINHAND, ASIPSHoldPoints.RIGHT_HAND);
+        HOLD_POINT_REGISTRY.registerHoldPoint(ISEExplorerStatements.OFFHAND, ASIPSHoldPoints.LEFT_HAND);
         HOLD_POINT_REGISTRY.registerHoldPoint(ISEExplorerStatements.HEAD, ASIPSHoldPoints.HAT);
         HOLD_POINT_REGISTRY.registerHoldPoint(ISEExplorerStatements.CHEST, ASIPSHoldPoints.RIGHT_SHOULDER);
         HOLD_POINT_REGISTRY.registerHoldPoint(ISEExplorerStatements.LEGS, ASIPSHoldPoints.LEFT_THIGH);
