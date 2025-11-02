@@ -9,6 +9,7 @@ import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import gunging.ootilities.GungingOotilitiesMod.exploring.ItemStackLocation;
+import gunging.ootilities.GungingOotilitiesMod.ootilityception.OotilityNumbers;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.Nullable;
@@ -58,6 +59,31 @@ public abstract class MobMixin extends LivingEntity implements Targeting {
     @Nullable
     @Unique
     Entity actuallysize$lastAttackKb;
+
+    @WrapMethod(method = "getMaxFallDistance")
+    public int onFallDistancePathfinding(Operation<Integer> original) {
+
+        int ori = original.call();
+
+
+        double size = ASIUtilities.getEntityScale(this);
+        if (size != 1) {
+
+            /*
+             *  Pehkui decreases fall distance by your scale,
+             *  which means that falling 8 blocks when you are
+             *  8x bigger results in effectively falling 1 block
+             *
+             *  Conversely, if you are 8x smaller, falling 1 block
+             *  is the same as falling 8 blocks according to it
+             *
+             *  Thus, the same calculation is applied to the pathfinder
+             */
+            ori = OotilityNumbers.round(((double) ori) * size);
+        }
+
+        return ori;
+    }
 
     @WrapMethod(method = "doHurtTarget")
     public boolean onAttack(Entity pTarget, Operation<Boolean> original) {
