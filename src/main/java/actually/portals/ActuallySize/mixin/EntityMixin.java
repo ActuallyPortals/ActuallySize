@@ -24,6 +24,7 @@ import gunging.ootilities.GungingOotilitiesMod.exploring.ItemStackExplorer;
 import gunging.ootilities.GungingOotilitiesMod.exploring.ItemStackLocation;
 import gunging.ootilities.GungingOotilitiesMod.scheduling.SchedulingManager;
 import net.minecraft.commands.CommandSource;
+import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -49,10 +50,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 @Mixin(Entity.class)
 public abstract class EntityMixin extends net.minecraftforge.common.capabilities.CapabilityProvider<Entity> implements Nameable, EntityAccess, CommandSource, net.minecraftforge.common.extensions.IForgeEntity, ItemEntityDualityHolder, EntityDualityCounterpart, SetLevelExt, RenderNormalizable, HoldTickable, ModelPartHoldable {
@@ -84,6 +82,16 @@ public abstract class EntityMixin extends net.minecraftforge.common.capabilities
     @Shadow public abstract float getBbHeight();
 
     @Shadow public abstract boolean onGround();
+
+    @Shadow public abstract Vec3 position();
+
+    @Shadow protected BlockPos portalEntrancePos;
+
+    @Shadow private Vec3 position;
+
+    @Shadow private float yRot;
+
+    @Shadow private float xRot;
 
     protected EntityMixin(Class<Entity> baseClass) { super(baseClass); }
 
@@ -192,12 +200,27 @@ public abstract class EntityMixin extends net.minecraftforge.common.capabilities
             ItemStackLocation newLocation = explorer.realize(elaborator);
 
             // Change held entity dimension
-            Entity reprepared = heldAsEntity.changeDimension((ServerLevel) world);
-            held.getValue().actuallysize$deactivateDuality();
+            Entity reprepared = heldAsEntity.getType().create(world);
+            if (reprepared == null) {
+                held.getValue().actuallysize$deactivateDuality();
+                continue; }
 
-            // Activate in new dimension
-            ASIPSDualityActivationAction transfer = new ASIPSDualityActivationAction(newLocation, newLocation.getItemStack(), reprepared);
-            transfer.tryResolve();
+            // Restore and move
+            reprepared.restoreFrom(heldAsEntity);
+            held.getValue().actuallysize$deactivateDuality();
+            reprepared.moveTo(position.x, position.y, position.z, yRot, xRot);
+            reprepared.setYHeadRot(yRot);
+            heldAsEntity.setRemoved(Entity.RemovalReason.CHANGED_DIMENSION);
+            ((ServerLevel) world).addDuringTeleport(reprepared);
+
+            // Reactivate duality
+            SchedulingManager.scheduleTask(() -> {
+
+                // Activate in new dimension
+                ASIPSDualityActivationAction transfer = new ASIPSDualityActivationAction(newLocation, newLocation.getItemStack(), reprepared);
+                transfer.tryResolve();
+
+            }, 2, false);
         }
         /*HDA*/ActuallySizeInteractions.LogHDA(false, ASIPSPickupAction.class, "EMX", "Dimensional change restore");
     }
@@ -751,6 +774,16 @@ public abstract class EntityMixin extends net.minecraftforge.common.capabilities
     public boolean onSuffocate(Operation<Boolean> original) {
 
         // When held, we are never in walls
+        if (actuallysize$isHeld()) { return false; }
+
+        // Otherwise, ASI has no business with this operation
+        return original.call();
+    }
+
+    @WrapMethod(method = "canChangeDimensions")
+    public boolean onCanChangeDimensions(Operation<Boolean> original) {
+
+        // When held, we cannot change dimensions by walking into a portal
         if (actuallysize$isHeld()) { return false; }
 
         // Otherwise, ASI has no business with this operation
