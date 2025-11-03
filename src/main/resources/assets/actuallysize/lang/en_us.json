@@ -3,5 +3,9 @@
   "item.actuallysizeinteractions.held_nonliving_entity": "Held Mob",
   "item.actuallysizeinteractions.held_player": "Held Tiny",
 
-  "tooltip.actuallysizeinteractions.invalid": "Invalid Held Entity"
+  "tooltip.actuallysizeinteractions.invalid": "Invalid Held Entity",
+
+  "death.attack.actuallysizeinteractions.nom": " was nommed by ",
+  "death.attack.actuallysizeinteractions.squish": " was squished by ",
+  "death.attack.actuallysizeinteractions.felled": " was felled by "
 }

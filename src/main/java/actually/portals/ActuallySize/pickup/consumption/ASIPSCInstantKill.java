@@ -4,6 +4,7 @@ import actually.portals.ActuallySize.pickup.actions.ASIPSDualityEscapeAction;
 import actually.portals.ActuallySize.pickup.mixininterfaces.Edacious;
 import actually.portals.ActuallySize.pickup.mixininterfaces.EntityDualityCounterpart;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.damagesource.DamageSource;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -32,7 +33,7 @@ public class ASIPSCInstantKill implements ASIPSPlayerConsumption {
         // Deal fatal amount of damage and record the food properties of all this player' drops
         tiny.setLastHurtByPlayer(beeg);
         edacious.actuallysize$setWasConsumed(true);
-        tiny.kill();
+        tiny.hurt(new DamageSource(tiny.damageSources().genericKill().typeHolder(), beeg), Float.MAX_VALUE);
         edacious.actuallysize$setWasConsumed(false);
     }
 }
