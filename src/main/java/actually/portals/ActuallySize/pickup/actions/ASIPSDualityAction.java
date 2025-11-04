@@ -102,4 +102,12 @@ public abstract class ASIPSDualityAction implements APIFriendlyProcess, ASINetwo
      * @author Actually Portals
      */
     public abstract void setHoldPoint(@Nullable ASIPSHoldPoint hold);
+
+    /**
+     * @return If this action resolving would result in no change
+     *
+     * @since 1.0.0
+     * @author Actually Portals
+     */
+    public abstract boolean isNeutral();
 }

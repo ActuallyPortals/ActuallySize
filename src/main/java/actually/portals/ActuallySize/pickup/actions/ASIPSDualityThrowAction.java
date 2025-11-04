@@ -266,4 +266,13 @@ public class ASIPSDualityThrowAction extends ASIPSDualityAction {
             if (!beeg.getAbilities().instabuild || throwingPlayer) { itemCounterpart.shrink(1); }
         }
     }
+
+    /**
+     * @return false
+     *
+     * @since 1.0.0
+     * @author Actually Portals
+     */
+    @Override
+    public boolean isNeutral() { return false; }
 }

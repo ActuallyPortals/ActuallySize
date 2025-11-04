@@ -99,6 +99,18 @@ public class ASIPSDualityDeactivationAction extends ASIPSDualityAction {
     @Override public void setHoldPoint(@Nullable ASIPSHoldPoint hold) { holdPoint = hold; }
 
     /**
+     * @return If this entity is not currently active
+     *
+     * @since 1.0.0
+     * @author Actually Portals
+     */
+    @Override
+    public boolean isNeutral() {
+        if (entityCounterpart == null) { return true; }
+        return !((EntityDualityCounterpart) entityCounterpart).actuallysize$isActive();
+    }
+
+    /**
      * @param itemDuality A presumably active Item-Entity item
      *
      * @since 1.0.0

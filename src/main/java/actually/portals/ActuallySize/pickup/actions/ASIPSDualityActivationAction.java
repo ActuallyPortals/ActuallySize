@@ -12,6 +12,9 @@ import actually.portals.ActuallySize.pickup.mixininterfaces.ItemDualityCounterpa
 import actually.portals.ActuallySize.pickup.mixininterfaces.ItemEntityDualityHolder;
 import gunging.ootilities.GungingOotilitiesMod.exploring.ItemStackLocation;
 import gunging.ootilities.GungingOotilitiesMod.exploring.players.ISPExplorerStatements;
+import gunging.ootilities.GungingOotilitiesMod.exploring.players.ISPIndexedStatement;
+import gunging.ootilities.GungingOotilitiesMod.exploring.players.specalization.ISPSStandard;
+import gunging.ootilities.GungingOotilitiesMod.ootilityception.IntegerNumberRange;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
@@ -100,6 +103,24 @@ public class ASIPSDualityActivationAction extends ASIPSDualityAction {
      * @author Actually Portals
      */
     @Override public void setHoldPoint(@Nullable ASIPSHoldPoint hold) { holdPoint = hold; }
+
+    /**
+     * @return If the entity being activated is already in this stack location
+     *
+     * @since 1.0.0
+     * @author Actually Portals
+     */
+    @Override
+    public boolean isNeutral() {
+
+        // Sanity check
+        if (entityCounterpart == null) { return false; }
+        if (stackLocation == null) { return false; }
+
+        // Determine by equality
+        ItemStackLocation<? extends Entity> current = ((EntityDualityCounterpart) entityCounterpart).actuallysize$getItemStackLocation();
+        return stackLocation.equals(current);
+    }
 
     /**
      * The world where the Entity counterpart is found / will be found
@@ -245,6 +266,10 @@ public class ASIPSDualityActivationAction extends ASIPSDualityAction {
         /*HDA*/ActuallySizeInteractions.LogHDA(false, getClass(), "HDA", "All Explicit Constructor");
     }
 
+    /**
+     * @since 1.0.0
+     * @author Actually Portals
+     */
     @Override
     public boolean isVerified() {
         /*HDA*/ActuallySizeInteractions.LogHDA(true, getClass(), "HDA", "Verifying");
@@ -317,6 +342,10 @@ public class ASIPSDualityActivationAction extends ASIPSDualityAction {
         return true;
     }
 
+    /**
+     * @since 1.0.0
+     * @author Actually Portals
+     */
     @Override
     public boolean isAllowed() {
         /*HDA*/ActuallySizeInteractions.LogHDA(true, getClass(), "HDA", "Allowing");
@@ -370,20 +399,9 @@ public class ASIPSDualityActivationAction extends ASIPSDualityAction {
          *  In the client-side, we verify that the item and entity makes sense. Somehow.
          */
         if (isClientSide) {
-            boolean remoteOverride = false;
 
-            /*
-             * In the client-side, remote players do not have a cursor
-             * slot. Then this makes for a special case when activating
-             * a duality actually creates that item.
-             */
-            if (stackLocation.getHolder() instanceof net.minecraft.client.player.RemotePlayer) {
-                if (stackLocation.getStatement().equals(ISPExplorerStatements.CURSOR)) {
-
-                    // Yeah
-                    remoteOverride = true;
-                }
-            }
+            // Only for remote players that do not sync their inventory content
+            boolean remoteOverride = ASIPickupSystemManager.isRemotelyOverridden(stackLocation);
 
             // If not overridden by the special cursor access in remote player, we check that the item exists
             if (!remoteOverride) {
@@ -425,6 +443,10 @@ public class ASIPSDualityActivationAction extends ASIPSDualityAction {
         return true;
     }
 
+    /**
+     * @since 1.0.0
+     * @author Actually Portals
+     */
     @Override
     public void resolve() {
         /*HDA*/ActuallySizeInteractions.LogHDA(true, getClass(), "HDA", "Resolving");
@@ -444,16 +466,13 @@ public class ASIPSDualityActivationAction extends ASIPSDualityAction {
          * a duality actually creates that item.
          */
         if (!isServer) {
-            if (stackLocation.getHolder() instanceof net.minecraft.client.player.RemotePlayer) {
-                if (stackLocation.getStatement().equals(ISPExplorerStatements.CURSOR)) {
+            if (ASIPickupSystemManager.isRemotelyOverridden(stackLocation)) {
 
-                    // That's funny haha, involving ourselves with the cursor slot of a remote player...
-                    Player player = (Player) stackLocation.getHolder();
-                    ItemStack drop = ASIPickupSystemManager.generateHeldItem(entityCounterpart);
-                    player.inventoryMenu.setCarried(drop);
-                    itemCounterpart = drop;
-                    itemDuality = (ItemDualityCounterpart) (Object) itemCounterpart;
-                }
+                // That's funny haha, involving ourselves with the cursor slot of a remote player...
+                ItemStack drop = ASIPickupSystemManager.generateHeldItem(entityCounterpart);
+                stackLocation.setItemStack(drop);
+                itemCounterpart = drop;
+                itemDuality = (ItemDualityCounterpart) (Object) itemCounterpart;
             }
         }
 
@@ -498,7 +517,16 @@ public class ASIPSDualityActivationAction extends ASIPSDualityAction {
                  */
 
                 ASIPSDualityDeactivationAction removeOld = new ASIPSDualityDeactivationAction(itemDuality);
-                removeOld.tryResolve();
+
+                // Preference to a flux action
+                ASIPSDualityFluxAction fluxTry = new ASIPSDualityFluxAction(removeOld, this);
+                if (fluxTry.tryResolve()) {
+
+                    // Resolved in flux
+                    return;
+
+                // At the very least try to deactivate the old one
+                } else { removeOld.tryResolve(); }
             }
         }
 

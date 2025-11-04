@@ -2,9 +2,11 @@ package actually.portals.ActuallySize.pickup;
 
 import actually.portals.ActuallySize.ActuallyClientConfig;
 import actually.portals.ActuallySize.ActuallySizeInteractions;
+import actually.portals.ActuallySize.controlling.execution.ASIEventExecutionListener;
 import actually.portals.ActuallySize.netcode.packets.clientbound.ASINCHoldPointsSyncReply;
 import actually.portals.ActuallySize.netcode.packets.serverbound.ASINSPreferredSize;
 import actually.portals.ActuallySize.pickup.actions.ASIPSDualityAction;
+import actually.portals.ActuallySize.pickup.actions.ASIPSDualityActivationAction;
 import actually.portals.ActuallySize.pickup.actions.ASIPSDualityEscapeAction;
 import actually.portals.ActuallySize.pickup.events.ASIHoldPointRegistryEvent;
 import actually.portals.ActuallySize.pickup.events.ASIPSBuildLocalPlayerHoldPointsEvent;
@@ -18,8 +20,13 @@ import actually.portals.ActuallySize.pickup.item.ASIPSHeldEntityItem;
 import actually.portals.ActuallySize.pickup.mixininterfaces.Combinable;
 import actually.portals.ActuallySize.pickup.mixininterfaces.EntityDualityCounterpart;
 import actually.portals.ActuallySize.pickup.mixininterfaces.ItemDualityCounterpart;
+import gunging.ootilities.GungingOotilitiesMod.exploring.ItemStackLocation;
 import gunging.ootilities.GungingOotilitiesMod.exploring.entities.ISEExplorerStatements;
 import gunging.ootilities.GungingOotilitiesMod.exploring.players.ISPExplorerStatements;
+import gunging.ootilities.GungingOotilitiesMod.exploring.players.ISPIndexedStatement;
+import gunging.ootilities.GungingOotilitiesMod.exploring.players.ISPPlayerLocation;
+import gunging.ootilities.GungingOotilitiesMod.exploring.players.specalization.ISPSStandard;
+import gunging.ootilities.GungingOotilitiesMod.ootilityception.IntegerNumberRange;
 import net.minecraft.nbt.*;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
@@ -30,6 +37,7 @@ import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.decoration.ItemFrame;
 import net.minecraft.world.entity.npc.Villager;
+import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.raid.Raider;
 import net.minecraft.world.entity.vehicle.AbstractMinecart;
@@ -573,6 +581,13 @@ public class ASIPickupSystemManager {
      * @author Actually Portals
      */
     public static void resolveDualityFlux() {
+
+        // Evaluate hotbar flux resolutions
+        if (!hotbarFlux.isEmpty()) {
+            for (ServerPlayer player : hotbarFlux.values()) { processHotbarSlots(player, false); }
+            hotbarFlux.clear(); }
+
+        // Early cancel when nothing to do
         if (dualityFlux.isEmpty()) { return; }
         dualityFluxing = true;
         /*HDA*/ActuallySizeInteractions.LogHDA(true, ASIPickupSystemManager.class, "RDF", "Duality Flux Resolution");
@@ -592,8 +607,12 @@ public class ASIPickupSystemManager {
             flux.computeFlux();
             ArrayList<ASIPSDualityAction> flex = flux.resolveFlux();
 
-            // Remember for next tick
-            if (!flex.isEmpty()) {
+            // Did the flux resolve? Clear it from hotbar flux too
+            if (flex.isEmpty()) {
+                //hotbarFlux.remove(entityCounterpart.getUUID());
+
+            // The flux did not resolve, remember for next tick
+            } else {
                 ASIPSFluxProfile residual = new ASIPSFluxProfile(entityCounterpart);
                 residual.addAll(flex);
                 fluxx.put(entityCounterpart.getUUID(), residual); }
@@ -613,6 +632,107 @@ public class ASIPickupSystemManager {
         /*HDA*/ActuallySizeInteractions.LogHDA(false, ASIPickupSystemManager.class, "RDF", "Duality Flux Resolution");
     }
 
+    /**
+     * When moving items around with the cursor, the duality-item
+     * is not in its final inventory slot but until after the cursor
+     * click resolves, which means {@link #processHotbarSlots(ServerPlayer, boolean)}
+     * fails to process it unless called next tick before duality flux
+     * is resolved.
+     *
+     * @since 1.0.0
+     */
+    @NotNull static HashMap<UUID, ServerPlayer> hotbarFlux = new HashMap<>();
+
+    /**
+     * Players may remain as active dualities while
+     * held in the hotbar, they will be put into
+     * pockets and such.
+     *
+     * @since 1.0.0
+     * @author Actually Portals
+     */
+    public static void processHotbarSlots(@NotNull ServerPlayer player, boolean flux) {
+        if (dualityFluxing) { return; }
+        /*HDA*/ActuallySizeInteractions.LogHDA(ASIEventExecutionListener.class, "EQP", "Hotbar Processing Proc:");
+
+        /*
+         * The idea is to activate all player items in all hotbar slots
+         */
+        Inventory inven = player.getInventory();
+        for (int i = 0; i < 9; i++) {
+
+            // Selected item is MAINHAND slot, not hotbar, for this purpose at least
+            if (i == inven.selected) { continue; }
+
+            // This should be impossible but who knows
+            if (i > inven.items.size()) { return; }
+
+            // This item, is it a held entity?
+            ItemStack itemCounterpart = inven.items.get(i);
+            if (!(itemCounterpart.getItem() instanceof ASIPSHeldEntityItem)) { continue; }
+
+            // Is it a player?
+            if (!((ASIPSHeldEntityItem) itemCounterpart.getItem()).isPlayer()) { continue; }
+
+            // Register TO flux if there are changes
+            ASIPSDualityActivationAction action = new ASIPSDualityActivationAction(new ISPPlayerLocation(player, ISPExplorerStatements.STANDARD.of(i)));
+            if (action.isNeutral()) { continue; }
+
+            /*HDA*/ActuallySizeInteractions.LogHDA(ASIEventExecutionListener.class, "EQP", "Hotbar player [{0}] registering to Flux", i);
+            if (!ASIPickupSystemManager.probableDualityFlux(action)) { action.tryResolve(); }
+        }
+
+        // Also check it next tick
+        if (flux) { hotbarFlux.put(player.getUUID(), player); }
+    }
+
+    /**
+     * Some inventory items are not synced to Remote players,
+     * actually most of them are not synced since the only items
+     * that usually matter are those equipped in armor/hand slots.
+     *
+     * @param stackLocation The ItemStackLocation in question
+     *
+     * @return If this action will create the item counterpart
+     *         in the Remote player's inventory to be realized
+     *
+     * @since 1.0.0
+     * @author Actually Portals
+     */
+    public static boolean isRemotelyOverridden(@Nullable ItemStackLocation<? extends Entity> stackLocation) {
+        if (stackLocation == null) { return false; }
+
+        /*
+         * In the client-side, remote players do not have a cursor
+         * slot. Then this makes for a special case when activating
+         * a duality actually creates that item.
+         */
+        if (stackLocation.getHolder() instanceof net.minecraft.client.player.RemotePlayer) {
+            /*HDA*/ActuallySizeInteractions.LogHDA(true, ASIPickupSystemManager.class, "HDA", "Statement {0} of {1}", stackLocation.getStatement().getClass(), stackLocation.getStatement().toString());
+
+            // By cursor
+            if (stackLocation.getStatement().equals(ISPExplorerStatements.CURSOR)) {
+                /*HDA*/ActuallySizeInteractions.LogHDA(true, ASIPickupSystemManager.class, "HDA", "Statement &a CURSOR");
+
+                // Yeah
+                return true;
+            }
+
+            // By hotbar
+            if (stackLocation.getStatement() instanceof ISPSStandard) {
+                IntegerNumberRange qnr = ((ISPIndexedStatement) stackLocation.getStatement()).getNumericSlot();
+                /*HDA*/ActuallySizeInteractions.LogHDA(true, ASIPickupSystemManager.class, "HDA", "Statement &a HOTBAR &f {0}", qnr.toString());
+
+                // Hotbar slots also qualify
+                return qnr.isSimple() &&
+                        ((qnr.getMinimumInclusive() != null && qnr.getMinimumInclusive() >= 0 && qnr.getMinimumInclusive() < 9) ||
+                                (qnr.getMaximumInclusive() != null && qnr.getMaximumInclusive() >= 0 && qnr.getMaximumInclusive() < 9));
+            }
+        }
+
+        return false;
+    }
+
     //region Hold Points
     /**
      * A default and global registry of hold points
@@ -630,26 +750,34 @@ public class ASIPickupSystemManager {
     public static void registerASIHoldPoints() {
 
         // Entity Explorer Statements will be used by entities by default
-        HOLD_POINT_REGISTRY.registerHoldPoint(ISEExplorerStatements.MAINHAND, ASIPSHoldPoints.RIGHT_HAND);
-        HOLD_POINT_REGISTRY.registerHoldPoint(ISEExplorerStatements.OFFHAND, ASIPSHoldPoints.LEFT_HAND);
-        HOLD_POINT_REGISTRY.registerHoldPoint(ISEExplorerStatements.HEAD, ASIPSHoldPoints.HAT);
-        HOLD_POINT_REGISTRY.registerHoldPoint(ISEExplorerStatements.CHEST, ASIPSHoldPoints.RIGHT_SHOULDER);
-        HOLD_POINT_REGISTRY.registerHoldPoint(ISEExplorerStatements.LEGS, ASIPSHoldPoints.LEFT_THIGH);
-        HOLD_POINT_REGISTRY.registerHoldPoint(ISEExplorerStatements.FEET, ASIPSHoldPoints.RIGHT_BOOT);
+        HOLD_POINT_REGISTRY.registerHoldPoint(ISEExplorerStatements.MAINHAND, ASIPSHoldPoints.INTERNAL_MAIN);
+        HOLD_POINT_REGISTRY.registerHoldPoint(ISEExplorerStatements.OFFHAND, ASIPSHoldPoints.INTERNAL_OFF);
+        HOLD_POINT_REGISTRY.registerHoldPoint(ISEExplorerStatements.HEAD, ASIPSHoldPoints.INTERNAL_HEAD);
+        HOLD_POINT_REGISTRY.registerHoldPoint(ISEExplorerStatements.CHEST, ASIPSHoldPoints.INTERNAL_CHEST);
+        HOLD_POINT_REGISTRY.registerHoldPoint(ISEExplorerStatements.LEGS, ASIPSHoldPoints.INTERNAL_LEGS);
+        HOLD_POINT_REGISTRY.registerHoldPoint(ISEExplorerStatements.FEET, ASIPSHoldPoints.INTERNAL_BOOTS);
         HOLD_POINT_REGISTRY.registerHoldPoint(ISPExplorerStatements.CURSOR, ASIPSHoldPoints.PINCH);
 
         // Anything else goes, really
+        HOLD_POINT_REGISTRY.registerHoldPoint(null, ASIPSHoldPoints.NOMF);
         HOLD_POINT_REGISTRY.registerHoldPoint(null, ASIPSHoldPoints.HEAD);
+        HOLD_POINT_REGISTRY.registerHoldPoint(null, ASIPSHoldPoints.HAT);
+        HOLD_POINT_REGISTRY.registerHoldPoint(null, ASIPSHoldPoints.RIGHT_HAND);
+        HOLD_POINT_REGISTRY.registerHoldPoint(null, ASIPSHoldPoints.LEFT_HAND);
+        HOLD_POINT_REGISTRY.registerHoldPoint(null, ASIPSHoldPoints.RIGHT_FIST);
+        HOLD_POINT_REGISTRY.registerHoldPoint(null, ASIPSHoldPoints.LEFT_FIST);
+        HOLD_POINT_REGISTRY.registerHoldPoint(null, ASIPSHoldPoints.COLLAR);
+        HOLD_POINT_REGISTRY.registerHoldPoint(null, ASIPSHoldPoints.RIGHT_SHOULDER);
         HOLD_POINT_REGISTRY.registerHoldPoint(null, ASIPSHoldPoints.LEFT_SHOULDER);
         HOLD_POINT_REGISTRY.registerHoldPoint(null, ASIPSHoldPoints.RIGHT_POCKET);
         HOLD_POINT_REGISTRY.registerHoldPoint(null, ASIPSHoldPoints.LEFT_POCKET);
-        HOLD_POINT_REGISTRY.registerHoldPoint(null, ASIPSHoldPoints.RIGHT_THIGH);
-        HOLD_POINT_REGISTRY.registerHoldPoint(null, ASIPSHoldPoints.LEFT_BOOT);
-        HOLD_POINT_REGISTRY.registerHoldPoint(null, ASIPSHoldPoints.RIGHT_FIST);
-        HOLD_POINT_REGISTRY.registerHoldPoint(null, ASIPSHoldPoints.LEFT_FIST);
+        HOLD_POINT_REGISTRY.registerHoldPoint(null, ASIPSHoldPoints.CHEST_POCKET);
+        HOLD_POINT_REGISTRY.registerHoldPoint(null, ASIPSHoldPoints.HOODIE_POCKET);
         HOLD_POINT_REGISTRY.registerHoldPoint(null, ASIPSHoldPoints.FLUSH);
-        HOLD_POINT_REGISTRY.registerHoldPoint(null, ASIPSHoldPoints.SHED);
-        HOLD_POINT_REGISTRY.registerHoldPoint(null, ASIPSHoldPoints.NOMF);
+        HOLD_POINT_REGISTRY.registerHoldPoint(null, ASIPSHoldPoints.RIGHT_THIGH);
+        HOLD_POINT_REGISTRY.registerHoldPoint(null, ASIPSHoldPoints.LEFT_THIGH);
+        HOLD_POINT_REGISTRY.registerHoldPoint(null, ASIPSHoldPoints.RIGHT_BOOT);
+        HOLD_POINT_REGISTRY.registerHoldPoint(null, ASIPSHoldPoints.LEFT_BOOT);
     }
 
     /**
@@ -682,6 +810,10 @@ public class ASIPickupSystemManager {
 
         point = HOLD_POINT_REGISTRY.getHoldPoint(ActuallyClientConfig.holdCursor);
         if (point != null) { ret.registerHoldPoint(ISPExplorerStatements.CURSOR, point); }
+
+        for (int i = 0; i < 9; i++) {
+            point = HOLD_POINT_REGISTRY.getHoldPoint(ActuallyClientConfig.holdHotbar[i]);
+            if (point != null) { ret.registerHoldPoint(ISPExplorerStatements.STANDARD.of(i), point); } }
 
         // Run event
         ASIPSBuildLocalPlayerHoldPointsEvent broadcast = new ASIPSBuildLocalPlayerHoldPointsEvent(ret);

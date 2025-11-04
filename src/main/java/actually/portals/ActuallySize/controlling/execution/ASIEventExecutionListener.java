@@ -18,6 +18,7 @@ import actually.portals.ActuallySize.pickup.mixininterfaces.ItemEntityDualityHol
 import actually.portals.ActuallySize.pickup.mixininterfaces.UseTimed;
 import actually.portals.ActuallySize.world.mixininterfaces.PreferentialOptionable;
 import gunging.ootilities.GungingOotilitiesMod.events.extension.ServersideEntityEquipmentChangeEvent;
+import gunging.ootilities.GungingOotilitiesMod.exploring.players.ISPExplorerStatements;
 import gunging.ootilities.GungingOotilitiesMod.ootilityception.OotilityNumbers;
 import gunging.ootilities.GungingOotilitiesMod.scheduling.SCHTenTicksEvent;
 import gunging.ootilities.GungingOotilitiesMod.scheduling.SCHTwentyTicksEvent;
@@ -185,7 +186,17 @@ public class ASIEventExecutionListener {
 
         // Create an action and try to resolve it :based:
         ASIPSDualityActivationAction action = new ASIPSDualityActivationAction(event.getStackLocation());
-        if (!action.isVerified()) {
+        if (action.isVerified()) {
+            /*HDA*/ActuallySizeInteractions.LogHDA(ASIEventExecutionListener.class, "EQP", "Verified, registering [TO] into Probable-Flux:");
+
+            // Register to flux evaluation
+            if (!ASIPickupSystemManager.probableDualityFlux(action)) {
+                /*HDA*/ActuallySizeInteractions.LogHDA(ASIEventExecutionListener.class, "EQP", "Inadmissible to Probable-Flux, resolving:");
+                action.tryResolve(); }
+
+
+        // If it does not verify, attempt to deactivate it
+        } else {
             /*HDA*/ActuallySizeInteractions.LogHDA(ASIEventExecutionListener.class, "EQP", "Unverified, registering [FROM] into Probable-Flux:");
 
             /*
@@ -198,16 +209,13 @@ public class ASIEventExecutionListener {
             ASIPSDualityDeactivationAction inaction = new ASIPSDualityDeactivationAction(event.getStackLocation());
             if (!ASIPickupSystemManager.probableDualityFlux(inaction)) {
                 /*HDA*/ActuallySizeInteractions.LogHDA(ASIEventExecutionListener.class, "EQP", "Inadmissible to Probable-Flux, resolving:");
-                inaction.tryResolve(); }
+                inaction.tryResolve(); }}
 
-        // If it verifies, attempt to activate it
-        } else {
-            /*HDA*/ActuallySizeInteractions.LogHDA(ASIEventExecutionListener.class, "EQP", "Verified, registering [TO] into Probable-Flux:");
 
-            // Register to flux evaluation
-            if (!ASIPickupSystemManager.probableDualityFlux(action)) {
-                /*HDA*/ActuallySizeInteractions.LogHDA(ASIEventExecutionListener.class, "EQP", "Inadmissible to Probable-Flux, resolving:");
-                action.tryResolve(); }
+        // Process hotbar changes when selected item changes, or when hotbar changes
+        boolean isCursor = event.getStackLocation().getStatement().equals(ISPExplorerStatements.CURSOR);
+        if (event.getEntity() instanceof ServerPlayer && (isCursor || event.getStackLocation().getStatement().equals(ISPExplorerStatements.MAINHAND))) {
+            ASIPickupSystemManager.processHotbarSlots((ServerPlayer) event.getEntity(), isCursor);
         }
 
         /*HDA*/ActuallySizeInteractions.LogHDA(false, ASIEventExecutionListener.class, "EQP", "ServersideEntityEquipmentChangeEvent");

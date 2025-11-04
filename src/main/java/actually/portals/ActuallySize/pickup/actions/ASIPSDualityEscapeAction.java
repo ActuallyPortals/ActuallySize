@@ -365,4 +365,16 @@ public class ASIPSDualityEscapeAction extends ASIPSDualityAction {
         /*HDA*/ActuallySizeInteractions.LogHDA(getClass(), "HDE", "&3 REDIRECTED");
         /*HDA*/ActuallySizeInteractions.LogHDA(false, getClass(), "HDE", "Resolving");
     }
+
+    /**
+     * @return If this entity is not currently active
+     *
+     * @since 1.0.0
+     * @author Actually Portals
+     */
+    @Override
+    public boolean isNeutral() {
+        if (entityCounterpart == null) { return true; }
+        return !((EntityDualityCounterpart) entityCounterpart).actuallysize$isActive();
+    }
 }

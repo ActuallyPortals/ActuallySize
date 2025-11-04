@@ -14,7 +14,9 @@ import actually.portals.ActuallySize.pickup.mixininterfaces.ItemDualityCounterpa
 import actually.portals.ActuallySize.pickup.mixininterfaces.ItemEntityDualityHolder;
 import gunging.ootilities.GungingOotilitiesMod.exploring.ItemStackLocation;
 import gunging.ootilities.GungingOotilitiesMod.exploring.players.ISPExplorerStatements;
+import gunging.ootilities.GungingOotilitiesMod.exploring.players.ISPIndexedStatement;
 import gunging.ootilities.GungingOotilitiesMod.ootilityception.APIFriendlyProcess;
+import gunging.ootilities.GungingOotilitiesMod.ootilityception.IntegerNumberRange;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -83,6 +85,14 @@ public class ASIPSDualityFluxAction implements APIFriendlyProcess, ASINetworkDel
     @NotNull public ASIPSDualityAction getTo() { return to; }
 
     /**
+     * @return If the destination is where this entity already is
+     *
+     * @since 1.0.0
+     * @author Actually Portals
+     */
+    boolean isNeutral() { return to.isNeutral(); }
+
+    /**
      * @param from The deactivation duality action, the origin, the location this duality is being removed from.
      * @param to The activation duality action, the target, the final location of this duality.
      *
@@ -114,6 +124,10 @@ public class ASIPSDualityFluxAction implements APIFriendlyProcess, ASINetworkDel
         /*HDA*/ActuallySizeInteractions.LogHDA(false, getClass(), "HDF", "Packet Constructor");
     }
 
+    /**
+     * @since 1.0.0
+     * @author Actually Portals
+     */
     @Override
     public boolean isVerified() {
         /*HDA*/ActuallySizeInteractions.LogHDA(true, getClass(), "HDF", "Verifying");
@@ -148,6 +162,10 @@ public class ASIPSDualityFluxAction implements APIFriendlyProcess, ASINetworkDel
         return true;
     }
 
+    /**
+     * @since 1.0.0
+     * @author Actually Portals
+     */
     @Override
     public boolean isAllowed() {
         /*HDA*/ActuallySizeInteractions.LogHDA(true, getClass(), "HDF", "Allowing");
@@ -171,6 +189,10 @@ public class ASIPSDualityFluxAction implements APIFriendlyProcess, ASINetworkDel
         return true;
     }
 
+    /**
+     * @since 1.0.0
+     * @author Actually Portals
+     */
     @Override
     public void resolve() {
         /*HDA*/ActuallySizeInteractions.LogHDA(true, getClass(), "HDF", "Resolving");
@@ -199,17 +221,14 @@ public class ASIPSDualityFluxAction implements APIFriendlyProcess, ASINetworkDel
          * a duality actually creates that item.
          */
         if (!isServer) {
-            if (stackLocationTo.getHolder() instanceof net.minecraft.client.player.RemotePlayer) {
-                if (stackLocationTo.getStatement().equals(ISPExplorerStatements.CURSOR)) {
+            if (ASIPickupSystemManager.isRemotelyOverridden(getTo().getStackLocation())) {
 
-                    // That's funny haha, involving ourselves with the cursor slot of a remote player...
-                    Player player = (Player) stackLocationTo.getHolder();
-                    ItemStack drop = ASIPickupSystemManager.generateHeldItem(entityCounterpart);
-                    player.inventoryMenu.setCarried(drop);
-                    /*HDA*/ActuallySizeInteractions.LogHDA(getClass(), "HDF", "&3 Remote player cursor adjusted");
-                    itemCounterpartTo = drop;
-                    itemDualityTo = (ItemDualityCounterpart) (Object) itemCounterpartTo;
-                }
+                // That's funny haha, involving ourselves with the cursor slot of a remote player...
+                ItemStack drop = ASIPickupSystemManager.generateHeldItem(entityCounterpart);
+                getTo().getStackLocation().setItemStack(drop);
+                /*HDA*/ActuallySizeInteractions.LogHDA(getClass(), "HDF", "&3 Remote player cursor adjusted");
+                itemCounterpartTo = drop;
+                itemDualityTo = (ItemDualityCounterpart) (Object) itemCounterpartTo;
             }
         }
 

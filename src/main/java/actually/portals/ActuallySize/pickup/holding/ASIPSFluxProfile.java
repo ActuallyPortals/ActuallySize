@@ -179,11 +179,11 @@ public class ASIPSFluxProfile {
                     flex.add(from);
                     from.logAttempt();
 
-                    // Time to resolve
+                // Time to resolve
                 } else if (from.isAllowed()) { from.resolve(); }
             }
 
-            // There is a destination
+        // There is a destination
         } else {
 
             /*
@@ -212,10 +212,10 @@ public class ASIPSFluxProfile {
                     flex.add(to);
                     to.logAttempt();
 
-                    // Time to resolve
+                // Time to resolve
                 } else if (to.isAllowed()) { to.resolve(); }
 
-                // Both to and from exist
+            // Both to and from exist
             } else {
 
                 // Turn this into a FLUX action and run it
@@ -223,8 +223,9 @@ public class ASIPSFluxProfile {
                 if (action.isAllowed()) {
                     action.resolve();
 
-                // If the flux fails to resolve, resolve the two parts individually
-                } else {
+                // If the flux fails to resolve, resolve the two parts individually.
+                // This is pointless if the destination is neutral
+                } else if (!to.isNeutral()) {
                     from.tryResolve();
                     to.tryResolve();
                 }
