@@ -172,7 +172,7 @@ public abstract class RelativeCoordinateHold extends ASIPSImplementedHoldPoint {
         double beegScale = ASIUtilities.getEffectiveSize(holderEntity);
         double tinyScale = ASIUtilities.getEffectiveSize(entityCounterpart);
         double gauss = OotilityNumbers.gaussianRev(0, 2, (beegScale / tinyScale));
-        double strength = 3.8 * ASIUtilities.beegBalanceEnhance(beegScale, 3, 0.1);
+        double strength = 2.5 * ASIUtilities.beegBalanceEnhance(beegScale, 4, 0.1);
 
         /*
          * Full strength at relative size 5x and forth (asymptotic)
@@ -185,7 +185,11 @@ public abstract class RelativeCoordinateHold extends ASIPSImplementedHoldPoint {
          */
         //THR//ActuallySizeInteractions.Log("ASI &6 HDA [" + getNamespacedKey() + "] &7 Thrown at &b " + strength + " STR &f x &3 " + gauss + " = " + (gauss * strength) + ", SZ " + (beegScale / tinyScale));
 
+        // For some reason, the Y component is very large and has little friction or whatever
+        Vec3 thrower = OotilityVectors.entityForward(holderEntity).scale(gauss * strength);
+        thrower = new Vec3(thrower.x, Math.sqrt(thrower.y), thrower.z);
+
         // Add forward force
-        entityCounterpart.setDeltaMovement(OotilityVectors.entityForward(holderEntity).scale(gauss * strength));
+        entityCounterpart.setDeltaMovement(thrower);
     }
 }
