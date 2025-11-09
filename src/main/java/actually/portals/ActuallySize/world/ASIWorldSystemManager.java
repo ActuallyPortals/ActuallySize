@@ -2,6 +2,7 @@ package actually.portals.ActuallySize.world;
 
 import actually.portals.ActuallySize.ASIUtilities;
 import actually.portals.ActuallySize.ActuallyServerConfig;
+import actually.portals.ActuallySize.ActuallySizeInteractions;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
@@ -70,6 +71,29 @@ public class ASIWorldSystemManager {
         // Everything else is
         return true;
     }
+    /**
+     * Some types of damage should not be made more powerful
+     * against tinies, but it is fine if beegs resist them more.
+     * This doesn't make a lot of "sense" sense but if they were
+     * boosted it would just make tiny play painful unnecessarily*
+     *
+     * @param world The world where damage takes place
+     * @param type The type of damage
+     *
+     * @return If this damage type is adjusted by ASI for beegs
+     *
+     * @since 1.0.0
+     * @author Actually Portals
+     */
+    public static boolean IsBypassedByTinies(@NotNull Level world, @NotNull DamageSource type) {
+
+        // Walls make no sense to make more damage to tinies
+        if (type == world.damageSources().cactus()) { return true; }
+        if (type == world.damageSources().sweetBerryBush()) { return true; }
+
+        // Everything else is
+        return false;
+    }
 
     /**
      * Based on the options in the config, this method will adjust the damage
@@ -96,7 +120,7 @@ public class ASIWorldSystemManager {
          */
         double mySize = ASIUtilities.getEntityScale(victim);
         double buffingLimit = ActuallyServerConfig.strongestBeeg;
-        //ATT//ActuallySizeInteractions.Log("ASI &2 WSM &7 [" + victim.getScoreboardName() + "] Adjusting hurt &3 " + originalDamage + " &r up to &b " + buffingLimit + " &f at &e x" + mySize);
+        /*ATT*/ActuallySizeInteractions.Log("ASI &2 WSM &7 [" + victim.getScoreboardName() + "] Adjusting hurt &3 " + originalDamage + " &r up to &b " + buffingLimit + " &f at &e x" + mySize);
 
         /*
          * Is there an aggressive entity? Then we must bother
@@ -108,7 +132,7 @@ public class ASIWorldSystemManager {
         if (attack.getDirectEntity() != null) {
             aggressorScale = ASIUtilities.getEntityScale(attack.getDirectEntity());
             aggressorIsCrouching = (attack.getDirectEntity() instanceof Player) && attack.getDirectEntity().isCrouching();
-            //ATT//ActuallySizeInteractions.Log("ASI &2 WSM &7 [" + attack.getDirectEntity().getScoreboardName() + "] Aggressor (" + aggressorIsCrouching + ") at &e x" + aggressorScale);
+            /*ATT*/ActuallySizeInteractions.Log("ASI &2 WSM &7 [" + attack.getDirectEntity().getScoreboardName() + "] Aggressor (" + aggressorIsCrouching + ") at &e x" + aggressorScale);
 
             if (aggressorScale > 0) {
 
@@ -118,7 +142,7 @@ public class ASIWorldSystemManager {
                 // If the beeg is crouching, and bigger than us, there is no amplification. Tinies remain reduced tho.
                 if (aggressorIsCrouching && aggressorScale > mySize) { aggressorAmplificationFactor = 1; }
             }
-            //ATT//ActuallySizeInteractions.Log("ASI &2 WSM &7 Aggressor Factor: &6 " + aggressorAmplificationFactor + " &r for a total &e " + (originalDamage * aggressorAmplificationFactor));
+            /*ATT*/ActuallySizeInteractions.Log("ASI &2 WSM &7 Aggressor Factor: &6 " + aggressorAmplificationFactor + " &r for a total &e " + (originalDamage * aggressorAmplificationFactor));
 
             // Combat takes precedence to the other stuff below
             return originalDamage * aggressorAmplificationFactor;
@@ -131,20 +155,21 @@ public class ASIWorldSystemManager {
 
         // When beeg
         if (mySize > 1 && !ActuallyServerConfig.tankyBeegs) {
-            //ATT//ActuallySizeInteractions.Log("ASI &2 WSM &7 Tanky beeg");
+            /*ATT*/ActuallySizeInteractions.Log("ASI &2 WSM &7 Tanky beeg");
 
             // Reduce damage from all sources
             sizeAmplificationFactor = ASIUtilities.beegBalanceResist(mySize, buffingLimit, 0);
 
         // When smol
         } else if (mySize < 1 && ActuallyServerConfig.delicateTinies) {
-            //ATT//ActuallySizeInteractions.Log("ASI &2 WSM &7 Delicate smol");
+            /*ATT*/ActuallySizeInteractions.Log("ASI &2 WSM &7 Delicate smol");
+            if (mySize < 0.25 && IsBypassedByTinies(victim.level(), attack)) { return 0; }
             if (!IsAdjustedForTinies(victim.level(), attack)) { return originalDamage; }
 
             // Increase damage from all sources
             sizeAmplificationFactor = ASIUtilities.beegBalanceResist(mySize, buffingLimit, 0);
         }
-        //ATT//ActuallySizeInteractions.Log("ASI &2 WSM &7 Size Factor: &6 " + sizeAmplificationFactor + " &r for a total &e " + (originalDamage * sizeAmplificationFactor));
+        /*ATT*/ActuallySizeInteractions.Log("ASI &2 WSM &7 Size Factor: &6 " + sizeAmplificationFactor + " &r for a total &e " + (originalDamage * sizeAmplificationFactor));
 
         // Adjust effect
         return originalDamage * sizeAmplificationFactor;
