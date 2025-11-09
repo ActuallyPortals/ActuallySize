@@ -1,6 +1,7 @@
 package actually.portals.ActuallySize.pickup.item;
 
 import actually.portals.ActuallySize.ASIUtilities;
+import actually.portals.ActuallySize.ActuallySizeInteractions;
 import actually.portals.ActuallySize.pickup.ASIPickupSystemManager;
 import actually.portals.ActuallySize.pickup.actions.ASIPSDualityEscapeAction;
 import actually.portals.ActuallySize.pickup.events.ASIPSFoodPropertiesEvent;
@@ -15,6 +16,7 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.item.Item;
@@ -434,4 +436,67 @@ public class ASIPSHeldEntityItem extends Item {
      * @since 1.0.0
      */
     public void resetFoodTick() { sizeFoodTick = 0; }
+
+    @Override
+    public boolean onEntityItemUpdate(ItemStack stack, ItemEntity entity) {
+        ItemDualityCounterpart itemDuality = (ItemDualityCounterpart) (Object) stack;
+        Level world = entity.level();
+        if (itemDuality == null) { return false; }
+
+        Entity entityCounterpart = null;
+
+        // Being dropped to the ground releases the entity enclosed and destroys the item
+        Entity enclosed = itemDuality.actuallysize$getEnclosedEntity(world);
+        if (enclosed != null) {
+
+            /*
+             * If it is added, then we'll pick it up in the next statement below,
+             * and if it is not picked up it will generate one with a brand-new
+             * UUID to be our entity counterpart.
+             *
+             * This statement will preferably create one with identical UUID to
+             * the enclosed entity, but this will conflict if it is already in
+             * the world.
+             */
+            if (!enclosed.isAddedToWorld()) { entityCounterpart = enclosed; }
+        }
+
+        // If it wasn't readied before, ready it now
+        if (entityCounterpart == null) {
+            entityCounterpart = itemDuality.actuallysize$readyEntityCounterpart(world);
+        }
+
+        // No entity counterpart? Destroy this invalid item
+        if (entityCounterpart == null) {
+            entity.getItem().setCount(0);
+            entity.discard();
+            return true;
+        }
+
+        // Release the entity, make sure they are added to the world
+        if (entityCounterpart.isAddedToWorld()) {
+            ((EntityDualityCounterpart) entityCounterpart).actuallysize$escapeDuality();
+        } else {
+            entityCounterpart.revive();
+            world.addFreshEntity(entityCounterpart);
+        }
+
+        // Entity acquires position and velocity as if dropped
+        entityCounterpart.setPos(entity.position());
+        entityCounterpart.setDeltaMovement(entity.getDeltaMovement());
+        if (entityCounterpart instanceof Player) {
+
+            // Add ticks of grace impulse
+            GraceImpulsable imp = (GraceImpulsable) entityCounterpart;
+            imp.actuallysize$addGraceImpulse(40);
+
+            // If player, they must be momentum-notified
+            GOOMPlayerMomentumSync sync = new GOOMPlayerMomentumSync((Player) entityCounterpart);
+            sync.tryResolve();
+        }
+
+        entity.getItem().setCount(0);
+        entity.discard();
+        return true;
+    }
 }
