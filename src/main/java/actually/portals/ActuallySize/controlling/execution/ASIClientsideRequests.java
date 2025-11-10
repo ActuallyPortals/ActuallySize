@@ -1,5 +1,6 @@
 package actually.portals.ActuallySize.controlling.execution;
 
+import actually.portals.ActuallySize.ASIUtilities;
 import actually.portals.ActuallySize.ActuallyClientConfig;
 import actually.portals.ActuallySize.ActuallySizeInteractions;
 import actually.portals.ActuallySize.netcode.ASINetworkManager;
@@ -10,6 +11,7 @@ import actually.portals.ActuallySize.pickup.item.ASIPSHeldEntityItem;
 import actually.portals.ActuallySize.pickup.mixininterfaces.EntityDualityCounterpart;
 import actually.portals.ActuallySize.pickup.mixininterfaces.ItemDualityCounterpart;
 import actually.portals.ActuallySize.pickup.mixininterfaces.ItemEntityDualityHolder;
+import com.mojang.blaze3d.shaders.FogShape;
 import gunging.ootilities.GungingOotilitiesMod.exploring.ItemStackLocation;
 import gunging.ootilities.GungingOotilitiesMod.exploring.entities.ISEEntityLocation;
 import gunging.ootilities.GungingOotilitiesMod.exploring.entities.ISEEquipmentSlotted;
@@ -26,6 +28,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.RenderLevelStageEvent;
 import net.minecraftforge.client.event.RenderNameTagEvent;
+import net.minecraftforge.client.event.ViewportEvent;
 import net.minecraftforge.event.entity.EntityJoinLevelEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.eventbus.api.Event;
@@ -195,5 +198,20 @@ public class ASIClientsideRequests {
         // Send packet
         ASINSThrowTinyPacket packet = new ASINSThrowTinyPacket();
         ASINetworkManager.playerToServer(packet);
+    }
+
+    @SubscribeEvent
+    public static void OnFogRender(@NotNull ViewportEvent.RenderFog event) {
+
+        // ASI increases the fog distance for beegs
+        Entity beeg = event.getCamera().getEntity();
+        double beegSize = ASIUtilities.getEffectiveSize(beeg);
+        if (beegSize <= 1) { return; }
+
+        // Modify far plane
+        double fogEnd = event.getFarPlaneDistance();
+        fogEnd *= ASIUtilities.beegBalanceEnhance(fogEnd, 10, 0);
+        event.setFarPlaneDistance((float) fogEnd);
+        event.setCanceled(true);
     }
 }

@@ -400,7 +400,7 @@ public class ASIEventExecutionListener {
             // If the effect being added is hunger
             if (event.getEffectInstance().getEffect().equals(MobEffects.HUNGER)) {
                 double size = ASIUtilities.getEffectiveSize(event.getEntity());
-                duration.actuallysize$setDuration(OotilityNumbers.ceil(duration.actuallysize$getDuration() * ASIUtilities.beegBalanceResist(size * 2, 1, 0)));
+                duration.actuallysize$setDuration(OotilityNumbers.ceil(duration.actuallysize$getDuration() * ASIUtilities.beegBalanceResist(size * 1.5, 1, 0)));
                 return;
             }
         }
@@ -414,14 +414,8 @@ public class ASIEventExecutionListener {
             event.getEffectInstance().getEffect().equals(MobEffects.WITHER) ||
             event.getEffectInstance().getEffect().equals(MobEffects.SLOW_FALLING)) {
             double size = ASIUtilities.getEffectiveSize(event.getEntity());
-            duration.actuallysize$setDuration(OotilityNumbers.ceil(duration.actuallysize$getDuration() * ASIUtilities.beegBalanceResist(size * 2, 1, 0.1)));
+            duration.actuallysize$setDuration(OotilityNumbers.ceil(duration.actuallysize$getDuration() * ASIUtilities.beegBalanceResist(size * 1.5, 1, 0.1)));
             return;
-        }
-
-        // If the effect being added is blindness that doesn't even let you see your feet
-        if (event.getEffectInstance().getEffect().equals(MobEffects.BLINDNESS)) {
-            double size = ASIUtilities.getEffectiveSize(event.getEntity());
-            duration.actuallysize$setDuration(OotilityNumbers.ceil(duration.actuallysize$getDuration() * ASIUtilities.beegBalanceResist(size * 3, 1, 0)));
         }
     }
 
