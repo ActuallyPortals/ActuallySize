@@ -41,6 +41,7 @@
     "HorseMixin",
     "ItemStackMixin",
     "LivingEntityMixin",
+    "MobEffectInstanceMixin",
     "MobMixin",
     "ParrotMixin",
     "PersistentEntitySectionManagerMixin",

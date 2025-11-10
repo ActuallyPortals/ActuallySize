@@ -12,10 +12,7 @@ import actually.portals.ActuallySize.pickup.actions.ASIPSHoldingSyncAction;
 import actually.portals.ActuallySize.pickup.events.ASIPSFoodPropertiesEvent;
 import actually.portals.ActuallySize.pickup.events.ASIPSPickupToInventoryEvent;
 import actually.portals.ActuallySize.pickup.item.ASIPSHeldEntityItem;
-import actually.portals.ActuallySize.pickup.mixininterfaces.EntityDualityCounterpart;
-import actually.portals.ActuallySize.pickup.mixininterfaces.HoldPointConfigurable;
-import actually.portals.ActuallySize.pickup.mixininterfaces.ItemEntityDualityHolder;
-import actually.portals.ActuallySize.pickup.mixininterfaces.UseTimed;
+import actually.portals.ActuallySize.pickup.mixininterfaces.*;
 import actually.portals.ActuallySize.world.mixininterfaces.PreferentialOptionable;
 import gunging.ootilities.GungingOotilitiesMod.events.extension.ServersideEntityEquipmentChangeEvent;
 import gunging.ootilities.GungingOotilitiesMod.exploring.players.ISPExplorerStatements;
@@ -29,7 +26,6 @@ import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.GlowSquid;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.MobType;
 import net.minecraft.world.entity.animal.AbstractGolem;
 import net.minecraft.world.entity.animal.Animal;
 import net.minecraft.world.entity.player.Player;
@@ -393,6 +389,8 @@ public class ASIEventExecutionListener {
     @SubscribeEvent
     public static void OnEffectEvent(@NotNull MobEffectEvent.Added event) {
         if (!(event.getEntity() instanceof ServerPlayer)) { return; }
+        if (event.getEffectInstance().isInfiniteDuration()) { return; }
+        TimeDurationModifiable duration = (TimeDurationModifiable) event.getEffectInstance();
 
         /*
          * When ASI hunger mode is enabled, beegs are resistant to hunger effect
@@ -402,7 +400,7 @@ public class ASIEventExecutionListener {
             // If the effect being added is hunger
             if (event.getEffectInstance().getEffect().equals(MobEffects.HUNGER)) {
                 double size = ASIUtilities.getEffectiveSize(event.getEntity());
-                event.getEffectInstance().mapDuration((dur) -> OotilityNumbers.ceil(dur * ASIUtilities.beegBalanceResist(size, 1, 0.1)));
+                duration.actuallysize$setDuration(OotilityNumbers.ceil(duration.actuallysize$getDuration() * ASIUtilities.beegBalanceResist(size * 2, 1, 0)));
                 return;
             }
         }
@@ -416,14 +414,14 @@ public class ASIEventExecutionListener {
             event.getEffectInstance().getEffect().equals(MobEffects.WITHER) ||
             event.getEffectInstance().getEffect().equals(MobEffects.SLOW_FALLING)) {
             double size = ASIUtilities.getEffectiveSize(event.getEntity());
-            event.getEffectInstance().mapDuration((dur) -> OotilityNumbers.ceil(dur * ASIUtilities.beegBalanceResist(size, 1, 0.3)));
+            duration.actuallysize$setDuration(OotilityNumbers.ceil(duration.actuallysize$getDuration() * ASIUtilities.beegBalanceResist(size * 2, 1, 0.1)));
             return;
         }
 
         // If the effect being added is blindness that doesn't even let you see your feet
         if (event.getEffectInstance().getEffect().equals(MobEffects.BLINDNESS)) {
             double size = ASIUtilities.getEffectiveSize(event.getEntity());
-            event.getEffectInstance().mapDuration((dur) -> OotilityNumbers.ceil(dur * ASIUtilities.beegBalanceResist(size, 1, 0)));
+            duration.actuallysize$setDuration(OotilityNumbers.ceil(duration.actuallysize$getDuration() * ASIUtilities.beegBalanceResist(size * 3, 1, 0)));
         }
     }
 
