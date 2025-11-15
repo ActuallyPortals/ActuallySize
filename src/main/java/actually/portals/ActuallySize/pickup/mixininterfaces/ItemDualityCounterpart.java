@@ -125,4 +125,24 @@ public interface ItemDualityCounterpart {
      * @author Actually Portals
      */
     boolean actuallysize$isDualityActive();
+
+    /**
+     * @return To delete items with invalid enclosed entities, they
+     *         are popped for 5 ticks in a grace period giving them
+     *         time to buffer any changes they are supposed to make
+     *
+     * @since 1.0.0
+     * @author Actually Portals
+     */
+    @Nullable Boolean actuallysize$isInvalidityPopped();
+
+    /**
+     * @param pop To delete items with invalid enclosed entities, they
+     *         are popped for 5 ticks in a grace period giving them
+     *         time to buffer any changes they are supposed to make
+     *
+     * @since 1.0.0
+     * @author Actually Portals
+     */
+    void actuallysize$setInvalidityPopped(@Nullable Boolean pop);
 }

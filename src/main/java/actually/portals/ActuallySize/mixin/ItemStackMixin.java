@@ -125,7 +125,7 @@ public abstract class ItemStackMixin extends net.minecraftforge.common.capabilit
     public void actuallysize$setItemStackLocation(@Nullable ItemStackLocation<? extends Entity> who) {
 
         // Need to be an ASI Held Entity Item, of course
-        if ((who != null) && !(getItem() instanceof ASIPSHeldEntityItem)) { throw new UnsupportedOperationException("Only ASI Held Entity items may have holders. "); }
+        //if ((who != null) && !(getItem() instanceof ASIPSHeldEntityItem)) { throw new UnsupportedOperationException("Only ASI Held Entity items may have holders. "); }
 
         // Set
         actuallysize$dualityStackLocation = who;
@@ -135,7 +135,7 @@ public abstract class ItemStackMixin extends net.minecraftforge.common.capabilit
     public void actuallysize$setEntityCounterpart(@Nullable Entity who) {
 
         // Need to be an ASI Held Entity Item, of course
-        if ((who != null) && !(getItem() instanceof ASIPSHeldEntityItem)) { throw new UnsupportedOperationException("Only ASI Held Entity items may have entity counterparts. "); }
+        //if ((who != null) && !(getItem() instanceof ASIPSHeldEntityItem)) { throw new UnsupportedOperationException("Only ASI Held Entity items may have entity counterparts. "); }
 
         // Set
         actuallysize$entityCounterpart = who;
@@ -145,12 +145,20 @@ public abstract class ItemStackMixin extends net.minecraftforge.common.capabilit
     public void actuallysize$setItemEntityHolder(@Nullable ItemEntityDualityHolder who) {
 
         // Need to be an ASI Held Entity Item, of course
-        if ((who != null) && !(getItem() instanceof ASIPSHeldEntityItem)) { throw new UnsupportedOperationException("Only ASI Held Entity items may have holders. "); }
+        //if ((who != null) && !(getItem() instanceof ASIPSHeldEntityItem)) { throw new UnsupportedOperationException("Only ASI Held Entity items may have holders. "); }
 
         // Set
         actuallysize$dualityHolderCounterpart = who;
     }
 
+    @Unique
+    @Nullable Boolean actuallysize$invalidityPop;
+
+    @Override
+    public @Nullable Boolean actuallysize$isInvalidityPopped() { return actuallysize$invalidityPop; }
+
+    @Override
+    public void actuallysize$setInvalidityPopped(@Nullable Boolean pop) { actuallysize$invalidityPop = pop; }
 
     @Override
     public boolean actuallysize$isDualityActive() {

@@ -8,6 +8,7 @@ import actually.portals.ActuallySize.pickup.ASIPickupSystemManager;
 import actually.portals.ActuallySize.pickup.events.ASIPSPickupToInventoryEvent;
 import actually.portals.ActuallySize.pickup.holding.ASIPSHoldPoint;
 import actually.portals.ActuallySize.pickup.mixininterfaces.EntityDualityCounterpart;
+import actually.portals.ActuallySize.pickup.mixininterfaces.ItemDualityCounterpart;
 import actually.portals.ActuallySize.pickup.mixininterfaces.ItemEntityDualityHolder;
 import gunging.ootilities.GungingOotilitiesMod.exploring.ItemStackLocation;
 import gunging.ootilities.GungingOotilitiesMod.exploring.entities.ISEEntityLocation;
@@ -307,6 +308,8 @@ public class ASIPSPickupAction implements APIFriendlyProcess {
         ItemStack drop = ASIPickupSystemManager.generateHeldItem(tinyCast);
         stackLocation.setItemStack(drop);
         drop.setPopTime(5);
+        ItemDualityCounterpart itemDuality = (ItemDualityCounterpart) (Object) drop;
+        itemDuality.actuallysize$setInvalidityPopped(true);
         //HDA//ActuallySizeInteractions.Log("ASI &b HDP &7 Given player item");
 
         // Delete the item if activation fails
@@ -354,6 +357,8 @@ public class ASIPSPickupAction implements APIFriendlyProcess {
         ItemStack drop = ASIPickupSystemManager.generateHeldItem(tiny);
         stackLocation.setItemStack(drop);
         drop.setPopTime(5);
+        ItemDualityCounterpart itemDuality = (ItemDualityCounterpart) (Object) drop;
+        itemDuality.actuallysize$setInvalidityPopped(true);
         /*HDA*/ActuallySizeInteractions.LogHDA(getClass(), "PCK", "Item created and given");
 
         // Delete the entity from the world (real)

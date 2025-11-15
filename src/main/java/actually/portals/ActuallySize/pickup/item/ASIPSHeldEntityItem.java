@@ -15,6 +15,7 @@ import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
@@ -437,6 +438,10 @@ public class ASIPSHeldEntityItem extends Item {
      */
     public void resetFoodTick() { sizeFoodTick = 0; }
 
+    /**
+     * @author Actually Portals
+     * @since 1.0.0
+     */
     @Override
     public boolean onEntityItemUpdate(ItemStack stack, ItemEntity entity) {
         ItemDualityCounterpart itemDuality = (ItemDualityCounterpart) (Object) stack;
@@ -498,5 +503,63 @@ public class ASIPSHeldEntityItem extends Item {
         entity.getItem().setCount(0);
         entity.discard();
         return true;
+    }
+
+    /**
+     * @author Actually Portals
+     * @since 1.0.0
+     */
+    @Override
+    public boolean canEquip(ItemStack stack, EquipmentSlot armorType, Entity entity) {
+
+        /*
+         * Allows tinies to be put in armor slots T_T
+         */
+        return true;
+    }
+
+    @Override
+    public void inventoryTick(@NotNull ItemStack pStack, @NotNull Level pLevel, @NotNull Entity pEntity, int pSlotId, boolean pIsSelected) {
+
+        /*
+         * By the time the player tries to interact with this in any way,
+         * the item should seriously have a valid enclosed entity.
+         *
+         * Only on SERVER SIDE
+         */
+        if (pStack.getPopTime() < 1 && !pLevel.isClientSide) {
+            ItemDualityCounterpart itemDuality = (ItemDualityCounterpart) (Object) pStack;
+            Boolean pop = itemDuality.actuallysize$isInvalidityPopped();
+
+            // If it has not been popped yet, pop it
+            if (pop == null) {
+                itemDuality.actuallysize$setInvalidityPopped(true);
+                pStack.setPopTime(5);
+
+            // If it has completed its pop grace period
+            } else if (pop) {
+                itemDuality.actuallysize$setInvalidityPopped(false);
+
+                // Players are treated differently
+                if (((ASIPSHeldEntityItem)pStack.getItem()).isPlayer()) {
+                    if (pStack.getCount() > 1) { pStack.setCount(1); }  // Silly count cap
+
+                    // The entity counterpart MUST be active, or invalid
+                    Entity player = itemDuality.actuallysize$getEntityCounterpart();
+                    if (player == null) { pStack.setCount(0); }
+                    return;
+                }
+
+                // If not active, then it only exists as an item in inventory.
+                // If active, it HAS to be valid so no further processing is needed
+                Entity active = itemDuality.actuallysize$getEntityCounterpart();
+                if (active == null) {
+
+                    // Enclosed is invalid, item is invalid
+                    Entity enclosed = itemDuality.actuallysize$getEnclosedEntity(pLevel);
+                    if (enclosed == null) { pStack.setCount(0); }
+                }
+            }
+        }
     }
 }
