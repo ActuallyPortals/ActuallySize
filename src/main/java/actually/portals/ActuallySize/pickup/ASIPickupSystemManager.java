@@ -760,13 +760,14 @@ public class ASIPickupSystemManager {
 
         // Anything else goes, really
         HOLD_POINT_REGISTRY.registerHoldPoint(null, ASIPSHoldPoints.NOMF);
+        HOLD_POINT_REGISTRY.registerHoldPoint(null, ASIPSHoldPoints.NOMF_LOW);
         HOLD_POINT_REGISTRY.registerHoldPoint(null, ASIPSHoldPoints.HEAD);
         HOLD_POINT_REGISTRY.registerHoldPoint(null, ASIPSHoldPoints.HAT);
         HOLD_POINT_REGISTRY.registerHoldPoint(null, ASIPSHoldPoints.RIGHT_HAND);
         HOLD_POINT_REGISTRY.registerHoldPoint(null, ASIPSHoldPoints.LEFT_HAND);
         HOLD_POINT_REGISTRY.registerHoldPoint(null, ASIPSHoldPoints.RIGHT_FIST);
         HOLD_POINT_REGISTRY.registerHoldPoint(null, ASIPSHoldPoints.LEFT_FIST);
-        HOLD_POINT_REGISTRY.registerHoldPoint(null, ASIPSHoldPoints.COLLAR);
+        HOLD_POINT_REGISTRY.registerHoldPoint(null, ASIPSHoldPoints.NECKLACE);
         HOLD_POINT_REGISTRY.registerHoldPoint(null, ASIPSHoldPoints.RIGHT_SHOULDER);
         HOLD_POINT_REGISTRY.registerHoldPoint(null, ASIPSHoldPoints.LEFT_SHOULDER);
         HOLD_POINT_REGISTRY.registerHoldPoint(null, ASIPSHoldPoints.RIGHT_POCKET);

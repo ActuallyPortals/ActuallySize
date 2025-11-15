@@ -16,9 +16,11 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 
 /**
- * An extension for Pekhui's resizer mod that adds interactions
- * between entities of different scales, as well as gameplay
- * elements for players playing in other scales than normal.
+ * <b>Actually Size Interactions</b> ASI
+ * <br><br>
+ * A mod where size matters. It hooks onto existing size-changing mods (such as Pehkui) and changes
+ * how you interact with the world when beeg or smol, from picking up tinies to dealing massive
+ * crush damage to being carried away by water currents to being put in someone's pocket or shoulder.
  *
  * @since 1.0.0
  * @author Actually Portals

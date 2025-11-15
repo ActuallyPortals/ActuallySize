@@ -107,7 +107,7 @@ public class ActuallyServerConfig {
             .comment(" #### ----|    Allow Free Size    |----")
             .comment(" Gives players the option to freely choose whatever scale they want")
             .comment(" between 0.05x and 25x, to have as their default scale when joining.")
-            .define("allowFreeSize", false);
+            .define("allowFreeSize", true);
 
     /**
      * If beegs receive less damage and knockback from all sources

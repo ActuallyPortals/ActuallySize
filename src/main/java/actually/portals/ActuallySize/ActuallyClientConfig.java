@@ -182,7 +182,7 @@ public class ActuallyClientConfig {
     @NotNull private static final ForgeConfigSpec.ConfigValue<String> HOTBAR3_HOLD_POINT = CONFIG_BUILDER
             .comment(" ")
             .comment(" #### ----|    Hotbar #3    |----")
-            .define("hotbarHold3", "actuallysize:left_shoulder");
+            .define("hotbarHold3", "actuallysize:left_thigh");
     /**
      * @since 1.0.0
      */
@@ -196,21 +196,21 @@ public class ActuallyClientConfig {
     @NotNull private static final ForgeConfigSpec.ConfigValue<String> HOTBAR5_HOLD_POINT = CONFIG_BUILDER
             .comment(" ")
             .comment(" #### ----|    Hotbar #5    |----")
-            .define("hotbarHold5", "actuallysize:left_pocket");
+            .define("hotbarHold5", "actuallysize:right_thigh");
     /**
      * @since 1.0.0
      */
     @NotNull private static final ForgeConfigSpec.ConfigValue<String> HOTBAR6_HOLD_POINT = CONFIG_BUILDER
             .comment(" ")
             .comment(" #### ----|    Hotbar #6    |----")
-            .define("hotbarHold6", "actuallysize:right_thigh");
+            .define("hotbarHold6", "actuallysize:left_shoulder");
     /**
      * @since 1.0.0
      */
     @NotNull private static final ForgeConfigSpec.ConfigValue<String> HOTBAR7_HOLD_POINT = CONFIG_BUILDER
             .comment(" ")
             .comment(" #### ----|    Hotbar #7    |----")
-            .define("hotbarHold7", "actuallysize:left_thigh");
+            .define("hotbarHold7", "actuallysize:left_pocket");
     /**
      * @since 1.0.0
      */

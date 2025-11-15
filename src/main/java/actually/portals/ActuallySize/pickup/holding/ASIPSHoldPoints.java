@@ -275,8 +275,8 @@ public class ASIPSHoldPoints {
      *
      * @since 1.0.0
      */
-    @NotNull public static final ASIPSRegisterableHoldPoint COLLAR =  new ASIPSModelPartHoldPoint(
-            ResourceLocation.fromNamespaceAndPath(ActuallySizeInteractions.MODID, "collar"),
+    @NotNull public static final ASIPSRegisterableHoldPoint NECKLACE =  new ASIPSModelPartHoldPoint(
+            ResourceLocation.fromNamespaceAndPath(ActuallySizeInteractions.MODID, "necklace"),
             new ASIPSVanillaPoseProfile(Pose.STANDING, Pose.CROUCHING),
             new SVFLBit(0D/16D, -3.5D/16D, 2.5D/16D),
             new SVFLBit(0, 0, 0, 0.1, 0, 1.25, 0),
@@ -291,6 +291,18 @@ public class ASIPSHoldPoints {
             ResourceLocation.fromNamespaceAndPath(ActuallySizeInteractions.MODID, "nomf"),
             new ASIPSVanillaPoseProfile(Pose.SWIMMING, Pose.SWIMMING),
             new SVFLBit(0D/16D, 1D/16D, 3D/16D),
+            new SVFLBit(0, 0, 0, 0.07, 0, 1.4, 0),
+            new ASIMPLForwardNZVerticalNY("head"));
+    /**
+     * In front of the head of the player model as if holding with lips, presumably
+     * because your hands are busy with pickaxes or something, but one pixel lower.
+     *
+     * @since 1.0.0
+     */
+    @NotNull public static final ASIPSRegisterableHoldPoint NOMF_LOW =  new ASIPSModelPartHoldPoint(
+            ResourceLocation.fromNamespaceAndPath(ActuallySizeInteractions.MODID, "nomf_low"),
+            new ASIPSVanillaPoseProfile(Pose.SWIMMING, Pose.SWIMMING),
+            new SVFLBit(0D/16D, 0.05D/16D, 3D/16D),
             new SVFLBit(0, 0, 0, 0.07, 0, 1.4, 0),
             new ASIMPLForwardNZVerticalNY("head"));
     /**

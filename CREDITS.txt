@@ -5,6 +5,7 @@ Thanks to the modding community which helped indirectly this project by providin
 
 Kaupenjoe for their free modding tutorials in YouTube
 Kudos to the [Forge] mod loader team
+Kudos to the [Spongepowered] team
 Kudos to the [Pehkui] mod team
 Thanks to Lumin3ra [Pehkui Resizer], for guidance in hooking onto Pehkui
 Thanks to Bailey Hollingsworth [Ars Nouveau], the Containment Ritual proved a valuable example about serializing entities as Compound Tags.
