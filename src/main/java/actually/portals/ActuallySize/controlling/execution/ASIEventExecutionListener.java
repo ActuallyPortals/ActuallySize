@@ -27,6 +27,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.GlowSquid;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.animal.*;
+import net.minecraft.world.entity.animal.goat.Goat;
 import net.minecraft.world.entity.animal.horse.Horse;
 import net.minecraft.world.entity.boss.wither.WitherBoss;
 import net.minecraft.world.entity.monster.*;
@@ -395,7 +396,11 @@ public class ASIEventExecutionListener {
         } else if (edacious instanceof GlowSquid) {
             event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.NIGHT_VISION, 500, 0), 1F);
         } else if (edacious instanceof MagmaCube) {
-            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.FIRE_RESISTANCE, 500 * ((MagmaCube) edacious).getSize(), 0), 1F);
+            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.FIRE_RESISTANCE, 300 * ((MagmaCube) edacious).getSize(), 0), 1F);
+            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.HARM, 1, ((MagmaCube) edacious).getSize()), 1F);
+        } else if (edacious instanceof Blaze) {
+            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.FIRE_RESISTANCE, 600, 0), 1F);
+            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.HARM, 1, 3), 1F);
         } else if (edacious instanceof Slime) {
             event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.REGENERATION, 500, ((Slime) edacious).getSize()), 1F);
         } else if (edacious instanceof CaveSpider) {
@@ -433,7 +438,7 @@ public class ASIEventExecutionListener {
             event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.SATURATION, 2000, 0), 0.3F);
             event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.SATURATION, 2000, 1), 0.1F);
             event.setNutrition(OotilityNumbers.floor(event.getNutrition() * 1.5D));
-        } else if (edacious instanceof Cow) {
+        } else if (edacious instanceof Cow || edacious instanceof Goat) {
             event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.DAMAGE_BOOST, 2000, 0), 0.3F);
             event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.DAMAGE_BOOST, 2000, 1), 0.1F);
             event.setNutrition(OotilityNumbers.floor(event.getNutrition() * 1.5D));
