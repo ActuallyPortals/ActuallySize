@@ -4,6 +4,7 @@ import actually.portals.ActuallySize.ASIUtilities;
 import actually.portals.ActuallySize.pickup.holding.model.ASIPSModelPartLinker;
 import actually.portals.ActuallySize.pickup.mixininterfaces.EntityDualityCounterpart;
 import actually.portals.ActuallySize.pickup.mixininterfaces.ItemEntityDualityHolder;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraftforge.event.entity.EntityTeleportEvent;
 import org.jetbrains.annotations.NotNull;
@@ -114,7 +115,26 @@ public abstract class ASIPSHoldPoint {
      * @author Actually Portals
      * @since 1.0.0
      */
-    public boolean canBeEscapedByStealing(@NotNull ItemEntityDualityHolder holder, @NotNull EntityDualityCounterpart entityDuality, @NotNull ItemEntityDualityHolder pickpocket) { return true; }
+    public boolean canBeEscapedByStealing(@NotNull ItemEntityDualityHolder holder, @NotNull EntityDualityCounterpart entityDuality, @NotNull ItemEntityDualityHolder pickpocket) {
+
+        // Creative mode players can bypass steal lock of survival players, and OP players can bypass non-op steal lock
+        if (pickpocket instanceof ServerPlayer) {
+            ServerPlayer yoink = (ServerPlayer) pickpocket;
+            boolean yoinkCreative = yoink.isCreative();
+
+            // Only another creative player can resist
+            if (yoinkCreative) {
+                if (holder instanceof ServerPlayer) {
+                    ServerPlayer grabby = (ServerPlayer) holder;
+                    return !grabby.isCreative();
+
+                    // Creative mode can always steal from mobs
+                } else { return true; }
+            }
+        }
+
+        // By default, false I guess
+        return false; }
 
     /**
      * Some "Hold points" don't actually force the entity to be held in your person, but vaguely mean your
@@ -143,6 +163,20 @@ public abstract class ASIPSHoldPoint {
      * @since 1.0.0
      */
     public boolean isDangling(@NotNull ItemEntityDualityHolder holder, @NotNull EntityDualityCounterpart entityDuality) { return false; }
+
+    /**
+     * @param holder The beeg doing the holding
+     * @param entityDuality The tiny doing the struggling
+     * @param struggles The ticks recorded for the tiny struggle
+     *
+     * @return If this tiny was able to escape this slot
+     *
+     * @author Actually Portals
+     * @since 1.0.0
+     */
+    public boolean canBeEscapedByStruggling(@NotNull ItemEntityDualityHolder holder, @NotNull EntityDualityCounterpart entityDuality, ArrayList<Long> struggles) {
+        return false;
+    }
 
     /**
      * Fascinatingly, we can make it so that you can glide off a slot with ease just

@@ -258,7 +258,7 @@ public class ASIPSPickupAction implements APIFriendlyProcess {
             // Kinda silly to pickup something you are already holding
             if (otherBeeg.equals(beeg)) { return false; }
 
-            // The slot they are in might prevent them from being yoinked
+            // The slot they are in might prevent them from being yoinked, this is only checked server-side
             if (!otherBeegHoldPointOptions.canBeEscapedByStealing(otherBeeg, entityDuality, (ItemEntityDualityHolder) beeg)) {
                 //ActuallySizeInteractions.Log("&c&l Yoink Security!");
                 return false; }

@@ -115,6 +115,11 @@ public class ASINetworkManager {
                 .encoder(ASINSThrowTinyPacket::encode)
                 .decoder(ASINSThrowTinyPacket::new)
                 .consumerMainThread(ASINSThrowTinyPacket::handle).add();
+
+        MAIN_CHANNEL.messageBuilder(ASINSStrugglePacket.class, i++, NetworkDirection.PLAY_TO_SERVER)
+                .encoder(ASINSStrugglePacket::encode)
+                .decoder(ASINSStrugglePacket::new)
+                .consumerMainThread(ASINSStrugglePacket::handle).add();
     }
 
     /**

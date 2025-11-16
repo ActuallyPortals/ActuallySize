@@ -31,7 +31,8 @@ public class ASIPSHoldPoints {
             new ASIPSVanillaPoseProfile(Pose.SITTING, Pose.CROUCHING),
             new SVFLBit(0D/16D, 5.8D/16D, -1D/16D),
             new SVFLBit(0, 0, 0, 0.1, 0, 1.8, 0),
-            new ASIMPLForwardNZVerticalNY("head"));
+            new ASIMPLForwardNZVerticalNY("head"))
+            .withElytraDismount(true).withSustainScale(0.5).withStruggleThreshold(1).withRidingDismount(true);
     /**
      * @since 1.0.0
      */
@@ -40,7 +41,8 @@ public class ASIPSHoldPoints {
             new ASIPSVanillaPoseProfile(Pose.STANDING, Pose.CROUCHING),
             new SVFLBit(-3D/16D, -2.5D/16D, 2.5D/16D),
             new SVFLBit(0, 0, 0, 0.1, 0, 1.25, 0),
-            new ASIMPLForwardNZVerticalNY("body"));
+            new ASIMPLForwardNZVerticalNY("body"))
+            .withStruggleThreshold(30).withStruggleRequirement(5).withRidingDismount(true);
     /**
      * @since 1.0.0
      */
@@ -49,7 +51,8 @@ public class ASIPSHoldPoints {
             new ASIPSVanillaPoseProfile(Pose.CROUCHING, Pose.CROUCHING),
             new SVFLBit(1.5D/16D, 0D/16D, 0.6D/16D),
             new SVFLBit(0.3, 0, 0, 0, 0, 0.7, 0),
-            new ASIMPLForwardNZVerticalNY("left_leg"));
+            new ASIMPLForwardNZVerticalNY("left_leg"))
+            .withStruggleThreshold(30).withStruggleRequirement(8).withRidingDismount(true);
     /**
      * @since 1.0.0
      */
@@ -58,7 +61,8 @@ public class ASIPSHoldPoints {
             new ASIPSVanillaPoseProfile(Pose.SWIMMING, Pose.SWIMMING),
             new SVFLBit(0D/16D, -11.5D/16D, -1D/16D),
             new SVFLBit(-0.15, 0, 0, 0, 0, 0.1, 0),
-            new ASIMPLForwardNZVerticalNY("right_leg"));
+            new ASIMPLForwardNZVerticalNY("right_leg"))
+            .withStruggleThreshold(30).withStruggleRequirement(13).withStealLock(true).withTeleportLock(true);
     /**
      * A hold point that positions the held entity in the mainhand of the player model.
      *
@@ -69,7 +73,8 @@ public class ASIPSHoldPoints {
             new ASIPSVanillaPoseProfile(Pose.STANDING, Pose.CROUCHING),
             new SVFLBit(-0.5D/16D, -8.5D/16D, 0.2D/16D),
             new SVFLBit(-0.4, 0, 0, 0.2, 0, 1.2, 0),
-            new ASIMPLForwardNZVerticalNY("right_arm"));
+            new ASIMPLForwardNZVerticalNY("right_arm"))
+            .withStruggleRequirement(13).withStruggleThreshold(40);
     /**
      * A hold point that positions the held entity in the mainhand of the player model.
      *
@@ -80,7 +85,8 @@ public class ASIPSHoldPoints {
             new ASIPSVanillaPoseProfile(Pose.STANDING, Pose.CROUCHING),
             new SVFLBit(0.5D/16D, -8.5D/16D, 0.2D/16D),
             new SVFLBit(0.4, 0, 0, 0.2, 0, 1.2, 0),
-            new ASIMPLForwardNZVerticalNY("left_arm"));
+            new ASIMPLForwardNZVerticalNY("left_arm"))
+            .withStruggleRequirement(13).withStruggleThreshold(40);
     /**
      * A hold point that positions the held entity in front of you
      *
@@ -89,7 +95,8 @@ public class ASIPSHoldPoints {
     @NotNull public static final ASIPSRegisterableHoldPoint PINCH =  new ASIPSRelativeFacingHold(
             ResourceLocation.fromNamespaceAndPath(ActuallySizeInteractions.MODID, "pinch"),
             new ASIPSVanillaPoseProfile(Pose.STANDING, Pose.SPIN_ATTACK),
-            new SVFLBit(-0.1, 0, 0.2, 0.2, 0, 1.6, 0));
+            new SVFLBit(-0.1, 0, 0.2, 0.2, 0, 1.6, 0))
+            .withDangling(true);
     //endregion
 
     /**
@@ -102,7 +109,8 @@ public class ASIPSHoldPoints {
             new ASIPSVanillaPoseProfile(Pose.STANDING, Pose.CROUCHING),
             new SVFLBit(0D/16D, -9D/16D, 0.2D/16D),
             new SVFLBit(-0.4, 0, 0, 0.2, 0, 1.2, 0),
-            new ASIMPLForwardNZVerticalNY("right_arm"));
+            new ASIMPLForwardNZVerticalNY("right_arm"))
+            .withStruggleRequirement(13).withStruggleThreshold(40);
     /**
      * A hold point that positions the held entity in the offhand of the player model.
      *
@@ -113,7 +121,8 @@ public class ASIPSHoldPoints {
             new ASIPSVanillaPoseProfile(Pose.STANDING, Pose.CROUCHING),
             new SVFLBit(0D/16D, -9D/16D, 0.2D/16D),
             new SVFLBit(0.4, 0, 0, 0.2, 0, 1.2, 0),
-            new ASIMPLForwardNZVerticalNY("left_arm"));
+            new ASIMPLForwardNZVerticalNY("left_arm"))
+            .withStruggleRequirement(13).withStruggleThreshold(40);
     /**
      * A powerful hold point where tinies are held deep in the right fist
      *
@@ -124,7 +133,8 @@ public class ASIPSHoldPoints {
             new ASIPSVanillaPoseProfile(Pose.STANDING, Pose.CROUCHING),
             new SVFLBit(0D/16D, -8.7D/16D, -0.8D/16D),
             new SVFLBit(-0.4, 0, 0, 0.2, 0, 1.2, 0),
-            new ASIMPLForwardNZVerticalNY("right_arm"));
+            new ASIMPLForwardNZVerticalNY("right_arm"))
+            .withStealLock(true);
     /**
      * A powerful hold point where tinies are held deep in the left fist
      *
@@ -135,7 +145,8 @@ public class ASIPSHoldPoints {
             new ASIPSVanillaPoseProfile(Pose.STANDING, Pose.CROUCHING),
             new SVFLBit(0D/16D, -8.7D/16D, -0.8D/16D),
             new SVFLBit(0.4, 0, 0, 0.2, 0, 1.2, 0),
-            new ASIMPLForwardNZVerticalNY("left_arm"));
+            new ASIMPLForwardNZVerticalNY("left_arm"))
+            .withStealLock(true);
     /**
      * A hold point that positions the held entity on the head of the player model.
      *
@@ -146,7 +157,8 @@ public class ASIPSHoldPoints {
             new ASIPSVanillaPoseProfile(Pose.SITTING, Pose.CROUCHING),
             new SVFLBit(0D/16D, 5.8D/16D, 0D/16D),
             new SVFLBit(0, 0, 0, 0, 0, 1.8, 0),
-            new ASIMPLForwardNZVerticalNY("head"));
+            new ASIMPLForwardNZVerticalNY("head"))
+            .withElytraDismount(true).withSustainScale(1.2).withStruggleThreshold(1).withRidingDismount(true);
     /**
      * A hold point that positions the held entity on the head of the player model.
      *
@@ -157,7 +169,8 @@ public class ASIPSHoldPoints {
             new ASIPSVanillaPoseProfile(Pose.SITTING, Pose.CROUCHING),
             new SVFLBit(0D/16D, 5.8D/16D, 3D/16D),
             new SVFLBit(0, 0, 0, 0.1, 0, 1.8, 0),
-            new ASIMPLForwardNZVerticalNY("head"));
+            new ASIMPLForwardNZVerticalNY("head"))
+            .withElytraDismount(true).withSustainScale(0.5).withStruggleThreshold(1).withRidingDismount(true);
     /**
      * A hold point that positions the held entity in the right shoulder of the player model.
      *
@@ -168,7 +181,8 @@ public class ASIPSHoldPoints {
             new ASIPSVanillaPoseProfile(Pose.SITTING, Pose.CROUCHING),
             new SVFLBit(-5.5D/16D, -1.2D/16D, 0.5D/16D),
             new SVFLBit(-0.3, 0, 0, 0, 0, 1.4, 0),
-            new ASIMPLForwardNZVerticalNY("body"));
+            new ASIMPLForwardNZVerticalNY("body"))
+            .withElytraDismount(true).withStruggleThreshold(1).withRidingDismount(true);
     /**
      * A hold point that positions the held entity in the left shoulder of the player model.
      *
@@ -179,7 +193,8 @@ public class ASIPSHoldPoints {
             new ASIPSVanillaPoseProfile(Pose.SITTING, Pose.CROUCHING),
             new SVFLBit(5.5D/16D, -1.2D/16D, 0.5D/16D),
             new SVFLBit(0.3, 0, 0, 0, 0, 1.4, 0),
-            new ASIMPLForwardNZVerticalNY("body"));
+            new ASIMPLForwardNZVerticalNY("body"))
+            .withElytraDismount(true).withStruggleThreshold(1).withRidingDismount(true);
     /**
      * A hold point that positions the held entity in the right pocket of the player model.
      *
@@ -190,7 +205,8 @@ public class ASIPSHoldPoints {
             new ASIPSVanillaPoseProfile(Pose.CROUCHING, Pose.CROUCHING),
             new SVFLBit(-3.8D/16D, -11D/16D, 1.2D/16D),
             new SVFLBit(-0.3, 0, 0, 0, 0, 1.0, 0),
-            new ASIMPLForwardNZVerticalNY("body"));
+            new ASIMPLForwardNZVerticalNY("body"))
+            .withStruggleThreshold(30).withStruggleRequirement(8).withRidingDismount(true);
     /**
      * A hold point that positions the held entity in the left pocket of the player model.
      *
@@ -201,7 +217,8 @@ public class ASIPSHoldPoints {
             new ASIPSVanillaPoseProfile(Pose.CROUCHING, Pose.CROUCHING),
             new SVFLBit(3.8D/16D, -11D/16D, 1.2D/16D),
             new SVFLBit(0.3, 0, 0, 0, 0, 1.0, 0),
-            new ASIMPLForwardNZVerticalNY("body"));
+            new ASIMPLForwardNZVerticalNY("body"))
+            .withStruggleThreshold(30).withStruggleRequirement(8).withRidingDismount(true);
     /**
      * A hold point that positions the held entity in the right thigh of the player model,
      * essentially the right pocket but just a little lower so that it swings when you walk
@@ -213,7 +230,8 @@ public class ASIPSHoldPoints {
             new ASIPSVanillaPoseProfile(Pose.CROUCHING, Pose.CROUCHING),
             new SVFLBit(-1.5D/16D, -3D/16D, 0.6D/16D),
             new SVFLBit(-0.3, 0, 0, 0, 0, 0.7, 0),
-            new ASIMPLForwardNZVerticalNY("right_leg"));
+            new ASIMPLForwardNZVerticalNY("right_leg"))
+            .withStruggleThreshold(30).withStruggleRequirement(8).withRidingDismount(true);
     /**
      * A hold point that positions the held entity in the left thigh of the player model,
      * essentially the left pocket but just a little lower so that it swings when you walk
@@ -225,7 +243,8 @@ public class ASIPSHoldPoints {
             new ASIPSVanillaPoseProfile(Pose.CROUCHING, Pose.CROUCHING),
             new SVFLBit(1.5D/16D, -3D/16D, 0.6D/16D),
             new SVFLBit(0.3, 0, 0, 0, 0, 0.7, 0),
-            new ASIMPLForwardNZVerticalNY("left_leg"));
+            new ASIMPLForwardNZVerticalNY("left_leg"))
+            .withStruggleThreshold(30).withStruggleRequirement(8).withRidingDismount(true);
     /**
      * A hold point that positions the held entity in the right boot of the player model.
      *
@@ -236,7 +255,8 @@ public class ASIPSHoldPoints {
             new ASIPSVanillaPoseProfile(Pose.SWIMMING, Pose.SWIMMING),
             new SVFLBit(0D/16D, -11.5D/16D, 1D/16D),
             new SVFLBit(-0.15, 0, 0, 0, 0, 0.1, 0),
-            new ASIMPLForwardNZVerticalNY("right_leg"));
+            new ASIMPLForwardNZVerticalNY("right_leg"))
+            .withStruggleThreshold(30).withStruggleRequirement(13).withStealLock(true).withTeleportLock(true);
     /**
      * A hold point that positions the held entity in the left boot of the player model.
      *
@@ -247,7 +267,8 @@ public class ASIPSHoldPoints {
             new ASIPSVanillaPoseProfile(Pose.SWIMMING, Pose.SWIMMING),
             new SVFLBit(0D/16D, -11.5D/16D, 1D/16D),
             new SVFLBit(0.15, 0, 0, 0, 0, 0.1, 0),
-            new ASIMPLForwardNZVerticalNY("left_leg"));
+            new ASIMPLForwardNZVerticalNY("left_leg"))
+            .withStruggleThreshold(30).withStruggleRequirement(13).withStealLock(true).withTeleportLock(true);
     /**
      * Something around belly height, such as those wide pockets hoodies have
      *
@@ -258,7 +279,8 @@ public class ASIPSHoldPoints {
             new ASIPSVanillaPoseProfile(Pose.STANDING, Pose.CROUCHING),
             new SVFLBit(0D/16D, -9.5D/16D, 2.5D/16D),
             new SVFLBit(0, 0, 0, 0.1, 0, 1.25, 0),
-            new ASIMPLForwardNZVerticalNY("body"));
+            new ASIMPLForwardNZVerticalNY("body"))
+            .withStruggleThreshold(30).withStruggleRequirement(5).withRidingDismount(true);
     /**
      * Something around chest height and to the side, such as those pockets shirts sometimes have
      *
@@ -269,7 +291,8 @@ public class ASIPSHoldPoints {
             new ASIPSVanillaPoseProfile(Pose.STANDING, Pose.CROUCHING),
             new SVFLBit(3D/16D, -2.5D/16D, 2.5D/16D),
             new SVFLBit(0, 0, 0, 0.1, 0, 1.25, 0),
-            new ASIMPLForwardNZVerticalNY("body"));
+            new ASIMPLForwardNZVerticalNY("body"))
+            .withStruggleThreshold(30).withStruggleRequirement(5).withRidingDismount(true);
     /**
      * Something around chest height, as if dangling from a necklace or something
      *
@@ -280,7 +303,8 @@ public class ASIPSHoldPoints {
             new ASIPSVanillaPoseProfile(Pose.STANDING, Pose.CROUCHING),
             new SVFLBit(0D/16D, -3.5D/16D, 2.5D/16D),
             new SVFLBit(0, 0, 0, 0.1, 0, 1.25, 0),
-            new ASIMPLForwardNZVerticalNY("body"));
+            new ASIMPLForwardNZVerticalNY("body"))
+            .withStruggleThreshold(30).withStruggleRequirement(6).withRidingDismount(true);
     /**
      * In front of the head of the player model as if holding with lips, presumably
      * because your hands are busy with pickaxes or something.
@@ -292,7 +316,8 @@ public class ASIPSHoldPoints {
             new ASIPSVanillaPoseProfile(Pose.SWIMMING, Pose.SWIMMING),
             new SVFLBit(0D/16D, 1D/16D, 3D/16D),
             new SVFLBit(0, 0, 0, 0.07, 0, 1.4, 0),
-            new ASIMPLForwardNZVerticalNY("head"));
+            new ASIMPLForwardNZVerticalNY("head"))
+            .withStruggleThreshold(30).withStruggleRequirement(13).withTeleportLock(true);
     /**
      * In front of the head of the player model as if holding with lips, presumably
      * because your hands are busy with pickaxes or something, but one pixel lower.
@@ -304,7 +329,8 @@ public class ASIPSHoldPoints {
             new ASIPSVanillaPoseProfile(Pose.SWIMMING, Pose.SWIMMING),
             new SVFLBit(0D/16D, 0.05D/16D, 3D/16D),
             new SVFLBit(0, 0, 0, 0.07, 0, 1.4, 0),
-            new ASIMPLForwardNZVerticalNY("head"));
+            new ASIMPLForwardNZVerticalNY("head"))
+            .withStruggleThreshold(30).withStruggleRequirement(13).withTeleportLock(true);
     /**
      * @since 1.0.0
      */
@@ -313,5 +339,6 @@ public class ASIPSHoldPoints {
             new ASIPSVanillaPoseProfile(Pose.SWIMMING, Pose.CROUCHING),
             new SVFLBit(0D/16D, -13D/16D, 1D/16D),
             new SVFLBit(0, 0, 0, 0, 0, 1, 0),
-            new ASIMPLForwardNZVerticalNY("body"));
+            new ASIMPLForwardNZVerticalNY("body"))
+            .withStruggleThreshold(20).withStruggleRequirement(7).withTeleportLock(true).withStealLock(true);
 }

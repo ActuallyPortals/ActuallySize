@@ -1,19 +1,28 @@
 package actually.portals.ActuallySize.mixin;
 
+import actually.portals.ActuallySize.netcode.ASINetworkManager;
+import actually.portals.ActuallySize.netcode.packets.serverbound.ASINSStrugglePacket;
 import actually.portals.ActuallySize.pickup.mixininterfaces.EntityDualityCounterpart;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.mojang.authlib.GameProfile;
+import gunging.ootilities.GungingOotilitiesMod.scheduling.SchedulingManager;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.AbstractClientPlayer;
+import net.minecraft.client.player.Input;
 import net.minecraft.client.player.LocalPlayer;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(LocalPlayer.class)
 public abstract class LocalPlayerMixin extends AbstractClientPlayer {
+
+    @Shadow public Input input;
 
     public LocalPlayerMixin(ClientLevel pClientLevel, GameProfile pGameProfile) {
         super(pClientLevel, pGameProfile);
@@ -37,6 +46,29 @@ public abstract class LocalPlayerMixin extends AbstractClientPlayer {
             cir.setReturnValue(false);
             cir.cancel();
         }
+    }
+
+    @Unique
+    boolean actuallysize$wasStruggling;
+
+    @Inject(method = "tick", at = @At(value = "RETURN"))
+    public void onStruggle(CallbackInfo ci) {
+
+        /*
+         * Struggle packet sent
+         */
+        EntityDualityCounterpart dualityEntity = (EntityDualityCounterpart) this;
+        if (wantsToStopRiding() && dualityEntity.actuallysize$isHeld()) {
+            this.input.shiftKeyDown = false;
+
+            // Only struggle on fresh presses
+            if (!actuallysize$wasStruggling) {
+                actuallysize$wasStruggling = true;
+                ASINSStrugglePacket packet = new ASINSStrugglePacket(SchedulingManager.getClientTicks());
+                ASINetworkManager.playerToServer(packet);
+
+            }
+        } else { actuallysize$wasStruggling = false; }
     }
 
     /*      Despite it being disabled when passenger, there is no problem when held

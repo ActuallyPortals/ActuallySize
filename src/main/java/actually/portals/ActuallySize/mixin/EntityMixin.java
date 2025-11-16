@@ -3,13 +3,13 @@ package actually.portals.ActuallySize.mixin;
 import actually.portals.ActuallySize.ASIUtilities;
 import actually.portals.ActuallySize.ActuallyServerConfig;
 import actually.portals.ActuallySize.ActuallySizeInteractions;
-import actually.portals.ActuallySize.netcode.packets.serverbound.ASINSPreferredSize;
 import actually.portals.ActuallySize.pickup.ASIPickupSystemManager;
 import actually.portals.ActuallySize.pickup.actions.*;
 import actually.portals.ActuallySize.pickup.holding.ASIPSHoldPoint;
 import actually.portals.ActuallySize.pickup.holding.points.ASIPSHoldPointRegistry;
 import actually.portals.ActuallySize.pickup.holding.points.ASIPSRegisterableHoldPoint;
 import actually.portals.ActuallySize.pickup.holding.model.ASIPSModelPartInfo;
+import actually.portals.ActuallySize.pickup.holding.pose.ASIPSTinyPosedHold;
 import actually.portals.ActuallySize.pickup.mixininterfaces.*;
 import actually.portals.ActuallySize.world.mixininterfaces.AmountMatters;
 import com.llamalad7.mixinextras.expression.Definition;
@@ -147,6 +147,10 @@ public abstract class EntityMixin extends net.minecraftforge.common.capabilities
         ASIPSHoldPoint hold = dualityEntity.actuallysize$getHoldPoint();
         ItemEntityDualityHolder holder = dualityEntity.actuallysize$getItemEntityHolder();
         if (hold != null && holder != null) {
+
+            // For players, the Tiny Posed Hold configuration takes priority
+            Object me = (Object) this;
+            if (me instanceof Player && hold instanceof ASIPSTinyPosedHold) {  return; }
 
             // Swimming state is controlled by slot
             boolean shouldSwim = hold.isDangling(holder, dualityEntity);
