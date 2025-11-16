@@ -422,8 +422,10 @@ public class ASIEventExecutionListener {
             event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 2000, 0), 1F);
             event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 2000, 1), 0.2F);
         } else if (edacious instanceof SnowGolem) {
-            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.REGENERATION, 2000, 0), 1F);
-            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.REGENERATION, 2000, 1), 0.2F);
+            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.REGENERATION, 4000, 0), 1F);
+            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.REGENERATION, 4000, 1), 0.2F);
+            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.MOVEMENT_SPEED, 4000, 0), 0.2F);
+            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.JUMP, 4000, 0), 0.2F);
         } else if (edacious instanceof AbstractSchoolingFish) {
             event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.MOVEMENT_SPEED, 2000, 0), 1F);
             event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.MOVEMENT_SPEED, 2000, 1), 0.2F);
