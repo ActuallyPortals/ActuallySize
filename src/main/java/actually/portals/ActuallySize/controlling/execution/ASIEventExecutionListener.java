@@ -26,8 +26,11 @@ import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.GlowSquid;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.animal.AbstractGolem;
-import net.minecraft.world.entity.animal.Animal;
+import net.minecraft.world.entity.animal.*;
+import net.minecraft.world.entity.animal.horse.Horse;
+import net.minecraft.world.entity.boss.wither.WitherBoss;
+import net.minecraft.world.entity.monster.*;
+import net.minecraft.world.entity.monster.warden.Warden;
 import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.EntityTeleportEvent;
@@ -351,13 +354,6 @@ public class ASIEventExecutionListener {
          * Some entities simply have special effects
          */
         LivingEntity edacious = event.getEntity();
-        if (edacious instanceof Player) {
-            event.setSaturation(event.getSaturation() + (float) (10 * ASIUtilities.beegBalanceEnhance(event.getSize(), 4, 0.25)));
-
-        // Funny glow squid with night vision
-        } else if (edacious instanceof GlowSquid) {
-            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.NIGHT_VISION, 500, 0), 1F);
-        }
 
         // Animals have saturation
         if (edacious instanceof Animal) {
@@ -376,9 +372,81 @@ public class ASIEventExecutionListener {
             event.setSaturation(0);
         }
 
-        // Raiders have saturation
+        // Raiders give various effects
         if (edacious.getType().is(EntityTypeTags.RAIDERS)) {
+            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.NIGHT_VISION, 500, 0), 0.1F);
+            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.HERO_OF_THE_VILLAGE, 500, 0), 0.1F);
+            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.WITHER, 500, 0), 0.1F);
+            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.DOLPHINS_GRACE, 500, 0), 0.1F);
+            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.SLOW_FALLING, 500, 0), 0.1F);
+            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.DIG_SPEED, 500, 0), 0.1F);
+            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.DIG_SLOWDOWN, 500, 0), 0.1F);
+            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.REGENERATION, 500, 0), 0.1F);
+            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.FIRE_RESISTANCE, 500, 0), 0.1F);
+            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.MOVEMENT_SPEED, 500, 0), 0.1F);
+            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.HERO_OF_THE_VILLAGE, 500, 2), 0.02F);
+        }
+
+        // Entity-type specifics
+        if (edacious instanceof Player) {
+            event.setSaturation(event.getSaturation() + (float) (10 * ASIUtilities.beegBalanceEnhance(event.getSize(), 4, 0.25)));
+
+        // Funny glow squid with night vision
+        } else if (edacious instanceof GlowSquid) {
             event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.NIGHT_VISION, 500, 0), 1F);
+        } else if (edacious instanceof MagmaCube) {
+            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.FIRE_RESISTANCE, 500 * ((MagmaCube) edacious).getSize(), 0), 1F);
+        } else if (edacious instanceof Slime) {
+            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.REGENERATION, 500, ((Slime) edacious).getSize()), 1F);
+        } else if (edacious instanceof CaveSpider) {
+            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.HEAL, 1, 0), 1F);
+        } else if (edacious instanceof Spider) {
+            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.HEAL, 1, 1), 1F);
+        } else if (edacious instanceof Endermite) {
+            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.DAMAGE_BOOST, 200, 0), 1F);
+        } else if (edacious instanceof EnderMan) {
+            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.DAMAGE_BOOST, 500, 1), 1F);
+        } else if (edacious instanceof Ghast) {
+            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.DAMAGE_RESISTANCE, 500, 0), 1F);
+        } else if (edacious instanceof Guardian) {
+            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.DIG_SPEED, 500, 0), 1F);
+        } else if (edacious instanceof ElderGuardian) {
+            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.DIG_SPEED, 3500, 2), 1F);
+        } else if (edacious instanceof MushroomCow || edacious instanceof Parrot) {
+            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.LUCK, 2000, 0), 1F);
+            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.LUCK, 2000, 1), 0.2F);
+        } else if (edacious instanceof Panda) {
+            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.DAMAGE_RESISTANCE, 2000, 0), 1F);
+            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.DAMAGE_RESISTANCE, 2000, 1), 0.2F);
+        } else if (edacious instanceof IronGolem) {
+            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 2000, 0), 1F);
+            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 2000, 1), 0.2F);
+        } else if (edacious instanceof SnowGolem) {
+            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.REGENERATION, 2000, 0), 1F);
+            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.REGENERATION, 2000, 1), 0.2F);
+        } else if (edacious instanceof AbstractSchoolingFish) {
+            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.MOVEMENT_SPEED, 2000, 0), 1F);
+            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.MOVEMENT_SPEED, 2000, 1), 0.2F);
+        } else if (edacious instanceof Pig || edacious instanceof Chicken) {
+            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.SATURATION, 2000, 0), 0.3F);
+            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.SATURATION, 2000, 1), 0.1F);
+            event.setNutrition(OotilityNumbers.floor(event.getNutrition() * 1.5D));
+        } else if (edacious instanceof Cow) {
+            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.DAMAGE_BOOST, 2000, 0), 0.3F);
+            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.DAMAGE_BOOST, 2000, 1), 0.1F);
+            event.setNutrition(OotilityNumbers.floor(event.getNutrition() * 1.5D));
+        } else if (edacious instanceof Horse) {
+            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.DAMAGE_BOOST, 2000, 0), 1F);
+            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.DAMAGE_BOOST, 2000, 1), 0.2F);
+        } else if (edacious instanceof WitherBoss) {
+            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.HEALTH_BOOST, 8000, 0), 1F);
+            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.HEALTH_BOOST, 8000, 1), 0.2F);
+            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.FIRE_RESISTANCE, 8000, 0), 1F);
+        } else if (edacious instanceof Warden) {
+            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.WEAKNESS, 4000, 0), 1F);
+            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.WEAKNESS, 4000, 1), 0.2F);
+            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.UNLUCK, 4000, 0), 1F);
+            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.ABSORPTION, 4000, 4), 1F);
         }
     }
 
@@ -401,6 +469,14 @@ public class ASIEventExecutionListener {
             if (event.getEffectInstance().getEffect().equals(MobEffects.HUNGER)) {
                 double size = ASIUtilities.getEffectiveSize(event.getEntity());
                 duration.actuallysize$setDuration(OotilityNumbers.ceil(duration.actuallysize$getDuration() * ASIUtilities.beegBalanceResist(size * 1.5, 1, 0)));
+                return;
+            }
+
+        // Without it, they are even more resistant
+        } else {
+            if (event.getEffectInstance().getEffect().equals(MobEffects.HUNGER)) {
+                double size = ASIUtilities.getEffectiveSize(event.getEntity());
+                duration.actuallysize$setDuration(OotilityNumbers.ceil(duration.actuallysize$getDuration() * ASIUtilities.beegBalanceResist(size * 2.5, 1, 0)));
                 return;
             }
         }

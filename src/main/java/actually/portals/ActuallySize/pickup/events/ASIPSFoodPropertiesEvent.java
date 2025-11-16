@@ -98,7 +98,7 @@ public class ASIPSFoodPropertiesEvent extends EntityEvent {
 
         // Some starter nutritional values
         size = ASIUtilities.getEffectiveSize(entity);
-        double meat = size * 1.5;
+        double meat = size;
         //FOO//ActuallySizeInteractions.Log("ASI &1 FOO &r Food Properties Construct for &3 " + entity.getClass().getSimpleName() + " " + entity.getScoreboardName() + " &7 of size &e x" + size);
 
         /*
@@ -113,7 +113,7 @@ public class ASIPSFoodPropertiesEvent extends EntityEvent {
             } else {
                 meat = (size * 1.3) * 5; }
             if (entity instanceof Player) {
-                meat *= 2;
+                meat *= 3;
 
                 // Creative mode players are delicious
                 if (((Player) entity).getAbilities().instabuild) { meat *= 1000; }
