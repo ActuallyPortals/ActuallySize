@@ -14,7 +14,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(Connection.class)
 public abstract class ConnectionMixin {
 
-
+    /*
     @Inject(method = "send(Lnet/minecraft/network/protocol/Packet;Lnet/minecraft/network/PacketSendListener;)V", at = @At("HEAD"))
     protected void onSendCall(Packet<?> pPacket, PacketSendListener pSendListener, CallbackInfo ci) {
         if (true) { return; }
@@ -90,5 +90,5 @@ public abstract class ConnectionMixin {
                 ActuallySizeInteractions.Log("ASI CMH OSC&3 Sending &b " + pPacket.getClass().getName());
                 break;
         }
-    }
+    }   //*/
 }

@@ -17,11 +17,6 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-/**
- * Fires the Hotbar Swap event from the client side, for use only of client-side logic.
- *
- * @since 1.0.0
- */
 @Mixin(ClientPacketListener.class)
 public abstract class ClientPacketListenerMixin {
 
