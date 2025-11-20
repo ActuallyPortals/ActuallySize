@@ -13,6 +13,7 @@ import actually.portals.ActuallySize.pickup.events.ASIPSFoodPropertiesEvent;
 import actually.portals.ActuallySize.pickup.events.ASIPSPickupToInventoryEvent;
 import actually.portals.ActuallySize.pickup.item.ASIPSHeldEntityItem;
 import actually.portals.ActuallySize.pickup.mixininterfaces.*;
+import actually.portals.ActuallySize.world.mixininterfaces.AmountMatters;
 import actually.portals.ActuallySize.world.mixininterfaces.PreferentialOptionable;
 import gunging.ootilities.GungingOotilitiesMod.events.extension.ServersideEntityEquipmentChangeEvent;
 import gunging.ootilities.GungingOotilitiesMod.exploring.players.ISPExplorerStatements;
@@ -21,6 +22,7 @@ import gunging.ootilities.GungingOotilitiesMod.scheduling.SCHTenTicksEvent;
 import gunging.ootilities.GungingOotilitiesMod.scheduling.SCHTwentyTicksEvent;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.EntityTypeTags;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
@@ -35,6 +37,7 @@ import net.minecraft.world.entity.monster.warden.Warden;
 import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.EntityTeleportEvent;
+import net.minecraftforge.event.entity.living.LivingDamageEvent;
 import net.minecraftforge.event.entity.living.LivingEntityUseItemEvent;
 import net.minecraftforge.event.entity.living.MobEffectEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
@@ -499,6 +502,30 @@ public class ASIEventExecutionListener {
             double size = ASIUtilities.getEffectiveSize(event.getEntity());
             duration.actuallysize$setDuration(OotilityNumbers.ceil(duration.actuallysize$getDuration() * ASIUtilities.beegBalanceResist(size * 1.5, 1, 0.1)));
             return;
+        }
+    }
+
+    /**
+     * @since 1.0.0
+     * @author Actually Portals
+     */
+    @SubscribeEvent
+    public static void OnLivingDamage(@NotNull LivingDamageEvent event) {
+
+        Entity victim = event.getEntity();
+        DamageSource pDamageSource = event.getSource();
+
+        // If the amount is too small, the beeg's thick skin tanks it
+        if (ActuallyServerConfig.tankyBeegs) {
+            double myScale = ASIUtilities.getEntityScale(victim);
+            AmountMatters am = (AmountMatters) pDamageSource;
+            Double amount = am.actuallysize$getAmount();
+            if (amount != null && myScale > 1) {
+                if (amount < myScale * 0.05) {
+                    event.setCanceled(true);
+                    event.setAmount(0);
+                }
+            }
         }
     }
 

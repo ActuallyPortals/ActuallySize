@@ -154,7 +154,7 @@ public class ASIWorldSystemManager {
         double sizeAmplificationFactor = 1;
 
         // When beeg
-        if (mySize > 1 && !ActuallyServerConfig.tankyBeegs) {
+        if (mySize > 1 && ActuallyServerConfig.tankyBeegs) {
             //ATT//ActuallySizeInteractions.Log("ASI &2 WSM &7 Tanky beeg");
 
             // Reduce damage from all sources

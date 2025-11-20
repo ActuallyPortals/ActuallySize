@@ -274,6 +274,15 @@ public abstract class LivingEntityMixin extends Entity implements Edacious, Atta
         if (pDamageSource.getDirectEntity() != null) { otherScale = ASIUtilities.getEntityScale(pDamageSource.getDirectEntity()); }
         double myScale = ASIUtilities.getEntityScale(this);
 
+        // When tanky beegs is enabled, environmental damage is also resisted
+        if (ActuallyServerConfig.tankyBeegs && otherScale == 1 && myScale > 1) {
+
+            // The standard for a full hit is
+            AmountMatters am = (AmountMatters) pDamageSource;
+            Double amount = am.actuallysize$getAmount();
+            if (amount != null) { otherScale = myScale * (amount / 4); }
+        }
+
         // Muffle the animation using our relative sizes
         if (myScale > otherScale) {
             this.walkAnimation.setSpeed((float) (this.walkAnimation.speed() * otherScale / myScale));
