@@ -166,7 +166,7 @@ public class ActuallyServerConfig {
             .defineInRange("sizeDamageAmplifier", 25D, 1D, Double.MAX_VALUE);
 
     /**
-     * The relative scale between a player and an entity so that the player can pick it up with one hand.
+     * The relative scale between a player and an entity so that the player can ride the entity
      *
      * @since 1.0.0
      */
@@ -184,7 +184,7 @@ public class ActuallyServerConfig {
             .defineInRange("ridingScaleLimit", 2D, 0D, Double.MAX_VALUE);
 
     /**
-     * The relative scale between a player and an entity so that the player can pick it up with one hand.
+     * Whether food is nerfed for giants and buffed for tinies. Also affects eat animation time.
      *
      * @since 1.0.0
      */
@@ -197,6 +197,28 @@ public class ActuallyServerConfig {
             .comment(" longer to eat, depending on the nutritional value of food.")
             .comment(" (silly tinies will prefer berries, with low nutrition hehe)")
             .define("beegsAreHungry", true);
+
+    /**
+     * Extends the duration of effects granted upon consumption of held entities
+     *
+     * @since 1.0.0
+     */
+    @NotNull private static final ForgeConfigSpec.DoubleValue BEEGS_ARE_HUNGRY_DURATION = CONFIG_BUILDER
+            .comment(" ")
+            .comment(" This is a multiplier to increase or decrease effects")
+            .comment(" granted when beegs eat animals (such as strength from")
+            .comment(" horses) or other mobs. Disables this feature when ZERO")
+            .defineInRange("foodEntityDurationMultiplier", 1D,0D, Double.MAX_VALUE);
+    /**
+     * Increases the frequency of effects granted upon consumption of held entities
+     *
+     * @since 1.0.0
+     */
+    @NotNull private static final ForgeConfigSpec.DoubleValue BEEGS_ARE_HUNGRY_FREQUENCY = CONFIG_BUILDER
+            .comment(" ")
+            .comment(" This is a multiplier to how often effects are granted")
+            .comment(" by eating live animals. Does not affect boss entities.")
+            .defineInRange("foodEntityFrequencyMultiplier", 1D,0D, Double.MAX_VALUE);
 
     /**
      * The config builder itself
@@ -219,6 +241,7 @@ public class ActuallyServerConfig {
     public static boolean delicateTinies;
     public static double strongestBeeg;
     public static double beegSize, tinySize;
+    public static double foodDuration, foodFrequency;
 
     /**
      * Reads the values specified in the config and loads them
@@ -244,6 +267,9 @@ public class ActuallyServerConfig {
         delicateTinies = TINIES_ARE_DELICATE.get();
         strongestBeeg = SIZE_DAMAGE_LIMIT.get();
         hungryBeegs = BEEGS_ARE_HUNGRY.get();
+
+        foodDuration = BEEGS_ARE_HUNGRY_DURATION.get();
+        foodFrequency = BEEGS_ARE_HUNGRY_FREQUENCY.get();
 
         enableFreeSize = FREE_SIZE.get();
         beegSize = BEEG_SIZE.get();

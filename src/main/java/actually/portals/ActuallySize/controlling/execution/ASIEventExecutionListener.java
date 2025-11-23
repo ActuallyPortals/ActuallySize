@@ -376,87 +376,93 @@ public class ASIEventExecutionListener {
             event.setSaturation(0);
         }
 
-        // Raiders give various effects
-        if (edacious.getType().is(EntityTypeTags.RAIDERS)) {
-            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.NIGHT_VISION, 500, 0), 0.1F);
-            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.HERO_OF_THE_VILLAGE, 500, 0), 0.1F);
-            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.WITHER, 500, 0), 0.1F);
-            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.DOLPHINS_GRACE, 500, 0), 0.1F);
-            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.SLOW_FALLING, 500, 0), 0.1F);
-            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.DIG_SPEED, 500, 0), 0.1F);
-            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.DIG_SLOWDOWN, 500, 0), 0.1F);
-            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.REGENERATION, 500, 0), 0.1F);
-            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.FIRE_RESISTANCE, 500, 0), 0.1F);
-            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.MOVEMENT_SPEED, 500, 0), 0.1F);
-            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.HERO_OF_THE_VILLAGE, 500, 2), 0.02F);
-        }
-
-        // Entity-type specifics
         if (edacious instanceof Player) {
             event.setSaturation(event.getSaturation() + (float) (10 * ASIUtilities.beegBalanceEnhance(event.getSize(), 4, 0.25)));
+        }
+        
+        double duration = ActuallyServerConfig.foodDuration;
+        if (duration < 0.01) { return; }
+        
+        float frequency = (float) ActuallyServerConfig.foodFrequency;
 
+        // Raiders give various effects
+        if (edacious.getType().is(EntityTypeTags.RAIDERS)) {
+            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.NIGHT_VISION, OotilityNumbers.ceil(500 * duration), 0, true, true), frequency * 0.1F);
+            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.HERO_OF_THE_VILLAGE, OotilityNumbers.ceil(500 * duration), 0, true, true), frequency * 0.1F);
+            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.WITHER, OotilityNumbers.ceil(500 * duration), 0, true, true), frequency * 0.1F);
+            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.DOLPHINS_GRACE, OotilityNumbers.ceil(500 * duration), 0, true, true), frequency * 0.1F);
+            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.SLOW_FALLING, OotilityNumbers.ceil(500 * duration), 0, true, true), frequency * 0.1F);
+            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.DIG_SPEED, OotilityNumbers.ceil(500 * duration), 0, true, true), frequency * 0.1F);
+            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.DIG_SLOWDOWN, OotilityNumbers.ceil(500 * duration), 0, true, true), frequency * 0.1F);
+            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.REGENERATION, OotilityNumbers.ceil(500 * duration), 0, true, true), frequency * 0.1F);
+            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.FIRE_RESISTANCE, OotilityNumbers.ceil(500 * duration), 0, true, true), frequency * 0.1F);
+            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.MOVEMENT_SPEED, OotilityNumbers.ceil(500 * duration), 0, true, true), frequency * 0.1F);
+            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.HERO_OF_THE_VILLAGE, OotilityNumbers.ceil(500 * duration), 2, true, true), frequency * 0.02F);
+        }
+        
         // Funny glow squid with night vision
-        } else if (edacious instanceof GlowSquid) {
-            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.NIGHT_VISION, 500, 0), 1F);
+        if (edacious instanceof GlowSquid) {
+            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.NIGHT_VISION, OotilityNumbers.ceil(500 * duration), 0, true, true), frequency);
         } else if (edacious instanceof MagmaCube) {
-            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.FIRE_RESISTANCE, 300 * ((MagmaCube) edacious).getSize(), 0), 1F);
+            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.FIRE_RESISTANCE, OotilityNumbers.ceil(300 * ((MagmaCube) edacious).getSize() * duration), 0, true, true), frequency);
             event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.HARM, 1, ((MagmaCube) edacious).getSize()), 1F);
         } else if (edacious instanceof Blaze) {
-            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.FIRE_RESISTANCE, 600, 0), 1F);
+            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.FIRE_RESISTANCE, OotilityNumbers.ceil(600 * duration), 0, true, true), frequency);
             event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.HARM, 1, 3), 1F);
         } else if (edacious instanceof Slime) {
-            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.REGENERATION, 500, ((Slime) edacious).getSize()), 1F);
+            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.REGENERATION, OotilityNumbers.ceil(500 * duration), ((Slime) edacious).getSize(), true, true), frequency);
         } else if (edacious instanceof CaveSpider) {
-            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.HEAL, 1, 0), 1F);
+            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.HEAL, 1, 0, true, true), frequency);
         } else if (edacious instanceof Spider) {
-            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.HEAL, 1, 1), 1F);
+            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.HEAL, 1, 1, true, true), frequency);
         } else if (edacious instanceof Endermite) {
-            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.DAMAGE_BOOST, 200, 0), 1F);
+            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.DAMAGE_BOOST, OotilityNumbers.ceil(200 * duration), 0, true, true), frequency);
         } else if (edacious instanceof EnderMan) {
-            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.DAMAGE_BOOST, 500, 1), 1F);
+            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.DAMAGE_BOOST, OotilityNumbers.ceil(500 * duration), 1, true, true), frequency);
         } else if (edacious instanceof Ghast) {
-            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.DAMAGE_RESISTANCE, 500, 0), 1F);
+            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.DAMAGE_RESISTANCE, OotilityNumbers.ceil(500 * duration), 0, true, true), frequency);
         } else if (edacious instanceof Guardian) {
-            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.DIG_SPEED, 500, 0), 1F);
+            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.DIG_SPEED, OotilityNumbers.ceil(500 * duration), 0, true, true), frequency);
         } else if (edacious instanceof ElderGuardian) {
-            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.DIG_SPEED, 3500, 2), 1F);
+            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.DIG_SPEED, OotilityNumbers.ceil(3500 * duration), 2, true, true),  1F);
         } else if (edacious instanceof MushroomCow || edacious instanceof Parrot) {
-            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.LUCK, 2000, 0), 1F);
-            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.LUCK, 2000, 1), 0.2F);
+            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.LUCK, OotilityNumbers.ceil(2000 * duration), 0, true, true), frequency);
+            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.LUCK, OotilityNumbers.ceil(2000 * duration), 1, true, true), frequency * 0.2F);
         } else if (edacious instanceof Panda) {
-            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.DAMAGE_RESISTANCE, 2000, 0), 1F);
-            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.DAMAGE_RESISTANCE, 2000, 1), 0.2F);
+            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.DAMAGE_RESISTANCE, OotilityNumbers.ceil(2000 * duration), 0, true, true), frequency);
+            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.DAMAGE_RESISTANCE, OotilityNumbers.ceil(2000 * duration), 1, true, true), frequency * 0.2F);
         } else if (edacious instanceof IronGolem) {
-            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 2000, 0), 1F);
-            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 2000, 1), 0.2F);
+            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, OotilityNumbers.ceil(2000 * duration), 0, true, true), frequency);
+            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, OotilityNumbers.ceil(2000 * duration), 1, true, true), frequency * 0.2F);
         } else if (edacious instanceof SnowGolem) {
-            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.REGENERATION, 4000, 0), 1F);
-            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.REGENERATION, 4000, 1), 0.2F);
-            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.MOVEMENT_SPEED, 4000, 0), 0.2F);
-            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.JUMP, 4000, 0), 0.2F);
+            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.REGENERATION, OotilityNumbers.ceil(4000 * duration), 0, true, true), frequency);
+            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.REGENERATION, OotilityNumbers.ceil(4000 * duration), 1, true, true), frequency * 0.2F);
+            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.MOVEMENT_SPEED, OotilityNumbers.ceil(4000 * duration), 0, true, true), frequency * 0.2F);
+            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.JUMP, OotilityNumbers.ceil(4000 * duration), 0, true, true), frequency * 0.2F);
+            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.SATURATION, OotilityNumbers.ceil(4000 * duration), 1, true, true), frequency * 0.2F);
         } else if (edacious instanceof AbstractSchoolingFish) {
-            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.MOVEMENT_SPEED, 2000, 0), 1F);
-            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.MOVEMENT_SPEED, 2000, 1), 0.2F);
+            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.MOVEMENT_SPEED, OotilityNumbers.ceil(2000 * duration), 0, true, true), frequency);
+            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.MOVEMENT_SPEED, OotilityNumbers.ceil(2000 * duration), 1, true, true), frequency * 0.2F);
         } else if (edacious instanceof Pig || edacious instanceof Chicken) {
-            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.SATURATION, 2000, 0), 0.3F);
-            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.SATURATION, 2000, 1), 0.1F);
+            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.SATURATION, OotilityNumbers.ceil(2000 * duration), 0, true, true), frequency * 0.3F);
+            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.SATURATION, OotilityNumbers.ceil(2000 * duration), 1, true, true), frequency * 0.1F);
             event.setNutrition(OotilityNumbers.floor(event.getNutrition() * 1.5D));
         } else if (edacious instanceof Cow || edacious instanceof Goat) {
-            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.DAMAGE_BOOST, 2000, 0), 0.3F);
-            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.DAMAGE_BOOST, 2000, 1), 0.1F);
+            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.DAMAGE_BOOST, OotilityNumbers.ceil(2000 * duration), 0, true, true), frequency * 0.3F);
+            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.DAMAGE_BOOST, OotilityNumbers.ceil(2000 * duration), 1, true, true), frequency * 0.1F);
             event.setNutrition(OotilityNumbers.floor(event.getNutrition() * 1.5D));
         } else if (edacious instanceof Horse) {
-            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.DAMAGE_BOOST, 2000, 0), 1F);
-            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.DAMAGE_BOOST, 2000, 1), 0.2F);
+            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.DAMAGE_BOOST, OotilityNumbers.ceil(2000 * duration), 0, true, true), frequency);
+            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.DAMAGE_BOOST, OotilityNumbers.ceil(2000 * duration), 1, true, true), frequency * 0.2F);
         } else if (edacious instanceof WitherBoss) {
-            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.HEALTH_BOOST, 8000, 0), 1F);
-            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.HEALTH_BOOST, 8000, 1), 0.2F);
-            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.FIRE_RESISTANCE, 8000, 0), 1F);
+            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.HEALTH_BOOST, OotilityNumbers.ceil(8000 * duration), 0, true, true),  1F);
+            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.HEALTH_BOOST, OotilityNumbers.ceil(8000 * duration), 1, true, true),  0.2F);
+            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.FIRE_RESISTANCE, OotilityNumbers.ceil(8000 * duration), 0, true, true),  1F);
         } else if (edacious instanceof Warden) {
-            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.WEAKNESS, 4000, 0), 1F);
-            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.WEAKNESS, 4000, 1), 0.2F);
-            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.UNLUCK, 4000, 0), 1F);
-            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.ABSORPTION, 4000, 4), 1F);
+            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.WEAKNESS, OotilityNumbers.ceil(4000 * duration), 0, true, true),  1F);
+            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.WEAKNESS, OotilityNumbers.ceil(4000 * duration), 1, true, true),  0.2F);
+            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.UNLUCK, OotilityNumbers.ceil(4000 * duration), 0, true, true),  1F);
+            event.getBuilder().effect(() -> new MobEffectInstance(MobEffects.ABSORPTION, OotilityNumbers.ceil(4000 * duration), 4, true, true),  1F);
         }
     }
 
