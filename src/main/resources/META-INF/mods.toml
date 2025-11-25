@@ -29,15 +29,13 @@ authors="${mod_authors}"
 # The description text for the mod
 description='''${mod_description}
 
-Discord link / IP for public server: [TBD]
-
 ASI focuses on playing minecraft with friends of different sizes
-✓ Pickup smaller entities and keep them as items (including other players!)
-✓ Various uses for tinies such as companion, equipment, or snack
+✓ Pickup smaller entities and keep them as items
 ✓ Environmental buffs and nerfs for beegs and tinies
 ✓ Configure your playstyle in mods/config/actuallysize-config.toml
-✓ Miscellaneous fixes for smoothing of tiny and beeg gameplay
+Full list of features in the wiki site
 
+Wiki: https://sites.google.com/view/actuallysize/home
 Mod Source: https://github.com/ActuallyPortals/actuallysize
 Bug Reports: https://github.com/ActuallyPortals/ActuallySize/issues'''
 
