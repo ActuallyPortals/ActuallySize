@@ -1,5 +1,6 @@
 package actually.portals.ActuallySize;
 
+import actually.portals.ActuallySize.controlling.execution.ASIClientsideRequests;
 import actually.portals.ActuallySize.netcode.ASINetworkManager;
 import actually.portals.ActuallySize.pickup.ASIPickupSystemManager;
 import com.mojang.logging.LogUtils;
@@ -137,9 +138,8 @@ public class ActuallySizeInteractions {
         // Display in console
         if (IS_CLIENT_DEV) {
             System.out.println("GREP [CHAT] <Dev> " + baked);
+            ASIClientsideRequests.Log(baked);
 
-            //Player local = Minecraft.getInstance().player;
-            //if (local != null) { local.sendSystemMessage(Component.literal("[ASI] " + baked)); }
         } else {
             System.out.println("GREP [Not Secure] <Dev> " + baked);
         }

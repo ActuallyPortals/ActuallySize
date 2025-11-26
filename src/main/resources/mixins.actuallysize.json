@@ -39,6 +39,7 @@
     "GroundPathNavigationMixin",
     "GuiGraphicsMixin",
     "HorseMixin",
+    "IForgePlayerMixin",
     "ItemStackMixin",
     "LivingEntityMixin",
     "MobEffectInstanceMixin",

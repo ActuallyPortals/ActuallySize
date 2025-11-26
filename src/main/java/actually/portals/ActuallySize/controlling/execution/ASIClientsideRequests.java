@@ -20,6 +20,7 @@ import gunging.ootilities.GungingOotilitiesMod.instants.GOOMClientsidePlayerLogi
 import gunging.ootilities.GungingOotilitiesMod.scheduling.SchedulingManager;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -35,6 +36,7 @@ import net.minecraftforge.eventbus.api.Event;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Listeners for events that may only happen on the client-side
@@ -213,5 +215,16 @@ public class ASIClientsideRequests {
         fogEnd *= ASIUtilities.beegBalanceEnhance(fogEnd, 10, 0);
         event.setFarPlaneDistance((float) fogEnd);
         event.setCanceled(true);
+    }
+
+    /**
+     * @param baked A string to show in the console
+     *
+     * @since 1.0.0
+     * @author Actually Portals
+     */
+    public static void Log(@Nullable String baked) {
+        Player local = Minecraft.getInstance().player;
+        if (local != null) { local.sendSystemMessage(Component.literal("[ASI] " + baked)); }
     }
 }
