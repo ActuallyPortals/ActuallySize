@@ -27,6 +27,7 @@ public interface IForgePlayerMixin {
 
         double range = self.getAttributeValue(ForgeMod.ENTITY_REACH.get()) + padding;
         double size = ASIUtilities.getEffectiveSize(self);
+        if (size < 0.65) { size = 0.65; }
 
         return isCloseEnough(entity, range * size);
     }
@@ -43,8 +44,8 @@ public interface IForgePlayerMixin {
         double size = ASIUtilities.getEffectiveSize(self);
         double reach = self.getAttributeValue(ForgeMod.BLOCK_REACH.get()) + padding;
         double dist = self.getEyePosition().distanceToSqr(Vec3.atCenterOf(pos));
+        if (size < 0.65) { size = 0.65; }
 
         return dist <= reach * reach * size * size;
     }
-
 }
