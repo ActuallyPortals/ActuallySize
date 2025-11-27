@@ -71,7 +71,7 @@ public class ASIEventExecutionListener {
         // On death, restore prefs
         if (event.isWasDeath()) {
             PreferentialOptionable optionable = (PreferentialOptionable) player;
-            optionable.actuallysize$setPreferredOptionsApplied(false);
+            optionable.actuallysize$setPreferredOptionsApplied(-1);
 
             // Get prefs
             ASINSPreferredSize prefs = ASINSPreferredSize.GetPreferredSize(player);

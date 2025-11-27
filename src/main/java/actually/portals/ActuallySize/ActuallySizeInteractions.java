@@ -4,6 +4,8 @@ import actually.portals.ActuallySize.controlling.execution.ASIClientsideRequests
 import actually.portals.ActuallySize.netcode.ASINetworkManager;
 import actually.portals.ActuallySize.pickup.ASIPickupSystemManager;
 import com.mojang.logging.LogUtils;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -124,7 +126,15 @@ public class ActuallySizeInteractions {
      * @since 1.0.0
      * @author Actually Portals
      */
-    public static void Log(@Nullable String log, @Nullable Object... replaces) {
+    public static void Log(@Nullable String log, @Nullable Object... replaces) { Log(null, log, replaces); }
+
+    /**
+     * @param log A string to show in the console
+     *
+     * @since 1.0.0
+     * @author Actually Portals
+     */
+    public static void Log(@Nullable Player who, @Nullable String log, @Nullable Object... replaces) {
 
         // Bake replaces
         String baked = log;
@@ -140,9 +150,10 @@ public class ActuallySizeInteractions {
             System.out.println("GREP [CHAT] <Dev> " + baked);
             ASIClientsideRequests.Log(baked);
 
-        } else {
-            System.out.println("GREP [Not Secure] <Dev> " + baked);
-        }
+        } else { System.out.println("GREP [Not Secure] <Dev> " + baked); }
+
+        // Specific chat target? Send
+        if (who != null) { who.sendSystemMessage(Component.literal(baked == null ? "null" : baked)); }
     }
 
     /**

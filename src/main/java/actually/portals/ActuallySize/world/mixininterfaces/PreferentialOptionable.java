@@ -14,12 +14,12 @@ public interface PreferentialOptionable {
      *
      * @author Actually Portals
      */
-    boolean actuallysize$isPreferredOptionsApplied();
+    boolean actuallysize$isPreferredOptionsApplied(double latest);
 
     /**
      * @param state If the preferred options for this entity have been applied
      *
      * @author Actually Portals
      */
-    void actuallysize$setPreferredOptionsApplied(boolean state);
+    void actuallysize$setPreferredOptionsApplied(double state);
 }

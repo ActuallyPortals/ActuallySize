@@ -130,10 +130,23 @@ public class ASINSPreferredSize {
      * @author Actually Portals
      */
     public void applyTo(@NotNull ServerPlayer someone) {
+        double pref = toDouble();
 
         // Formalities~
         PreferentialOptionable optionable = (PreferentialOptionable) someone;
-        optionable.actuallysize$setPreferredOptionsApplied(true);
+        ASIUtilities.setEntityScale(someone, pref);
+        optionable.actuallysize$setPreferredOptionsApplied(pref);
+    }
+
+    /**
+     * @return The actual scale these Preferred Size options
+     *         will apply, considering server configuration.
+     *
+     * @since 1.0.0
+     * @author Actually Portals
+     */
+    public double toDouble() {
+        double ret = 1;
 
         // Interpret settings
         double serverBeeg = ActuallyServerConfig.beegSize;
@@ -154,21 +167,24 @@ public class ASINSPreferredSize {
             if (adjusted < 0.02) { adjusted = 0.02; }
 
             // Use preferred size
-            ASIUtilities.setEntityScale(someone, adjusted);
+            ret = adjusted;
 
         // Alternatively, do we want to play beeg?
         } else if (serverBeegEnabled && isPreferredBeeg()) {
 
             // Use beeg size
-            ASIUtilities.setEntityScale(someone, serverBeeg);
+            ret = serverBeeg;
         } else if (serverTinyEnabled && isPreferredSmol()) {
 
             // Use tiny size
-            ASIUtilities.setEntityScale(someone, serverTiny);
+            ret = serverTiny;
+        }
 
         // Normalize size, no preferences
-        } else { ASIUtilities.setEntityScale(someone, 1); }
+        return ret;
     }
+
+
 
     /**
      * The server will take a note of the current preferred scale
@@ -188,7 +204,7 @@ public class ASINSPreferredSize {
             PreferentialOptionable optionable = (PreferentialOptionable) player;
 
             // First time? Apply these
-            if (!optionable.actuallysize$isPreferredOptionsApplied()) { applyTo(player); }
+            if (!optionable.actuallysize$isPreferredOptionsApplied(toDouble())) { applyTo(player); }
 
             // Apply those settings
             SetPreferredSize(player, this);

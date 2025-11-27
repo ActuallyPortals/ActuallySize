@@ -22,6 +22,7 @@ import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.mojang.datafixers.util.Either;
 import gunging.ootilities.GungingOotilitiesMod.exploring.ItemExplorerStatement;
 import gunging.ootilities.GungingOotilitiesMod.exploring.ItemStackLocation;
+import gunging.ootilities.GungingOotilitiesMod.ootilityception.OotilityNumbers;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerPlayer;
@@ -293,22 +294,22 @@ public abstract class PlayerMixin extends LivingEntity implements HoldPointConfi
 
     @Inject(method = "readAdditionalSaveData", at = @At("RETURN"))
     public void onReadSaveData(CompoundTag pCompound, CallbackInfo ci) {
-        this.actuallysize$preferredOptionsApplied = pCompound.getBoolean("ASILoginPrefs");
+        this.actuallysize$preferredOptionsApplied = pCompound.getDouble("ASILastLoginPrefs");
     }
 
     @Inject(method = "addAdditionalSaveData", at = @At("RETURN"))
     public void onAddSaveData(CompoundTag pCompound, CallbackInfo ci) {
-        pCompound.putBoolean("ASILoginPrefs", actuallysize$preferredOptionsApplied);
+        pCompound.putDouble("ASILastLoginPrefs", actuallysize$preferredOptionsApplied);
     }
 
     @Unique
-    boolean actuallysize$preferredOptionsApplied;
+    double actuallysize$preferredOptionsApplied;
 
     @Override
-    public boolean actuallysize$isPreferredOptionsApplied() { return actuallysize$preferredOptionsApplied; }
+    public boolean actuallysize$isPreferredOptionsApplied(double latest) { return OotilityNumbers.round(actuallysize$preferredOptionsApplied, 4) == OotilityNumbers.round(latest, 4); }
 
     @Override
-    public void actuallysize$setPreferredOptionsApplied(boolean state) { actuallysize$preferredOptionsApplied = state; }
+    public void actuallysize$setPreferredOptionsApplied(double state) { actuallysize$preferredOptionsApplied = state; }
 
     @Inject(method = "updatePlayerPose", at = @At("HEAD"), cancellable = true)
     public void onForcedPose(CallbackInfo ci) {
