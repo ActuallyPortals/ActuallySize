@@ -59,7 +59,7 @@ public abstract class LocalPlayerMixin extends AbstractClientPlayer {
          */
         EntityDualityCounterpart dualityEntity = (EntityDualityCounterpart) this;
         if (wantsToStopRiding() && dualityEntity.actuallysize$isHeld()) {
-            this.input.shiftKeyDown = false;
+            //this.input.shiftKeyDown = false;  // No need to prevent crouching, really
 
             // Only struggle on fresh presses
             if (!actuallysize$wasStruggling) {
