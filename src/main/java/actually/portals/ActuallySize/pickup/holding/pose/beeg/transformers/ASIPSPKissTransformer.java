@@ -49,6 +49,9 @@ public class ASIPSPKissTransformer implements IArmPoseTransformer {
 
             // Hold profile when looking down
             double pitch = entity.xRotO;
+            double pi2 = Math.PI * 2;
+            while (pitch >= pi2) { pitch -= pi2; }
+            while (pitch < 0) { pitch += pi2; }
             if (pitch > 0) {
                 pag = (float) (pitch * 0.0111);
                 xE = -0.523598775598F; // -30°
