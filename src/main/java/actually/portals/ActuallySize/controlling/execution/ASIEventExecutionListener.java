@@ -20,6 +20,7 @@ import gunging.ootilities.GungingOotilitiesMod.exploring.players.ISPExplorerStat
 import gunging.ootilities.GungingOotilitiesMod.ootilityception.OotilityNumbers;
 import gunging.ootilities.GungingOotilitiesMod.scheduling.SCHTenTicksEvent;
 import gunging.ootilities.GungingOotilitiesMod.scheduling.SCHTwentyTicksEvent;
+import gunging.ootilities.GungingOotilitiesMod.scheduling.SchedulingManager;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.EntityTypeTags;
 import net.minecraft.world.damagesource.DamageSource;
@@ -75,10 +76,15 @@ public class ASIEventExecutionListener {
 
             // Get prefs
             ASINSPreferredSize prefs = ASINSPreferredSize.GetPreferredSize(player);
-            if (prefs == null) { return; }
+            if (prefs != null) {
 
-            // Apply prefs
-            prefs.applyTo(player); }
+                // Apply prefs instant
+                prefs.applyTo(player);
+
+                // Reapply prefs in a sec
+                SchedulingManager.scheduleTask(() -> prefs.applyTo(player), 20, false);
+            }
+        }
 
         // Sync hold points and dualities to client
         HoldPointConfigurable newer = (HoldPointConfigurable) event.getEntity();
