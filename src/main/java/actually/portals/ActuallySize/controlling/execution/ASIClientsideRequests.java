@@ -145,6 +145,9 @@ public class ASIClientsideRequests {
          */
         ASINSPreferredSize prefs = new ASINSPreferredSize(ActuallyClientConfig.preferredScale, ActuallyClientConfig.isPreferBeeg, ActuallyClientConfig.isPreferTiny, ActuallyClientConfig.onlySpecialHoldPlayers);
         ASINetworkManager.playerToServer(prefs);
+
+        // Send again 5 seconds later in case they didn't get it the first time
+        SchedulingManager.scheduleTask(() -> ASINetworkManager.playerToServer(prefs), 100, true);
     }
 
     /**

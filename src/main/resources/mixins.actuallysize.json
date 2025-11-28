@@ -4,6 +4,7 @@
   "package": "actually.portals.ActuallySize.mixin",
   "compatibilityLevel": "JAVA_17",
   "refmap": "mixins.actuallysize.refmap.json",
+  "plugin": "actually.portals.ActuallySize.mixin.ASIMixinConfigPlugin",
   "mixinextras": {
     "minVersion": "0.5.0-rc.2"
   },
@@ -39,7 +40,6 @@
     "GroundPathNavigationMixin",
     "GuiGraphicsMixin",
     "HorseMixin",
-    "IForgePlayerMixin",
     "ItemStackMixin",
     "LivingEntityMixin",
     "MobEffectInstanceMixin",
@@ -55,7 +55,8 @@
     "SleepInBedMixin",
     "SlimeMixin",
     "SnifferMixin",
-    "WaterPathNavigationMixin"
+    "WaterPathNavigationMixin",
+    "compat1201plus.forge0470402plus.IForgePlayerMixin"
   ],
   "injectors": {
     "defaultRequire": 1

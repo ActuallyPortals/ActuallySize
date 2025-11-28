@@ -1,4 +1,4 @@
-package actually.portals.ActuallySize.mixin;
+package actually.portals.ActuallySize.mixin.compat1201plus.forge0470402plus;
 
 import actually.portals.ActuallySize.ASIUtilities;
 import net.minecraft.core.BlockPos;
