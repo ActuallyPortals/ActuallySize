@@ -93,6 +93,8 @@ public abstract class EntityMixin extends net.minecraftforge.common.capabilities
 
     @Shadow private float xRot;
 
+    @Shadow public abstract Vec3 getDeltaMovement();
+
     protected EntityMixin(Class<Entity> baseClass) { super(baseClass); }
 
     @Unique
@@ -704,15 +706,15 @@ public abstract class EntityMixin extends net.minecraftforge.common.capabilities
         actuallysize$interimFlow = interim;
 
         // If smol, we pretend  you are fully submerged in the liquid
-        double mySize = ASIUtilities.getEffectiveSize((Entity) (Object) this);
+        double mySize = ASIUtilities.getEntityScale((Entity) (Object) this);
         if (mySize < 1) {
-            double inverseAmplification = 1 / mySize;
+            //double inverseAmplification = 1 / mySize;
             double submerged = interim.getLeft();
             if (submerged > getBbHeight()) { submerged = getBbHeight(); }
             //FLW//ActuallySizeInteractions.Log("ASI &6 EMX-FLW &7 Flow submerged from " + interim.getLeft() + " to &6 " + submerged + " &r , Height = &e " + getBbHeight());
 
             Vec3 multiflow = interim.getMiddle().normalize().scale(submerged);
-            double buff = ASIUtilities.beegBalanceResist(mySize, 5, 0);
+            double buff = ASIUtilities.beegBalanceResist(mySize, 3, 0);
             if (((Object) this) instanceof LivingEntity) {
                 double depth = EnchantmentHelper.getDepthStrider((LivingEntity) (Object) this);
                 if (depth > 0) {
@@ -724,7 +726,14 @@ public abstract class EntityMixin extends net.minecraftforge.common.capabilities
             }
             //FLW//ActuallySizeInteractions.Log("ASI &6 EMX-FLW &7 Flow base from &3 " + interim.getMiddle().length() + " &r to &b " + multiflow.length() + " &f, buff &9 x" + buff);
 
-            interim.setMiddle(multiflow.scale(buff));
+            /*
+             * Nerf acceleration by interpolating between current and max speed
+             */
+            double moment = this.getDeltaMovement().length();
+            double buffed = multiflow.scale(buff).length();
+            Vec3 multinormal = multiflow.normalize();
+
+            interim.setMiddle(multinormal.scale((0.6 * moment) + (0.2 * buffed)));
         }
     }
 
