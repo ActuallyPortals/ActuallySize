@@ -6,9 +6,9 @@ import actually.portals.ActuallySize.ActuallySizeInteractions;
 import actually.portals.ActuallySize.pickup.ASIPickupSystemManager;
 import actually.portals.ActuallySize.pickup.actions.*;
 import actually.portals.ActuallySize.pickup.holding.ASIPSHoldPoint;
+import actually.portals.ActuallySize.pickup.holding.model.ASIPSModelPartInfo;
 import actually.portals.ActuallySize.pickup.holding.points.ASIPSHoldPointRegistry;
 import actually.portals.ActuallySize.pickup.holding.points.ASIPSRegisterableHoldPoint;
-import actually.portals.ActuallySize.pickup.holding.model.ASIPSModelPartInfo;
 import actually.portals.ActuallySize.pickup.holding.pose.ASIPSTinyPosedHold;
 import actually.portals.ActuallySize.pickup.mixininterfaces.*;
 import actually.portals.ActuallySize.world.mixininterfaces.AmountMatters;
@@ -50,7 +50,10 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 
 @Mixin(Entity.class)
 public abstract class EntityMixin extends net.minecraftforge.common.capabilities.CapabilityProvider<Entity> implements Nameable, EntityAccess, CommandSource, net.minecraftforge.common.extensions.IForgeEntity, ItemEntityDualityHolder, EntityDualityCounterpart, SetLevelExt, RenderNormalizable, HoldTickable, ModelPartHoldable {
@@ -659,6 +662,34 @@ public abstract class EntityMixin extends net.minecraftforge.common.capabilities
 
     @Unique
     @Nullable Entity actuallysize$lastPushing;
+
+    @Definition(id = "getX", method = "Lnet/minecraft/world/entity/Entity;getX()D")
+    @Definition(id = "pEntity", local = @Local(type = Entity.class, argsOnly = true))
+    @Expression("pEntity.getX() - this.getX()")
+    @ModifyExpressionValue(method = "push(Lnet/minecraft/world/entity/Entity;)V", at = @At("MIXINEXTRAS:EXPRESSION"))
+    public double onPushX(double original) {
+
+        // When pushing from further out than 1 block
+        double abs = Math.abs(original);
+        double ret = original;
+        if (abs > 1) { ret = original * ASIUtilities.beegBalanceResist(abs * 3, 1, 0.2); }
+
+        return ret;
+    }
+
+    @Definition(id = "getZ", method = "Lnet/minecraft/world/entity/Entity;getZ()D")
+    @Definition(id = "pEntity", local = @Local(type = Entity.class, argsOnly = true))
+    @Expression("pEntity.getZ() - this.getZ()")
+    @ModifyExpressionValue(method = "push(Lnet/minecraft/world/entity/Entity;)V", at = @At("MIXINEXTRAS:EXPRESSION"))
+    public double onPushZ(double original) {
+
+        // When pushing from further out than 1 block
+        double abs = Math.abs(original);
+        double ret = original;
+        if (abs > 1) { ret = original * ASIUtilities.beegBalanceResist(abs * 3, 1, 0.2); }
+
+        return ret;
+    }
 
     @Inject(method = "push(Lnet/minecraft/world/entity/Entity;)V", at = @At(value = "HEAD"))
     public void whenPushingCall(Entity pEntity, CallbackInfo ci) {
