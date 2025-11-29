@@ -318,7 +318,23 @@ public class ASIEventExecutionListener {
         // ASI Held Entities bypass this nerf
         UseTimed cacheTime = ((UseTimed) (Object) event.getItem());
         if (event.getItem().getItem() instanceof ASIPSHeldEntityItem) {
-            if (((ASIPSHeldEntityItem) event.getItem().getItem()).isPlayer()) { event.setDuration(event.getDuration() * 2); }
+
+            // Players always take longer
+            if (((ASIPSHeldEntityItem) event.getItem().getItem()).isPlayer()) {
+                event.setDuration(event.getDuration() * 2);
+
+            // Other stuff does get nerfed a bit
+            } else {
+
+                // Eat smaller entities faster
+                Player player = (Player) event.getEntity();
+                Entity target = ((ASIPSHeldEntityItem) event.getItem().getItem()).counterpartOrRebuild(player.level(), event.getItem(), false, false);
+                if (target != null) {
+                    double sizeAmplifier = ASIUtilities.beegBalanceEnhance(ASIUtilities.getRelativeScale(player, target), 3, 0.75);
+                    event.setDuration(OotilityNumbers.ceil(event.getDuration() * sizeAmplifier)); }
+
+            }
+
             //FOO//ActuallySizeInteractions.Log("ASI &1 FOO &7 Living food exemption");
             cacheTime.actuallysize$setUseTimeTicks(event.getDuration());
             return; }
