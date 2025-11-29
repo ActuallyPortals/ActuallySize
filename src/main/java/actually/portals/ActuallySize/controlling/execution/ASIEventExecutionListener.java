@@ -330,7 +330,7 @@ public class ASIEventExecutionListener {
                 Player player = (Player) event.getEntity();
                 Entity target = ((ASIPSHeldEntityItem) event.getItem().getItem()).counterpartOrRebuild(player.level(), event.getItem(), false, false);
                 if (target != null) {
-                    double sizeAmplifier = ASIUtilities.beegBalanceEnhance(ASIUtilities.getRelativeScale(player, target), 3, 0.75);
+                    double sizeAmplifier = ASIUtilities.beegBalanceEnhance(ASIUtilities.getRelativeScale(player, target), 3, 0.35);
                     event.setDuration(OotilityNumbers.ceil(event.getDuration() * sizeAmplifier)); }
 
             }

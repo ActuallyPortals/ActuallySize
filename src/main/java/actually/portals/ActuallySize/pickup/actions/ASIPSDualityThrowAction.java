@@ -206,6 +206,7 @@ public class ASIPSDualityThrowAction extends ASIPSDualityAction {
         ItemDualityCounterpart itemDuality = (ItemDualityCounterpart) (Object) itemCounterpart;
         EntityDualityCounterpart entityDuality = (EntityDualityCounterpart) itemDuality.actuallysize$getEntityCounterpart();
         if (entityDuality != null) {
+            //THR//ActuallySizeInteractions.Log("THROW Found duality " + ((Entity) entityDuality).getScoreboardName());
 
             // Find its hold point
             ASIPSHoldPoint holdPoint = entityDuality.actuallysize$getHoldPoint();
@@ -215,10 +216,18 @@ public class ASIPSDualityThrowAction extends ASIPSDualityAction {
             if (beeg.getAbilities().instabuild && !throwingPlayer) {
                 Level level = beeg.level();
                 Entity rebuilt = entityCounterpart;
+
+                // Rebuild from item
                 if (itemCounterpart != null && itemCounterpart.getItem() instanceof ASIPSHeldEntityItem) {
                     ASIPSHeldEntityItem asASI = (ASIPSHeldEntityItem) itemCounterpart.getItem();
                     rebuilt = asASI.counterpartOrRebuild(level, itemCounterpart, true, true); }
-                if (rebuilt != null) { entityDuality = (EntityDualityCounterpart) rebuilt; } }
+
+                // Sanity check for success
+                if (rebuilt != null) {
+                    //THR//ActuallySizeInteractions.Log("THROW Forced rebuilt " + rebuilt.getScoreboardName());
+                    entityDuality = (EntityDualityCounterpart) rebuilt;
+                    if (!rebuilt.isAddedToWorld()) { level.addFreshEntity(rebuilt); } }
+            }
 
             // Throw from the hold point and escape
             holdPoint.throwHeldEntity((ItemEntityDualityHolder) beeg, entityDuality);
@@ -245,8 +254,9 @@ public class ASIPSDualityThrowAction extends ASIPSDualityAction {
                 rebuilt = asASI.counterpartOrRebuild(level, itemCounterpart, beeg.getAbilities().instabuild, true);
             }
             if (rebuilt == null) {
-                //ActuallySizeInteractions.Log("PS SWING Rebuild Failure");
+                //THR//ActuallySizeInteractions.Log("THROW Rebuild Failure");
                 return; }
+            //THR//ActuallySizeInteractions.Log("THROW Rebuilt from Item " + rebuilt.getScoreboardName());
 
             /*
              *  For whatever reason this item-entity is not active, even if

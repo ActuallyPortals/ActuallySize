@@ -187,7 +187,8 @@ public abstract class RelativeCoordinateHold extends ASIPSImplementedHoldPoint {
 
         // For some reason, the Y component is very large and has little friction or whatever
         Vec3 thrower = OotilityVectors.entityForward(holderEntity).scale(gauss * strength);
-        thrower = new Vec3(thrower.x, Math.sqrt(thrower.y), thrower.z);
+        double sign = thrower.y >= 0D ? 1D : -1D;
+        thrower = new Vec3(thrower.x, Math.sqrt(thrower.y * sign) * sign, thrower.z);
 
         // Add forward force
         entityCounterpart.setDeltaMovement(thrower);

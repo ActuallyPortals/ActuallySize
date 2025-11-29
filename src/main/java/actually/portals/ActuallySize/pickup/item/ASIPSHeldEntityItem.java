@@ -243,17 +243,22 @@ public class ASIPSHeldEntityItem extends Item {
 
         // Needs to be crouching to place, otherwise eaten as foodie
         if (!holderPlayer.isCrouching()) { return InteractionResult.PASS; }
+        //PUT//ActuallySizeInteractions.Log("HEI Placing down " + getName(itemCounterpart).getString());
 
         // Fetch the entity to be placed down
         ItemDualityCounterpart itemDuality = (ItemDualityCounterpart) (Object) itemCounterpart;
         EntityDualityCounterpart entityDuality = (EntityDualityCounterpart) itemDuality.actuallysize$getEntityCounterpart();
         if (entityDuality != null) {
+            //PUT//ActuallySizeInteractions.Log("HEI Found Active Duality " + ((Entity) entityDuality).getScoreboardName());
 
             // Force new if creative (unless players, players cannot be duped)
             if (holderPlayer.getAbilities().instabuild && !isPlayer()) {
                 Level level = holderPlayer.level();
                 Entity rebuilt = counterpartOrRebuild(level, itemCounterpart, true, true);
-                if (rebuilt != null) { entityDuality = (EntityDualityCounterpart) rebuilt; } }
+                if (rebuilt != null) {
+                    //PUT//ActuallySizeInteractions.Log("HEI Forced rebuilding to " + rebuilt.getScoreboardName());
+                    entityDuality = (EntityDualityCounterpart) rebuilt; }
+            }
 
             Entity entityCounterpart = (Entity) entityDuality;
 
@@ -262,6 +267,9 @@ public class ASIPSHeldEntityItem extends Item {
             entityCounterpart.setPos(entityPlaceOn(entityCounterpart, useContext.getClickedFace(), useContext.getClickLocation()));
             entityCounterpart.fallDistance = 0;
             entityDuality.actuallysize$escapeDuality();
+            ((Entity) entityDuality).revive();
+            if (!entityCounterpart.isAddedToWorld()) { holderPlayer.level().addFreshEntity(entityCounterpart); }
+
             if (entityDuality instanceof Player) {
 
                 // If player, they must be momentum-notified
@@ -276,7 +284,7 @@ public class ASIPSHeldEntityItem extends Item {
             Level level = holderPlayer.level();
             Entity rebuilt = counterpartOrRebuild(level, itemCounterpart, holderPlayer.getAbilities().instabuild, true);
             if (rebuilt == null) {
-                //ActuallySizeInteractions.Log("PS USE Rebuild Failure");
+                //PUT//ActuallySizeInteractions.Log("HEI Rebuild Failure");
                 return InteractionResult.PASS; }
 
             // Set position, and nullify momentum
@@ -286,6 +294,7 @@ public class ASIPSHeldEntityItem extends Item {
 
             // Deploy (added to world before slot adjusts position)
             if (!rebuilt.isAddedToWorld()) { level.addFreshEntity(rebuilt); }
+            //PUT//ActuallySizeInteractions.Log("HEI Found enclosed " + rebuilt.getScoreboardName());
         }
 
         // Item count decrease
