@@ -18,6 +18,7 @@ import actually.portals.ActuallySize.world.mixininterfaces.PreferentialOptionabl
 import gunging.ootilities.GungingOotilitiesMod.events.extension.ServersideEntityEquipmentChangeEvent;
 import gunging.ootilities.GungingOotilitiesMod.exploring.players.ISPExplorerStatements;
 import gunging.ootilities.GungingOotilitiesMod.ootilityception.OotilityNumbers;
+import gunging.ootilities.GungingOotilitiesMod.scheduling.SCHHundredTicksEvent;
 import gunging.ootilities.GungingOotilitiesMod.scheduling.SCHTenTicksEvent;
 import gunging.ootilities.GungingOotilitiesMod.scheduling.SCHTwentyTicksEvent;
 import gunging.ootilities.GungingOotilitiesMod.scheduling.SchedulingManager;
@@ -290,9 +291,21 @@ public class ASIEventExecutionListener {
     @SubscribeEvent
     public static void OnEverySecond(@NotNull SCHTwentyTicksEvent event) {
 
-        // Client resolves enqueued packets
+        // Tick active held entities
         if (!event.isClientSide()) {
             ASIPickupSystemManager.saveAllActiveEntityCounterparts();
+        }
+    }
+    /**
+     * @since 1.0.0
+     * @author Actually Portals
+     */
+    @SubscribeEvent
+    public static void OnEveryFewSeconds(@NotNull SCHHundredTicksEvent event) {
+
+        // Resync active held entities
+        if (!event.isClientSide()) {
+            ASIPickupSystemManager.rebroadcastActiveDualities();
         }
     }
 

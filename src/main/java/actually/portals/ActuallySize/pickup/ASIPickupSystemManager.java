@@ -3,7 +3,9 @@ package actually.portals.ActuallySize.pickup;
 import actually.portals.ActuallySize.ActuallyClientConfig;
 import actually.portals.ActuallySize.ActuallySizeInteractions;
 import actually.portals.ActuallySize.controlling.execution.ASIEventExecutionListener;
+import actually.portals.ActuallySize.netcode.ASINetworkManager;
 import actually.portals.ActuallySize.netcode.packets.clientbound.ASINCHoldPointsSyncReply;
+import actually.portals.ActuallySize.netcode.packets.clientbound.ASINCItemEntityActivationPacket;
 import actually.portals.ActuallySize.netcode.packets.serverbound.ASINSPreferredSize;
 import actually.portals.ActuallySize.pickup.actions.ASIPSDualityAction;
 import actually.portals.ActuallySize.pickup.actions.ASIPSDualityActivationAction;
@@ -26,6 +28,7 @@ import gunging.ootilities.GungingOotilitiesMod.exploring.players.ISPExplorerStat
 import gunging.ootilities.GungingOotilitiesMod.exploring.players.ISPIndexedStatement;
 import gunging.ootilities.GungingOotilitiesMod.exploring.players.ISPPlayerLocation;
 import gunging.ootilities.GungingOotilitiesMod.exploring.players.specalization.ISPSStandard;
+import gunging.ootilities.GungingOotilitiesMod.instants.GOOMPlayerMomentumSync;
 import gunging.ootilities.GungingOotilitiesMod.ootilityception.IntegerNumberRange;
 import net.minecraft.nbt.*;
 import net.minecraft.network.chat.Component;
@@ -155,14 +158,12 @@ public class ASIPickupSystemManager {
             // If it doesn't have an item, it is invalid
             if (itemCounterpart == null) {
                 toRemove.add(entityCounterpart);
-                continue;
-            }
+                continue; }
 
             // If it is somehow removed or dead, it is also invalid
             if (!entityCounterpart.isAlive()) {
                 toRemove.add(entityCounterpart);
-                continue;
-            }
+                continue; }
 
             // Skip player, those need no saving in the item
             if (entityCounterpart instanceof Player) {
@@ -214,6 +215,54 @@ public class ASIPickupSystemManager {
                 ASIPSDualityEscapeAction action = new ASIPSDualityEscapeAction(dualityEntity);
                 action.tryResolve();
             }
+        }
+    }
+
+    /**
+     * For every active entity-item duality, notifies all the players that
+     * are tracking them that they are indeed held at the moment (real).
+     *
+     * @since 1.0.0
+     * @author Actually Portals
+     */
+    public static void rebroadcastActiveDualities() {
+
+        // Cancel if empty
+        if (activeEntityDualityCounterparts.isEmpty()) { return; }
+
+        /*
+         * Iterate all the active entity counterpart and save them into their item
+         */
+        for (Entity entityCounterpart : activeEntityDualityCounterparts.values()) {
+            EntityDualityCounterpart dualityEntity = (EntityDualityCounterpart) entityCounterpart;
+            ItemStack itemCounterpart = dualityEntity.actuallysize$getItemCounterpart();
+            ItemDualityCounterpart dualityItem = (ItemDualityCounterpart) (Object) itemCounterpart;
+            Entity target = (Entity) dualityEntity;
+
+            // If it doesn't have an item, it is invalid
+            if (dualityItem == null) { continue; }
+
+            // If it is somehow removed or dead, it is also invalid
+            if (!entityCounterpart.isAlive()) { continue; }
+
+            // For the sake of sync, also teleport the held entity to its holder.
+            ASIPSHoldPoint hold = dualityEntity.actuallysize$getHoldPoint();
+            if (hold != null && !hold.isVirtualHoldPoint()) {
+
+                // Move the entity to the holder just 1 tick rq
+                Entity holder = dualityItem.actuallysize$getItemStackLocation().getHolder();
+                target.moveTo(holder.getX(), 0.5 * (holder.getEyeY() + holder.getY()), holder.getZ());
+
+                // If player, they must be momentum-notified
+                if (dualityEntity instanceof Player) {
+                    GOOMPlayerMomentumSync sync = new GOOMPlayerMomentumSync((Player) dualityEntity);
+                    sync.tryResolve(); }
+            }
+
+            // Re-send activation packet
+            /*HDA*/ActuallySizeInteractions.LogHDA(ASIPickupSystemManager.class, "RAD", "&f Reactivation packet for {0}", dualityItem.actuallysize$getItemStackLocation());
+            ASINCItemEntityActivationPacket packet = new ASINCItemEntityActivationPacket(dualityItem.actuallysize$getItemStackLocation(), target, dualityEntity.actuallysize$getHoldPoint());
+            ASINetworkManager.broadcastEntityUpdate(target, packet);
         }
     }
 
