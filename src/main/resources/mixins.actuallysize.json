@@ -54,6 +54,7 @@
     "holding.food.FoodPropertiesMixin",
     "holding.food.MobEffectInstanceMixin",
     "holding.food.SlimeMixin",
+    "holding.food.SwellGoalMixin",
     "holding.pose.GuiGraphicsMixin",
     "world.fear.MeleeAttackGoalMixin"
   ],
