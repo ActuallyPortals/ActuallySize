@@ -219,6 +219,18 @@ public class ActuallyServerConfig {
             .comment(" This is a multiplier to how often effects are granted")
             .comment(" by eating live animals. Does not affect boss entities.")
             .defineInRange("foodEntityFrequencyMultiplier", 1D,0D, Double.MAX_VALUE);
+    /**
+     * At what scale does your size cause panic on monsters
+     *
+     * @since 1.0.0
+     */
+    @NotNull private static final ForgeConfigSpec.DoubleValue FEAR_THRESHOLD = CONFIG_BUILDER
+            .comment(" ")
+            .comment(" #### ----|    Fear    |----")
+            .comment(" This is the scale where monsters begin to fear you")
+            .comment(" if you are a beeg, some may even panic. For example,")
+            .comment(" 4.0 means monsters fear giants 4x bigger than them")
+            .defineInRange("fearThreshold", 4D,1D, Double.MAX_VALUE);
 
     /**
      * The config builder itself
@@ -242,6 +254,7 @@ public class ActuallyServerConfig {
     public static double strongestBeeg;
     public static double beegSize, tinySize;
     public static double foodDuration, foodFrequency;
+    public static double fearThreshold;
 
     /**
      * Reads the values specified in the config and loads them
@@ -267,6 +280,7 @@ public class ActuallyServerConfig {
         delicateTinies = TINIES_ARE_DELICATE.get();
         strongestBeeg = SIZE_DAMAGE_LIMIT.get();
         hungryBeegs = BEEGS_ARE_HUNGRY.get();
+        fearThreshold = FEAR_THRESHOLD.get();
 
         foodDuration = BEEGS_ARE_HUNGRY_DURATION.get();
         foodFrequency = BEEGS_ARE_HUNGRY_FREQUENCY.get();

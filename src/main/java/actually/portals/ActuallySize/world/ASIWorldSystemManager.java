@@ -3,8 +3,13 @@ package actually.portals.ActuallySize.world;
 import actually.portals.ActuallySize.ASIUtilities;
 import actually.portals.ActuallySize.ActuallyServerConfig;
 import actually.portals.ActuallySize.ActuallySizeInteractions;
+import net.minecraft.tags.EntityTypeTags;
 import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.MobType;
+import net.minecraft.world.entity.animal.AbstractGolem;
+import net.minecraft.world.entity.monster.Creeper;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
@@ -17,6 +22,65 @@ import org.jetbrains.annotations.NotNull;
  * @author Actually Portals
  */
 public class ASIWorldSystemManager {
+
+    /**
+     * @param beeg The beeg
+     * @param tiny The tiny
+     * @param relative How much bigger is the beeg to the tiny, so 4X bigger is 4.0
+     *
+     * @return If the specified entity may panic when encountering a beeg
+     *
+     * @since 1.0.0
+     * @author Actually Portals
+     */
+    public static boolean CanPanic(@NotNull LivingEntity beeg, @NotNull LivingEntity tiny, double relative) {
+
+        // Needs a higher panic threshold
+        double panicThreshold = ActuallyServerConfig.fearThreshold * 1.5;
+        if (panicThreshold > relative) { return false; }
+
+        // Zombies do not panic
+        boolean isSkeleton = tiny.getType().is(EntityTypeTags.SKELETONS);
+        boolean isUndead = tiny.getMobType() == MobType.UNDEAD;
+        if (isUndead && !isSkeleton) { return false; }
+
+        // Golems do not panic
+        if (tiny instanceof AbstractGolem) { return false; }
+
+        // Creepers do not panic
+        if (tiny instanceof Creeper) { return false; }
+
+        // Everything else panics when the beeg is near
+        double pos = beeg.position().distanceToSqr(tiny.position());
+        double eye = beeg.position().distanceToSqr(tiny.position());
+        double least = Math.min(pos, eye);
+        return least < (relative * relative * 4);
+    }
+
+    /**
+     * @param beeg The beeg
+     * @param tiny The tiny
+     * @param relative How much bigger is the beeg to the tiny, so 4X bigger is 4.0
+     *
+     * @return If the specified entity may fear when encountering a beeg
+     *
+     * @since 1.0.0
+     * @author Actually Portals
+     */
+    public static boolean CanFear(@NotNull LivingEntity beeg, @NotNull LivingEntity tiny, double relative) {
+
+        // Must meet fear threshold
+        if (ActuallyServerConfig.fearThreshold > relative) { return false; }
+
+        // Golems do not fear
+        if (tiny instanceof AbstractGolem) { return false; }
+
+        // Everything else fears when a beeg is near
+        double pos = beeg.position().distanceToSqr(tiny.position());
+        double eye = beeg.position().distanceToSqr(tiny.position());
+        double least = Math.min(pos, eye);
+        return least < (relative * relative * 49);
+    }
 
     /**
      * @param world The world where damage takes place

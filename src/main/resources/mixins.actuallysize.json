@@ -9,11 +9,11 @@
     "minVersion": "0.5.0-rc.2"
   },
   "client": [
-    "holding.pose.EntityRendererMixin",
     "LocalPlayerMixin",
     "holding.ClientLevelMixin",
     "holding.activation.ClientPacketListenerMixin",
     "holding.pose.EntityRenderDispatcherMixin",
+    "holding.pose.EntityRendererMixin",
     "holding.pose.HumanoidModelMixin",
     "holding.pose.InventoryScreenMixin$Pehkui",
     "holding.pose.ItemInHandRendererMixin",
@@ -56,7 +56,11 @@
     "holding.food.SlimeMixin",
     "holding.food.SwellGoalMixin",
     "holding.pose.GuiGraphicsMixin",
-    "world.fear.MeleeAttackGoalMixin"
+    "world.fear.MeleeAttackGoalMixin",
+    "world.fear.PanicGoalMixin",
+    "world.fear.RangedAttackGoalMixin",
+    "world.fear.RangedBowAttackMixin",
+    "world.fear.RangedCrossbowAttackGoalMixin"
   ],
   "injectors": {
     "defaultRequire": 1
