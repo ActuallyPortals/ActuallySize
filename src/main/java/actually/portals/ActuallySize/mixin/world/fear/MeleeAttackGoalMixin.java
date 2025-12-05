@@ -129,6 +129,8 @@ public abstract class MeleeAttackGoalMixin extends Goal {
                 }
             }
         }
+
+        if (this.mob.getTarget() == null) { cir.setReturnValue(false); cir.cancel(); }
     }
 
     @Inject(method = "start", at = @At("HEAD"), cancellable = true)

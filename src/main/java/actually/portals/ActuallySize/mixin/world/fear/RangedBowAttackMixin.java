@@ -118,6 +118,8 @@ public abstract class RangedBowAttackMixin extends Goal {
                 }
             }
         }
+
+        if (this.mob.getTarget() == null) { cir.setReturnValue(false); cir.cancel(); }
     }
 
     @Override
