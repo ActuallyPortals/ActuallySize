@@ -3,7 +3,10 @@ package actually.portals.ActuallySize.world;
 import actually.portals.ActuallySize.ASIUtilities;
 import actually.portals.ActuallySize.ActuallyServerConfig;
 import actually.portals.ActuallySize.ActuallySizeInteractions;
+import net.minecraft.core.BlockPos;
+import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.EntityTypeTags;
+import net.minecraft.tags.ItemTags;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
@@ -11,7 +14,16 @@ import net.minecraft.world.entity.MobType;
 import net.minecraft.world.entity.animal.AbstractGolem;
 import net.minecraft.world.entity.monster.Creeper;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockBehaviour;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.shapes.CollisionContext;
+import net.minecraft.world.phys.shapes.VoxelShape;
+import net.minecraftforge.common.util.BlockSnapshot;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -22,6 +34,50 @@ import org.jetbrains.annotations.NotNull;
  * @author Actually Portals
  */
 public class ASIWorldSystemManager {
+
+    /**
+     * @return If this is a block that will be placed in
+     *         the beeg grid when beeg building is enabled.
+     *
+     * @since 1.0.0
+     * @author Actually Portals
+     */
+    public static boolean CanBeBeegBlock(@NotNull Block block) {
+
+        // When disabled, no blocks are beeg blocks
+        if (!ActuallyServerConfig.beegBuilding) { return false; }
+
+        // Check collision shape to be a full block
+        BlockState state = block.defaultBlockState();
+
+        // Read shape potentially generating a null pointer exception
+        VoxelShape shape = null;
+        try {
+            shape = block.getShape(state, null, null, CollisionContext.empty());
+        } catch (NullPointerException ignored) { }
+        if (shape == null) { return false; }
+
+        // It must be full-size
+        return Block.isShapeFullBlock(shape);
+    }
+
+    /**
+     * @return If this is a block that will be placed in
+     *         the beeg grid when beeg building is enabled.
+     *
+     * @since 1.0.0
+     * @author Actually Portals
+     */
+    public static boolean CanBeBeegBlock(@NotNull ItemStack item) {
+
+        // When disabled, no blocks are beeg blocks
+        if (!ActuallyServerConfig.beegBuilding) { return false; }
+
+        // Check collision shape to be a full block
+        if (!(item.getItem() instanceof BlockItem)) { return false; }
+        BlockItem block = (BlockItem) item.getItem();
+        return CanBeBeegBlock(block.getBlock());
+    }
 
     /**
      * @param beeg The beeg

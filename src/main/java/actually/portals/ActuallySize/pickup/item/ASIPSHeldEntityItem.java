@@ -2,15 +2,24 @@ package actually.portals.ActuallySize.pickup.item;
 
 import actually.portals.ActuallySize.ASIUtilities;
 import actually.portals.ActuallySize.ActuallySizeInteractions;
+import actually.portals.ActuallySize.controlling.execution.ASIEventExecutionListener;
 import actually.portals.ActuallySize.pickup.ASIPickupSystemManager;
 import actually.portals.ActuallySize.pickup.actions.ASIPSDualityEscapeAction;
 import actually.portals.ActuallySize.pickup.events.ASIPSFoodPropertiesEvent;
 import actually.portals.ActuallySize.pickup.mixininterfaces.*;
+import actually.portals.ActuallySize.world.grid.construction.ASIGConstructor;
+import actually.portals.ActuallySize.world.grid.construction.cube.ASIGCEvenShell;
+import actually.portals.ActuallySize.world.grid.construction.cube.ASIGCLayered;
+import actually.portals.ActuallySize.world.grid.construction.cube.ASIGCShelled;
+import actually.portals.ActuallySize.world.grid.construction.rect.ASIGRectConstructor;
 import gunging.ootilities.GungingOotilitiesMod.instants.GOOMPlayerMomentumSync;
+import gunging.ootilities.GungingOotilitiesMod.ootilityception.OotilityNumbers;
 import gunging.ootilities.GungingOotilitiesMod.scheduling.SchedulingManager;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.InteractionResult;
@@ -31,6 +40,7 @@ import net.minecraftforge.common.MinecraftForge;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.UUID;
 import java.util.function.Consumer;
 
@@ -248,6 +258,7 @@ public class ASIPSHeldEntityItem extends Item {
         // Fetch the entity to be placed down
         ItemDualityCounterpart itemDuality = (ItemDualityCounterpart) (Object) itemCounterpart;
         EntityDualityCounterpart entityDuality = (EntityDualityCounterpart) itemDuality.actuallysize$getEntityCounterpart();
+        Entity entityCounterpart;
         if (entityDuality != null) {
             //PUT//ActuallySizeInteractions.Log("HEI Found Active Duality " + ((Entity) entityDuality).getScoreboardName());
 
@@ -260,7 +271,7 @@ public class ASIPSHeldEntityItem extends Item {
                     entityDuality = (EntityDualityCounterpart) rebuilt; }
             }
 
-            Entity entityCounterpart = (Entity) entityDuality;
+            entityCounterpart = (Entity) entityDuality;
 
             // Set position, and nullify momentum, and escape
             entityCounterpart.setDeltaMovement(Vec3.ZERO);
@@ -295,6 +306,7 @@ public class ASIPSHeldEntityItem extends Item {
             // Deploy (added to world before slot adjusts position)
             if (!rebuilt.isAddedToWorld()) { level.addFreshEntity(rebuilt); }
             //PUT//ActuallySizeInteractions.Log("HEI Found enclosed " + rebuilt.getScoreboardName());
+            entityCounterpart = rebuilt;
         }
 
         // Item count decrease

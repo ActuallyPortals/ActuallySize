@@ -1,0 +1,295 @@
+package actually.portals.ActuallySize.world.grid;
+
+import actually.portals.ActuallySize.world.grid.construction.ASIGConstructor;
+import actually.portals.ActuallySize.world.grid.construction.cube.ASIGCShelled;
+import gunging.ootilities.GungingOotilitiesMod.ootilityception.OotilityNumbers;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.core.Vec3i;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.Vec3;
+import net.minecraftforge.common.util.BlockSnapshot;
+import net.minecraftforge.event.ForgeEventFactory;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * This refers to a block that belongs to a beeg grid,
+ * in essence allows beegs to build and break blocks
+ * their size.
+ *
+ * @since 1.0.0
+ * @author Actually Portals
+ */
+public class ASIBeegBlock {
+
+    /**
+     * The scale of this beeg block
+     *
+     * @since 1.0.0
+     */
+    final int scale;
+
+    /**
+     * The position of this beeg block in the beeg grid
+     *
+     * @since 1.0.0
+     */
+    @NotNull final Vec3i beegPos;
+
+    /**
+     * @since 1.0.0
+     */
+    public @NotNull Vec3i getBeegPos() { return beegPos; }
+
+    /**
+     * @since 1.0.0
+     */
+    public int getScale() { return scale; }
+
+    /**
+     * @param scale The scale of this beeg block
+     * @param beegX The X position of this beeg block in the beeg grid
+     * @param beegY The Y position of this beeg block in the beeg grid
+     * @param beegZ The Z position of this beeg block in the beeg grid
+     *
+     * @since 1.0.0
+     * @author Actually Portals
+     */
+    public ASIBeegBlock(int scale, int beegX, int beegY, int beegZ) {
+        this(scale, new Vec3i(beegX, beegY, beegZ));
+    }
+
+    /**
+     * @param scale The scale of this beeg block
+     * @param beegPos The position of this beeg block in the beeg grid
+     *
+     * @since 1.0.0
+     * @author Actually Portals
+     */
+    public ASIBeegBlock(int scale, @NotNull Vec3i beegPos) {
+        this.scale = scale;
+        this.beegPos = beegPos;
+    }
+
+    /**
+     * @param scale The scale of the beeg block you seek, it gets rounded-up to an integer
+     * @param worldPos The world position you have, in normal-sized block units
+     *
+     * @return The beeg block containing this world position
+     *
+     * @since 1.0.0
+     * @author Actually Portals
+     */
+    @NotNull public static ASIBeegBlock containing(double scale, @NotNull Vec3 worldPos) {
+
+        // Ceil scale
+        int S = OotilityNumbers.ceil(scale);
+
+        // Floor world position
+        int x = OotilityNumbers.floor(worldPos.x);
+        int y = OotilityNumbers.floor(worldPos.y);
+        int z = OotilityNumbers.floor(worldPos.z);
+
+        int sx = x >= 0 ? 1 : -1;
+        int sy = y >= 0 ? 1 : -1;
+        int sz = z >= 0 ? 1 : -1;
+
+        x *= sx; y *= sy; z *= sz;
+        if (sx < 0) { x += S; }
+        if (sy < 0) { y += S; }
+        if (sz < 0) { z += S; }
+
+        // Transform to beeg grid
+        int beegX = (x - (x % S)) / S;
+        int beegY = (y - (y % S)) / S;
+        int beegZ = (z - (z % S)) / S;
+
+        // Done
+        return new ASIBeegBlock(S, beegX * sx, beegY * sy, beegZ * sz);
+    }
+
+    /**
+     * @return The maximum world X encompassed by this beeg block, exclusive.
+     *         Essentially, it encloses up to this number minus 0.00000000001
+     *
+     * @since 1.0.0
+     * @author Actually Portals
+     */
+    public int maxX() { return minX() + getScale(); }
+
+    /**
+     * @return The minimum world X encompassed by this beeg block, inclusive.
+     *
+     * @since 1.0.0
+     * @author Actually Portals
+     */
+    public int minX() { return getScale() * getBeegPos().getX(); }
+    /**
+     * @return The maximum world Y encompassed by this beeg block, exclusive.
+     *         Essentially, it encloses up to this number minus 0.00000000001
+     *
+     * @since 1.0.0
+     * @author Actually Portals
+     */
+    public int maxY() { return minY() + getScale(); }
+
+    /**
+     * @return The minimum world Y encompassed by this beeg block, inclusive.
+     *
+     * @since 1.0.0
+     * @author Actually Portals
+     */
+    public int minY() { return getScale() * getBeegPos().getY(); }
+
+    /**
+     * @return The maximum world Z encompassed by this beeg block, exclusive.
+     *         Essentially, it encloses up to this number minus 0.00000000001
+     *
+     * @since 1.0.0
+     * @author Actually Portals
+     */
+    public int maxZ() { return minZ() + getScale(); }
+
+    /**
+     * @return The minimum world Z encompassed by this beeg block, inclusive.
+     *
+     * @since 1.0.0
+     * @author Actually Portals
+     */
+    public int minZ() { return getScale() * getBeegPos().getZ(); }
+
+    /**
+     * @return A constructor that spans this beeg block
+     *
+     * @since 1.0.0
+     * @author Actually Portals
+     */
+    @NotNull public ASIGConstructor getConstructor() {
+        if (constructor == null) { constructor = new ASIGCShelled(getScale(), new Vec3(minX(), minY(), minZ())); }
+        return constructor;
+    }
+
+    /**
+     * @param acceptReplace When true, liquids and grass and other
+     *                      blocks you can replace while building will
+     *                      be considered empty.
+     *
+     * @return true if there are no solid blocks, with block placing in mind
+     *
+     * @since 1.0.0
+     * @author Actually Portals
+     */
+    public boolean isEmpty(@NotNull ServerLevel world, boolean acceptReplace, @Nullable BlockSnapshot ignored) {
+        boolean ign = ignored != null;
+
+        // First failure ends method
+        for (int x = minX(); x < maxX(); x++) {
+            for (int y = minY(); y < maxY(); y++) {
+                for (int z = minZ(); z < maxZ(); z++) {
+                    if (ign) { if (ignored.getPos().getX() == x && ignored.getPos().getY() == y && ignored.getPos().getZ() == z) { continue; } }
+
+                    // Find block at this coordinate
+                    BlockState at = world.getBlockState(BlockPos.containing(x + 0.2D, y + 0.2D, z + 0.2D));
+                    if (at.isAir()) { continue; }
+                    if (acceptReplace && at.canBeReplaced()) { continue; }
+
+                    // Obstruction found
+                    return false;
+                }
+            }
+        }
+
+        // No obstruction found
+        return true;
+    }
+
+    /**
+     * @param dir The direction in which to move
+     *
+     * @return The beeg block adjacent to this
+     *
+     * @since 1.0.0
+     * @author Actually Portals
+     */
+    @NotNull ASIBeegBlock getAdjacent(@NotNull Direction dir) {
+        return new ASIBeegBlock(getScale(), getBeegPos().relative(dir));
+    }
+
+    /**
+     * A constructor that spans this beeg block
+     *
+     * @since 1.0.0
+     */
+    @Nullable ASIGConstructor constructor;
+
+    /**
+     * This will send out a proper event and cancel if cancelable,
+     * as well as testing each individual block for a place event
+     *
+     * @param results The array to be filled
+     * @param input The block snapshot being placed, will be reverted on failure
+     * @param block The block-state being placed
+     * @param against The direction in which this block was placed
+     * @param world The world in which this block was placed
+     * @param counts The number of items consumed to place this block
+     *
+     * @return If the block was successfully placed down
+     *
+     * @since 1.0.0
+     * @author Actually Portals
+     */
+    public boolean tryPlace(@NotNull List<BlockSnapshot> results, @NotNull BlockSnapshot input, @NotNull BlockState block, @Nullable Direction against, @NotNull Entity placer, @NotNull ServerLevel world, int counts) {
+
+        // When empty, use this chunk
+        if (isEmpty(world, true, input)) {
+
+            // Get limit from player inventory
+            int limit;
+            if (counts < 1) { limit = 2048; } else { limit = counts * getScale() * getScale(); }
+
+            // Prepare indices
+            ASIGConstructor constructor = getConstructor();
+            ArrayList<Vec3> indices = constructor.elaborate(0, limit);
+
+            // Track changes
+            world.captureBlockSnapshots = true;
+            for (Vec3 index : indices) {
+                world.setBlock(BlockPos.containing(index), block, 3); }
+            world.captureBlockSnapshots = false;
+
+            // Compound results
+            results.addAll(world.capturedBlockSnapshots);
+            world.capturedBlockSnapshots.clear();
+            boolean ret = false;
+            if (!results.isEmpty()) {
+                ret = !ForgeEventFactory.onMultiBlockPlace(placer, results, against == null ? Direction.UP : against); }
+
+            // Event failed, undo input
+            if (!ret) {
+                world.restoringBlockSnapshots = true;
+                input.restore(true, false);
+                world.restoringBlockSnapshots = false; }
+            return ret;
+
+        // Else, try to move directionally
+        } else if (against != null) {
+            boolean ret = getAdjacent(against).tryPlace(results, input, block,null, placer, world, counts);
+
+            // Input is undone no matter what
+            world.restoringBlockSnapshots = true;
+            input.restore(true, false);
+            world.restoringBlockSnapshots = false;
+
+            return ret;
+        // Fail
+        } else {
+            return false;
+        }
+    }
+}

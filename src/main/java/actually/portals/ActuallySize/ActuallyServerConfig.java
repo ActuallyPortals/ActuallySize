@@ -231,6 +231,19 @@ public class ActuallyServerConfig {
             .comment(" if you are a beeg, some may even panic. For example,")
             .comment(" 4.0 means monsters fear giants 4x bigger than them")
             .defineInRange("fearThreshold", 4D,1D, Double.MAX_VALUE);
+    /**
+     * At what scale does your size cause panic on monsters
+     *
+     * @since 1.0.0
+     */
+    @NotNull private static final ForgeConfigSpec.BooleanValue BEEG_BUILDING = CONFIG_BUILDER
+            .comment(" ")
+            .comment(" #### ----|    Beeg Building    |----")
+            .comment(" Enables giants to build and break blocks in a grid")
+            .comment(" their size, so an 8X beeg will break in 8x8x8. This")
+            .comment(" also nerfs block pickup by your scale squared and")
+            .comment(" nerfs block placing by a factor of your scale. ")
+            .define("beegBuilding", true);
 
     /**
      * The config builder itself
@@ -244,6 +257,7 @@ public class ActuallyServerConfig {
     public static boolean enableEntityPickup;
     public static boolean enableEntityHolding;
     public static boolean enableFreeSize;
+    public static boolean beegBuilding;
 
     public static boolean usePracticalSize;
     public static double scaleLimitRider;
@@ -281,6 +295,7 @@ public class ActuallyServerConfig {
         strongestBeeg = SIZE_DAMAGE_LIMIT.get();
         hungryBeegs = BEEGS_ARE_HUNGRY.get();
         fearThreshold = FEAR_THRESHOLD.get();
+        beegBuilding = BEEG_BUILDING.get();
 
         foodDuration = BEEGS_ARE_HUNGRY_DURATION.get();
         foodFrequency = BEEGS_ARE_HUNGRY_FREQUENCY.get();
