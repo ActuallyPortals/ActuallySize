@@ -44,6 +44,7 @@ import net.minecraftforge.event.entity.EntityTeleportEvent;
 import net.minecraftforge.event.entity.living.LivingDamageEvent;
 import net.minecraftforge.event.entity.living.LivingEntityUseItemEvent;
 import net.minecraftforge.event.entity.living.MobEffectEvent;
+import net.minecraftforge.event.entity.player.EntityItemPickupEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.event.level.BlockEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
@@ -632,7 +633,7 @@ public class ASIEventExecutionListener {
         if (!(event.getLevel() instanceof ServerLevel)) { return; }
         if (event.isCanceled()) { return; }
 
-        // Must be placed by a beeg
+        // Must be broken by a beeg
         if (!(event.getPlayer() instanceof ServerPlayer)) { return; }
         ServerPlayer breaker = (ServerPlayer) event.getPlayer();
         double scale = ASIUtilities.getEntityScale(breaker);
@@ -648,6 +649,38 @@ public class ASIEventExecutionListener {
         } finally {
             beegBreaking = false;
         }
+    }
+
+    /**
+     * @param event When picking up an item
+     *
+     * @since 1.0.0
+     * @author Actually Portals
+     */
+    @SubscribeEvent
+    public static void OnBeegPickup(@NotNull EntityItemPickupEvent event) {
+
+        // Must only catch serverside singe block place events
+        if (!ActuallyServerConfig.beegBuilding) {return;}
+
+        // Must be picked up by a beeg
+        double scale = ASIUtilities.getEntityScale(event.getEntity());
+        if (scale <= 1) {return;}
+
+        // Not a participant block? I sleep
+        if (!ASIWorldSystemManager.CanBeBeegBlock(event.getItem().getItem())) {return;}
+        int virtualCount = event.getItem().getItem().getCount();
+
+        // Calculate nerfing factor
+        double itemScale = ASIUtilities.getEntityScale(event.getItem());
+        scale = scale / itemScale;
+        double nerf = 1 / scale;
+        double nerfedCount = virtualCount * nerf * nerf;
+        int flooredCount = OotilityNumbers.floor(nerfedCount);
+        if (flooredCount < 1 && OotilityNumbers.rollSuccess(nerfedCount * 1.1)) { flooredCount = 1; }
+
+        // Set that count
+        event.getItem().getItem().setCount(flooredCount);
     }
 
     /*

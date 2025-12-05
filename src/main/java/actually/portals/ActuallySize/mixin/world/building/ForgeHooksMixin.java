@@ -14,7 +14,6 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.UseOnContext;
-import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.common.ForgeHooks;
 import net.minecraftforge.common.util.BlockSnapshot;
 import org.jetbrains.annotations.Nullable;
@@ -58,7 +57,7 @@ public class ForgeHooksMixin {
         actuallysize$placingScale = scale;
     }
 
-    @WrapOperation(method = "onPlaceItemIntoWorld", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/InteractionResult;consumesAction()Z"))
+    @WrapOperation(method = "onPlaceItemIntoWorld", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/InteractionResult;consumesAction()Z", remap = true))
     private static boolean OnPlaceBlockConsuming(InteractionResult instance, Operation<Boolean> original) {
         actuallysize$consuming =  true;
         return original.call(instance);
@@ -70,7 +69,7 @@ public class ForgeHooksMixin {
         return actuallysize$snaps;
     }
 
-    @WrapOperation(method = "onPlaceItemIntoWorld", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/item/ItemStack;getCount()I"))
+    @WrapOperation(method = "onPlaceItemIntoWorld", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/item/ItemStack;getCount()I", remap = true))
     private static int OnPlaceBlockCount(ItemStack instance, Operation<Integer> original) {
         int ret = original.call(instance);
         if (actuallysize$consuming) {
@@ -90,7 +89,7 @@ public class ForgeHooksMixin {
     }
 
     @WrapOperation(method = "onPlaceItemIntoWorld", at = @At(value = "INVOKE", target = "Lnet/minecraftforge/event/ForgeEventFactory;onBlockPlace(Lnet/minecraft/world/entity/Entity;Lnet/minecraftforge/common/util/BlockSnapshot;Lnet/minecraft/core/Direction;)Z"))
-    private static boolean OnPlaceBlockConsuming(Entity entity, BlockSnapshot blockSnapshot, Direction direction, Operation<Boolean> original) {
+    private static boolean OnPlaceBlockEvent(Entity entity, BlockSnapshot blockSnapshot, Direction direction, Operation<Boolean> original) {
 
         // Normal operation
         if (actuallysize$placingScale < 1) {
