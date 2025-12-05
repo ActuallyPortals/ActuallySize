@@ -7,11 +7,16 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Vec3i;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
+import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.util.BlockSnapshot;
 import net.minecraftforge.event.ForgeEventFactory;
+import net.minecraftforge.event.level.BlockEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -91,16 +96,16 @@ public class ASIBeegBlock {
         // Ceil scale
         int S = OotilityNumbers.ceil(scale);
 
+        // Sense world position
+        int sx = worldPos.x >= 0 ? 1 : -1;
+        int sy = worldPos.y >= 0 ? 1 : -1;
+        int sz = worldPos.z >= 0 ? 1 : -1;
+
         // Floor world position
-        int x = OotilityNumbers.floor(worldPos.x);
-        int y = OotilityNumbers.floor(worldPos.y);
-        int z = OotilityNumbers.floor(worldPos.z);
+        int x = OotilityNumbers.floor(worldPos.x * sx);
+        int y = OotilityNumbers.floor(worldPos.y * sy);
+        int z = OotilityNumbers.floor(worldPos.z * sz);
 
-        int sx = x >= 0 ? 1 : -1;
-        int sy = y >= 0 ? 1 : -1;
-        int sz = z >= 0 ? 1 : -1;
-
-        x *= sx; y *= sy; z *= sz;
         if (sx < 0) { x += S; }
         if (sy < 0) { y += S; }
         if (sz < 0) { z += S; }
@@ -111,7 +116,7 @@ public class ASIBeegBlock {
         int beegZ = (z - (z % S)) / S;
 
         // Done
-        return new ASIBeegBlock(S, beegX * sx, beegY * sy, beegZ * sz);
+         return new ASIBeegBlock(S, beegX * sx, beegY * sy, beegZ * sz);
     }
 
     /**
@@ -268,7 +273,10 @@ public class ASIBeegBlock {
             world.capturedBlockSnapshots.clear();
             boolean ret = false;
             if (!results.isEmpty()) {
-                ret = !ForgeEventFactory.onMultiBlockPlace(placer, results, against == null ? Direction.UP : against); }
+                BlockSnapshot snap = results.get(0);
+                BlockState placedAgainst = world.getBlockState(snap.getPos().relative((against == null ? Direction.UP : against).getOpposite()));
+                ASIBeegPlaceEvent event = new ASIBeegPlaceEvent(results, placedAgainst, placer, this);
+                ret = !MinecraftForge.EVENT_BUS.post(event); }
 
             // Event failed, undo input
             if (!ret) {
@@ -290,6 +298,36 @@ public class ASIBeegBlock {
         // Fail
         } else {
             return false;
+        }
+    }
+
+    /**
+     * @param input The block break that triggered the Beeg Break
+     * @param player Player that beeg broke this beeg block
+     * @param world The world where it happened
+     *
+     * @since 1.0.0
+     * @author Actually Portals
+     */
+    public void tryBreak(@Nullable BlockPos input, @NotNull ServerPlayer player, @NotNull ServerLevel world) {
+        boolean ign = input != null;
+
+        // First failure ends method
+        for (int x = minX(); x < maxX(); x++) {
+            for (int y = minY(); y < maxY(); y++) {
+                for (int z = minZ(); z < maxZ(); z++) {
+
+                    // Input block was already broken anyway
+                    if (ign) { if (input.getX() == x && input.getY() == y && input.getZ() == z) { continue; } }
+
+                    BlockPos target = BlockPos.containing(x + 0.2D, y + 0.2D, z + 0.2D);
+                    BlockState state = world.getBlockState(target);
+                    if (state.isAir()) { continue; }
+
+                    // Break it with this players' authority
+                    player.gameMode.destroyBlock(target);
+                }
+            }
         }
     }
 }

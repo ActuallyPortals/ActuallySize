@@ -582,7 +582,7 @@ public class ASIEventExecutionListener {
      * @author Actually Portals
      */
     @SubscribeEvent(priority = EventPriority.LOW)
-    public static void OnBlockPlace(@NotNull BlockEvent.EntityPlaceEvent event) {
+    public static void OnBeegBuild(@NotNull BlockEvent.EntityPlaceEvent event) {
 
         // Must only catch serverside singe block place events
         if (!ActuallyServerConfig.beegBuilding) { return; }
@@ -608,6 +608,46 @@ public class ASIEventExecutionListener {
 
         // Run as multi-block event, next tick
         SchedulingManager.scheduleTask(() -> beegBlock.tryPlace(new ArrayList<>(), event.getBlockSnapshot(), event.getPlacedBlock(), dir, placer, world, -1),0, false);
+    }
+
+    /**
+     * True while beeg breaking a grid chunk
+     *
+     * @since 1.0.0
+     */
+    static boolean beegBreaking;
+
+    /**
+     * @param event The single-block break event being run
+     *
+     * @since 1.0.0
+     * @author Actually Portals
+     */
+    @SubscribeEvent
+    public static void OnBeegBreak(@NotNull BlockEvent.BreakEvent event) {
+        if (beegBreaking) { return; }
+
+        // Must only catch serverside singe block place events
+        if (!ActuallyServerConfig.beegBuilding) { return; }
+        if (!(event.getLevel() instanceof ServerLevel)) { return; }
+        if (event.isCanceled()) { return; }
+
+        // Must be placed by a beeg
+        if (!(event.getPlayer() instanceof ServerPlayer)) { return; }
+        ServerPlayer breaker = (ServerPlayer) event.getPlayer();
+        double scale = ASIUtilities.getEntityScale(breaker);
+        if (scale <= 1) { return; }
+
+        // Find block
+        ASIBeegBlock beegBlock = ASIBeegBlock.containing(scale, event.getPos().getCenter());
+
+        try {
+            beegBreaking = true;
+            beegBlock.tryBreak(event.getPos(), breaker, (ServerLevel) event.getLevel());
+
+        } finally {
+            beegBreaking = false;
+        }
     }
 
     /*
