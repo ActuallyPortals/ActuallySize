@@ -15,7 +15,9 @@ import actually.portals.ActuallySize.pickup.item.ASIPSHeldEntityItem;
 import actually.portals.ActuallySize.pickup.mixininterfaces.*;
 import actually.portals.ActuallySize.world.ASIWorldSystemManager;
 import actually.portals.ActuallySize.world.grid.ASIBeegBlock;
+import actually.portals.ActuallySize.world.grid.ASIWorldBlock;
 import actually.portals.ActuallySize.world.mixininterfaces.AmountMatters;
+import actually.portals.ActuallySize.world.mixininterfaces.BeegBreaker;
 import actually.portals.ActuallySize.world.mixininterfaces.Directed;
 import actually.portals.ActuallySize.world.mixininterfaces.PreferentialOptionable;
 import gunging.ootilities.GungingOotilitiesMod.events.extension.ServersideEntityEquipmentChangeEvent;
@@ -39,6 +41,7 @@ import net.minecraft.world.entity.boss.wither.WitherBoss;
 import net.minecraft.world.entity.monster.*;
 import net.minecraft.world.entity.monster.warden.Warden;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.Level;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.EntityTeleportEvent;
 import net.minecraftforge.event.entity.living.LivingDamageEvent;
@@ -612,13 +615,6 @@ public class ASIEventExecutionListener {
     }
 
     /**
-     * True while beeg breaking a grid chunk
-     *
-     * @since 1.0.0
-     */
-    static boolean beegBreaking;
-
-    /**
      * @param event The single-block break event being run
      *
      * @since 1.0.0
@@ -626,29 +622,36 @@ public class ASIEventExecutionListener {
      */
     @SubscribeEvent
     public static void OnBeegBreak(@NotNull BlockEvent.BreakEvent event) {
-        if (beegBreaking) { return; }
 
         // Must only catch serverside singe block place events
         if (!ActuallyServerConfig.beegBuilding) { return; }
         if (!(event.getLevel() instanceof ServerLevel)) { return; }
         if (event.isCanceled()) { return; }
 
-        // Must be broken by a beeg
+        // Must be broken by a beeg player
         if (!(event.getPlayer() instanceof ServerPlayer)) { return; }
-        ServerPlayer breaker = (ServerPlayer) event.getPlayer();
-        double scale = ASIUtilities.getEntityScale(breaker);
+        ServerPlayer beeg = (ServerPlayer) event.getPlayer();
+        BeegBreaker breaker = (BeegBreaker) beeg;
+        if (breaker.actuallysize$isBeegBreaking()) { return; }
+
+        // Adjust scale of breaking
+        double scale = ASIUtilities.getEntityScale(beeg);
+        if (beeg.isShiftKeyDown()) { scale = OotilityNumbers.floor(scale * 0.5); }
         if (scale <= 1) { return; }
+
+        // Not a participant block? I sleep
+        if (!ASIWorldSystemManager.CanBeBeegBlock(event.getState().getBlock())) { return; }
 
         // Find block
         ASIBeegBlock beegBlock = ASIBeegBlock.containing(scale, event.getPos().getCenter());
+        ASIWorldBlock block = new ASIWorldBlock(event.getState(), event.getPos(), (Level) event.getLevel());
 
+        // Simulate breaking by this player
         try {
-            beegBreaking = true;
-            beegBlock.tryBreak(event.getPos(), breaker, (ServerLevel) event.getLevel());
+            breaker.actuallysize$setBeegBreaking(true);
+            beegBlock.tryBreak(block, beeg, (ServerLevel) event.getLevel());
 
-        } finally {
-            beegBreaking = false;
-        }
+        } finally { breaker.actuallysize$setBeegBreaking(false); }
     }
 
     /**
@@ -663,16 +666,20 @@ public class ASIEventExecutionListener {
         // Must only catch serverside singe block place events
         if (!ActuallyServerConfig.beegBuilding) {return;}
 
-        // Must be picked up by a beeg
-        double scale = ASIUtilities.getEntityScale(event.getEntity());
-        if (scale <= 1) {return;}
-
         // Not a participant block? I sleep
         if (!ASIWorldSystemManager.CanBeBeegBlock(event.getItem().getItem())) {return;}
+
+        // Read their scale, tinies don't participate in this
+        double scale = ASIUtilities.getEntityScale(event.getEntity());
+        double itemScale = ASIUtilities.getEntityScale(event.getItem());
+        if (scale < 1) { scale = 1; }
+        if (itemScale < 1) { itemScale = 1; }
+
+        // No point in adjusting if the system is not engaged
+        if (scale == 1 && itemScale == 1) { return; }
         int virtualCount = event.getItem().getItem().getCount();
 
         // Calculate nerfing factor
-        double itemScale = ASIUtilities.getEntityScale(event.getItem());
         scale = scale / itemScale;
         double nerf = 1 / scale;
         double nerfedCount = virtualCount * nerf * nerf;

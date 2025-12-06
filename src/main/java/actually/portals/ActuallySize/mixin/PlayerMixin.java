@@ -15,6 +15,7 @@ import actually.portals.ActuallySize.pickup.holding.pose.ASIPSTinyPosedHold;
 import actually.portals.ActuallySize.pickup.holding.pose.smol.ASIPSTinyPoseProfile;
 import actually.portals.ActuallySize.pickup.item.ASIPSHeldEntityItem;
 import actually.portals.ActuallySize.pickup.mixininterfaces.*;
+import actually.portals.ActuallySize.world.mixininterfaces.BeegBreaker;
 import actually.portals.ActuallySize.world.mixininterfaces.PreferentialOptionable;
 import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
@@ -50,7 +51,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import java.util.Map;
 
 @Mixin(Player.class)
-public abstract class PlayerMixin extends LivingEntity implements HoldPointConfigurable, GraceImpulsable, PreferentialOptionable {
+public abstract class PlayerMixin extends LivingEntity implements HoldPointConfigurable, GraceImpulsable, PreferentialOptionable, BeegBreaker {
 
     @Shadow public abstract FoodData getFoodData();
 
@@ -331,4 +332,13 @@ public abstract class PlayerMixin extends LivingEntity implements HoldPointConfi
             }
         }
     }
+
+    @Unique boolean actuallysize$isBeegBreaking;
+
+    @Override
+    public boolean actuallysize$isBeegBreaking() { return actuallysize$isBeegBreaking; }
+
+    @Override
+    public void actuallysize$setBeegBreaking(boolean is) { actuallysize$isBeegBreaking = is; }
+
 }

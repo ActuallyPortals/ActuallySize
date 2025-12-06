@@ -55,7 +55,7 @@ public class ASIGCLayered extends ASIGCubeConstructor {
         for (int l = D; l < S-D; l++) {
 
             // Skip middle that got forcefully added before this
-            if (l == M) { continue; }
+            if (l == M && S > 2) { continue; }
 
             // Random chance of sequential, random chance of at the end
             if (OotilityNumbers.rollSuccess(0.5)) { L.add(l); } else { d.add(l); }

@@ -55,6 +55,10 @@ public class ForgeHooksMixin {
 
         // Good one
         actuallysize$placingScale = scale;
+
+        // Lower grid when crouching
+        if (actuallysize$placer.isShiftKeyDown()) { actuallysize$placingScale = OotilityNumbers.floor(scale * 0.5); }
+        if (actuallysize$placingScale <= 1) { actuallysize$placingScale = -1; }
     }
 
     @WrapOperation(method = "onPlaceItemIntoWorld", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/InteractionResult;consumesAction()Z", remap = true))

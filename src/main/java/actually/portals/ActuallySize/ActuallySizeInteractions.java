@@ -3,6 +3,7 @@ package actually.portals.ActuallySize;
 import actually.portals.ActuallySize.controlling.execution.ASIClientsideRequests;
 import actually.portals.ActuallySize.netcode.ASINetworkManager;
 import actually.portals.ActuallySize.pickup.ASIPickupSystemManager;
+import actually.portals.ActuallySize.world.ASIWorldSystemManager;
 import com.mojang.logging.LogUtils;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
@@ -99,6 +100,7 @@ public class ActuallySizeInteractions {
 
         event.enqueueWork(() -> {
             ASINetworkManager.register();
+            ASIWorldSystemManager.StandardBeegItems();
         });
     }
 

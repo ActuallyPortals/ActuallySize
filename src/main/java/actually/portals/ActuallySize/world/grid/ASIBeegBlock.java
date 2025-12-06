@@ -1,7 +1,10 @@
 package actually.portals.ActuallySize.world.grid;
 
+import actually.portals.ActuallySize.ASIUtilities;
 import actually.portals.ActuallySize.world.grid.construction.ASIGConstructor;
 import actually.portals.ActuallySize.world.grid.construction.cube.ASIGCShelled;
+import actually.portals.ActuallySize.world.mixininterfaces.BeegBreaker;
+import actually.portals.ActuallySize.world.mixininterfaces.DitzDestroyer;
 import gunging.ootilities.GungingOotilitiesMod.ootilityception.OotilityNumbers;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -9,14 +12,13 @@ import net.minecraft.core.Vec3i;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.level.Level;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.util.BlockSnapshot;
-import net.minecraftforge.event.ForgeEventFactory;
-import net.minecraftforge.event.level.BlockEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -302,17 +304,27 @@ public class ASIBeegBlock {
     }
 
     /**
-     * @param input The block break that triggered the Beeg Break
+     * @param original The block break that triggered the Beeg Break
      * @param player Player that beeg broke this beeg block
      * @param world The world where it happened
      *
      * @since 1.0.0
      * @author Actually Portals
      */
-    public void tryBreak(@Nullable BlockPos input, @NotNull ServerPlayer player, @NotNull ServerLevel world) {
+    public void tryBreak(@Nullable ASIWorldBlock original, @NotNull ServerPlayer player, @NotNull ServerLevel world) {
+
+        // Identify original block position
+        BlockPos input = original == null ? null : original.getPos();
         boolean ign = input != null;
 
-        // First failure ends method
+        // Identify tool
+        ItemStack withHeld = player.getMainHandItem();
+        boolean ditz = withHeld.getItem() instanceof DitzDestroyer;
+        boolean tool = withHeld.isDamageableItem();
+        int nonInstantMines = 0;
+
+        // Build list of mined blocks
+        ArrayList<ASIWorldBlock> toDestroy = new ArrayList<>();
         for (int x = minX(); x < maxX(); x++) {
             for (int y = minY(); y < maxY(); y++) {
                 for (int z = minZ(); z < maxZ(); z++) {
@@ -320,14 +332,44 @@ public class ASIBeegBlock {
                     // Input block was already broken anyway
                     if (ign) { if (input.getX() == x && input.getY() == y && input.getZ() == z) { continue; } }
 
+                    // Find target block
                     BlockPos target = BlockPos.containing(x + 0.2D, y + 0.2D, z + 0.2D);
                     BlockState state = world.getBlockState(target);
                     if (state.isAir()) { continue; }
 
+                    // Check tool to be the correct one
+                    if (ditz) { if (!((DitzDestroyer) withHeld.getItem()).actuallysize$canDitzDestroy(withHeld, state)) { continue; } }
+                    if (tool) { if (state.getDestroySpeed(world, target) > 0) { nonInstantMines++; } }
+
                     // Break it with this players' authority
-                    player.gameMode.destroyBlock(target);
+                    ASIWorldBlock block = new ASIWorldBlock(state, target, world);
+                    toDestroy.add(block);
                 }
             }
         }
+
+        // Reduce damage taken by scale squared. Might even reach zero, but one durability damage may be taken
+        // from breaking the original block event that will always go through independently.
+        if (nonInstantMines > 0) {
+            double scale = ASIUtilities.getEntityScale(player);
+            double buff = 1D / scale;
+            nonInstantMines = OotilityNumbers.floor(nonInstantMines * buff * buff); }
+
+        // Run Beeg Break Event, cancel if cancelled
+        ASIBeegBreakEvent event = new ASIBeegBreakEvent(this, toDestroy, original, player, nonInstantMines);
+        if (MinecraftForge.EVENT_BUS.post(event)) { return; }
+
+        // Begin beeg breaking
+        ItemStack beeg = event.getTool();
+        BeegBreaker breaker = ((BeegBreaker) (Object) beeg);
+        try {
+            breaker.actuallysize$setBeegBreaking(true);
+
+            // Break those blocks
+            for (ASIWorldBlock des : toDestroy) { player.gameMode.destroyBlock(des.getPos()); }
+        } finally { breaker.actuallysize$setBeegBreaking(false); }
+
+        // Finalize beeg breaking
+        beeg.hurtAndBreak(event.getExpectedDurabilityDamage(), player, who -> who.broadcastBreakEvent(EquipmentSlot.MAINHAND));
     }
 }

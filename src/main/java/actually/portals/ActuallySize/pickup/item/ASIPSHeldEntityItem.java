@@ -252,7 +252,7 @@ public class ASIPSHeldEntityItem extends Item {
         if (holderPlayer == null) { return InteractionResult.PASS; }
 
         // Needs to be crouching to place, otherwise eaten as foodie
-        if (!holderPlayer.isCrouching()) { return InteractionResult.PASS; }
+        if (!holderPlayer.isShiftKeyDown()) { return InteractionResult.PASS; }
         //PUT//ActuallySizeInteractions.Log("HEI Placing down " + getName(itemCounterpart).getString());
 
         // Fetch the entity to be placed down

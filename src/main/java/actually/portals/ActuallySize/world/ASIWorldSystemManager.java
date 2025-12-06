@@ -4,6 +4,8 @@ import actually.portals.ActuallySize.ASIUtilities;
 import actually.portals.ActuallySize.ActuallyServerConfig;
 import actually.portals.ActuallySize.ActuallySizeInteractions;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.EntityTypeTags;
 import net.minecraft.tags.ItemTags;
@@ -15,7 +17,9 @@ import net.minecraft.world.entity.animal.AbstractGolem;
 import net.minecraft.world.entity.monster.Creeper;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.Block;
@@ -24,7 +28,10 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import net.minecraftforge.common.util.BlockSnapshot;
+import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.HashMap;
 
 /**
  * The class that handles systems related to interacting
@@ -34,6 +41,58 @@ import org.jetbrains.annotations.NotNull;
  * @author Actually Portals
  */
 public class ASIWorldSystemManager {
+
+    /**
+     * Items that participate in beeg building system
+     *
+     * @since 1.0.0
+     */
+    @NotNull static final HashMap<ResourceLocation, Boolean> beegBuildingItems = new HashMap<>();
+
+    /**
+     * Provisional initialization of beeg building items
+     * while I figure out a way to identify packing
+     * recipes.
+     *
+     * @deprecated Provisional while a better method comes in place
+     *
+     * @since 1.0.0
+     * @author Actually Portals
+     */
+    @Deprecated
+    public static void StandardBeegItems() {
+        RegisterBeegItem(Items.CLAY_BALL);
+        RegisterBeegItem(Items.GLOWSTONE_DUST);
+
+        RegisterBeegItem(Items.RAW_COPPER);
+        RegisterBeegItem(Items.RAW_IRON);
+        RegisterBeegItem(Items.RAW_GOLD);
+        RegisterBeegItem(Items.COAL);
+        RegisterBeegItem(Items.DIAMOND);
+        RegisterBeegItem(Items.QUARTZ);
+        RegisterBeegItem(Items.REDSTONE);
+        RegisterBeegItem(Items.GOLD_NUGGET);
+    }
+
+    /**
+     * Registers an item that can be packed into building blocks,
+     * so that picking these items up as a beeg will be nerfed
+     * so that their packed version is a little harder to mass-dupe...
+     * and also kinda balances beeg mining a bit since most ores
+     * happen to fall in this category
+     *
+     * @since 1.0.0
+     * @author Actually Portals
+     */
+    public static void RegisterBeegItem(@NotNull Item item) {
+
+        // Obtain this item's resource key
+        ResourceLocation itemKey = ForgeRegistries.ITEMS.getKey(item);
+        if (beegBuildingItems.containsKey(itemKey)) { return; }
+
+        // Include it
+        beegBuildingItems.put(itemKey, false);
+    }
 
     /**
      * @return If this is a block that will be placed in
@@ -73,8 +132,14 @@ public class ASIWorldSystemManager {
         // When disabled, no blocks are beeg blocks
         if (!ActuallyServerConfig.beegBuilding) { return false; }
 
+        // Blocks are treated differently from normal items
+        if (!(item.getItem() instanceof BlockItem)) {
+
+            // Not a block? Well how about a packable item
+            ResourceLocation itemKey = ForgeRegistries.ITEMS.getKey(item.getItem());
+            return beegBuildingItems.containsKey(itemKey); }
+
         // Check collision shape to be a full block
-        if (!(item.getItem() instanceof BlockItem)) { return false; }
         BlockItem block = (BlockItem) item.getItem();
         return CanBeBeegBlock(block.getBlock());
     }

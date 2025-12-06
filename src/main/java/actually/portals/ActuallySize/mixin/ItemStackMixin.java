@@ -3,11 +3,14 @@ package actually.portals.ActuallySize.mixin;
 import actually.portals.ActuallySize.pickup.mixininterfaces.*;
 import actually.portals.ActuallySize.pickup.ASIPickupSystemManager;
 import actually.portals.ActuallySize.pickup.item.ASIPSHeldEntityItem;
+import actually.portals.ActuallySize.world.mixininterfaces.BeegBreaker;
 import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import gunging.ootilities.GungingOotilitiesMod.exploring.ItemStackLocation;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.item.Item;
@@ -18,11 +21,14 @@ import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.util.UUID;
 
 @Mixin(ItemStack.class)
-public abstract class ItemStackMixin extends net.minecraftforge.common.capabilities.CapabilityProvider<ItemStack> implements net.minecraftforge.common.extensions.IForgeItemStack, ItemDualityCounterpart, Edacious, UseTimed {
+public abstract class ItemStackMixin extends net.minecraftforge.common.capabilities.CapabilityProvider<ItemStack> implements net.minecraftforge.common.extensions.IForgeItemStack, ItemDualityCounterpart, Edacious, UseTimed, BeegBreaker {
 
     @Shadow public abstract Item getItem();
 
@@ -271,5 +277,20 @@ public abstract class ItemStackMixin extends net.minecraftforge.common.capabilit
     @Override
     public void actuallysize$setUseTimeTicks(int ticks) {
         actuallysize$overriddenUseTime = ticks;
+    }
+
+    @Unique boolean actuallysize$isBeegBreaking;
+
+    @Override
+    public boolean actuallysize$isBeegBreaking() { return actuallysize$isBeegBreaking; }
+
+    @Override
+    public void actuallysize$setBeegBreaking(boolean is) { actuallysize$isBeegBreaking = is; }
+
+    @Inject(method = "isDamageableItem", at = @At("HEAD"), cancellable = true)
+    public void WhenDamageableCheck(CallbackInfoReturnable<Boolean> cir) {
+
+        // During beeg breaking, the item cannot be damaged
+        if (actuallysize$isBeegBreaking) { cir.setReturnValue(false); cir.cancel(); }
     }
 }
