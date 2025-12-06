@@ -25,11 +25,11 @@ public interface IForgePlayerMixin {
     default boolean canReachRaw(Entity entity, double padding) {
         Player self = (Player) this;
 
-        double range = self.getAttributeValue(ForgeMod.ENTITY_REACH.get()) + padding;
         double size = ASIUtilities.getEffectiveSize(self);
         if (size < 0.65) { size = 0.65; }
+        double range = self.getAttributeValue(ForgeMod.ENTITY_REACH.get()) + (padding * size);
 
-        return isCloseEnough(entity, range * size);
+        return isCloseEnough(entity, range);
     }
 
     /**
@@ -42,10 +42,10 @@ public interface IForgePlayerMixin {
         Player self = (Player) this;
 
         double size = ASIUtilities.getEffectiveSize(self);
-        double reach = self.getAttributeValue(ForgeMod.BLOCK_REACH.get()) + padding;
-        double dist = self.getEyePosition().distanceToSqr(Vec3.atCenterOf(pos));
         if (size < 0.65) { size = 0.65; }
+        double reach = self.getAttributeValue(ForgeMod.BLOCK_REACH.get()) + (padding * size);
 
-        return dist <= reach * reach * size * size;
+        double dist = self.getEyePosition().distanceToSqr(Vec3.atCenterOf(pos));
+        return dist <= reach * reach;
     }
 }
