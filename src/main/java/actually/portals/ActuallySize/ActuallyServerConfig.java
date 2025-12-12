@@ -232,7 +232,7 @@ public class ActuallyServerConfig {
             .comment(" 4.0 means monsters fear giants 4x bigger than them")
             .defineInRange("fearThreshold", 4D,1D, Double.MAX_VALUE);
     /**
-     * At what scale does your size cause panic on monsters
+     * If beegs will build in a grid their scale
      *
      * @since 1.0.0
      */
@@ -244,6 +244,20 @@ public class ActuallyServerConfig {
             .comment(" also nerfs block pickup by your scale squared and")
             .comment(" nerfs block placing by a factor of your scale. ")
             .define("beegBuilding", true);
+    /**
+     * Allows to disable block ratio fixes
+     *
+     * @since 1.0.0
+     */
+    @NotNull private static final ForgeConfigSpec.BooleanValue BEEG_BUILDING_DROP_RATE = CONFIG_BUILDER
+            .comment(" ")
+            .comment(" #### ----|    Beeg Building Drop Rate    |----")
+            .comment(" Picking up scaled-up building blocks will multiply")
+            .comment(" them in your inventory, but also picking up blocks")
+            .comment(" smaller than your scale will decrease them.")
+            .comment(" This works to balance BEEG BUILDING option, because")
+            .comment(" giants break and place down TONS of blocks.")
+            .define("beegBuildingDropRate", true);
 
     /**
      * The config builder itself
@@ -257,7 +271,7 @@ public class ActuallyServerConfig {
     public static boolean enableEntityPickup;
     public static boolean enableEntityHolding;
     public static boolean enableFreeSize;
-    public static boolean beegBuilding;
+    public static boolean beegBuilding, beegBuildingDropRate;
 
     public static boolean usePracticalSize;
     public static double scaleLimitRider;
@@ -296,6 +310,7 @@ public class ActuallyServerConfig {
         hungryBeegs = BEEGS_ARE_HUNGRY.get();
         fearThreshold = FEAR_THRESHOLD.get();
         beegBuilding = BEEG_BUILDING.get();
+        beegBuildingDropRate = BEEG_BUILDING_DROP_RATE.get();
 
         foodDuration = BEEGS_ARE_HUNGRY_DURATION.get();
         foodFrequency = BEEGS_ARE_HUNGRY_FREQUENCY.get();

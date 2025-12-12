@@ -665,6 +665,7 @@ public class ASIEventExecutionListener {
 
         // Must only catch serverside singe block place events
         if (!ActuallyServerConfig.beegBuilding) {return;}
+        if (!ActuallyServerConfig.beegBuildingDropRate) {return;}
 
         // Not a participant block? I sleep
         if (!ASIWorldSystemManager.CanBeBeegBlock(event.getItem().getItem())) {return;}
