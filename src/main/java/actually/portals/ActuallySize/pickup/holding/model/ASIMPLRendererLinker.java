@@ -42,9 +42,7 @@ public abstract class ASIMPLRendererLinker implements ASIPSModelPartLinker {
      * @author Actually Portals
      * @since 1.0.0
      */
-    public ASIMPLRendererLinker(@NotNull String part) {
-        modelPartName = part;
-    }
+    public ASIMPLRendererLinker(@NotNull String part) { modelPartName = part; }
 
     /**
      * @author Actually Portals
@@ -52,7 +50,7 @@ public abstract class ASIMPLRendererLinker implements ASIPSModelPartLinker {
      */
     @Override
     public boolean appliesTo(@NotNull ItemEntityDualityHolder holder, @NotNull EntityDualityCounterpart entityCounterpart, @NotNull Object context) {
-        return holder instanceof Entity && context instanceof ModelPart && ((VASIModelPart) (Object) context).actuallysize$getModelName().equals(getModelPartName());
+        return holder instanceof Entity && context instanceof ModelPart && getModelPartName().equals(((VASIModelPart) (Object) context).actuallysize$getModelName());
     }
 
     /**
