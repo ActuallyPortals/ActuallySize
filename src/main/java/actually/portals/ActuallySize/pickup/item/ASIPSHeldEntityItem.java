@@ -241,7 +241,22 @@ public class ASIPSHeldEntityItem extends Item {
         if (useContext.getItemInHand().getCount() < 1) { return InteractionResult.PASS; }
 
         // Only works server side
-        if (useContext.getLevel().isClientSide) { return InteractionResult.PASS; }
+        if (useContext.getLevel().isClientSide) {
+
+            /*
+             * For the local player, the position of the entity gets set
+             * in preparation for when it will be placed down in the server
+             */
+            ItemDualityCounterpart itemDuality = (ItemDualityCounterpart) (Object) useContext.getItemInHand();
+            Entity entityCounterpart = itemDuality.actuallysize$getEntityCounterpart();
+            if (entityCounterpart != null) {
+
+                Vec3 sim = entityPlaceOn(entityCounterpart, useContext.getClickedFace(), useContext.getClickLocation());
+                entityCounterpart.setPos(sim);
+                entityCounterpart.setOldPosAndRot();
+            }
+
+            return InteractionResult.PASS; }
 
         // Must be out of grab cooldown
         ItemStack itemCounterpart = useContext.getItemInHand();
