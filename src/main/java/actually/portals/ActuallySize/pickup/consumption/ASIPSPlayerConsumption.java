@@ -19,4 +19,13 @@ public interface ASIPSPlayerConsumption {
      * @author Actually Portals
      */
     void snack(@NotNull ServerPlayer beeg, @NotNull ServerPlayer tiny);
+
+    /**
+     * @return If this action should complete the action of eating,
+     *         return FALSE to cancel the eating of the food item
+     *
+     * @since 1.0.0
+     * @author Actually Portals
+     */
+    boolean eats();
 }

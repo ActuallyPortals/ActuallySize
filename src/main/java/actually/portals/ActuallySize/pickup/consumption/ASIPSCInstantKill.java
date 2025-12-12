@@ -36,4 +36,10 @@ public class ASIPSCInstantKill implements ASIPSPlayerConsumption {
         tiny.hurt(new DamageSource(tiny.damageSources().genericKill().typeHolder(), beeg), Float.MAX_VALUE);
         edacious.actuallysize$setWasConsumed(false);
     }
+
+    /**
+     * @since 1.0.0
+     * @author Actually Portals
+     */
+    @Override public boolean eats() { return true; }
 }

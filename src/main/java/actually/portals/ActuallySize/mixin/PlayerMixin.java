@@ -6,6 +6,8 @@ import actually.portals.ActuallySize.pickup.actions.ASIPSDualityActivationAction
 import actually.portals.ActuallySize.pickup.actions.ASIPSDualityEscapeAction;
 import actually.portals.ActuallySize.pickup.actions.ASIPSDualityFluxAction;
 import actually.portals.ActuallySize.pickup.consumption.ASIPSCInstantKill;
+import actually.portals.ActuallySize.pickup.consumption.ASIPSCKiss;
+import actually.portals.ActuallySize.pickup.consumption.ASIPSPlayerConsumption;
 import actually.portals.ActuallySize.pickup.events.ASIPSConsumeMobEvent;
 import actually.portals.ActuallySize.pickup.events.ASIPSConsumeTinyEvent;
 import actually.portals.ActuallySize.pickup.holding.ASIPSHoldPoint;
@@ -222,25 +224,29 @@ public abstract class PlayerMixin extends LivingEntity implements HoldPointConfi
         Player thisEntity = (Player) (Object) this;
 
         // Preconditions
-        if (world == null) { return original.call(world, itemCounterpart); }
+        if (world == null) {return original.call(world, itemCounterpart);}
         if (itemCounterpart == null) { return original.call(world, itemCounterpart); }
         ((PlayerBound) this.getFoodData()).actuallysize$setBoundPlayer(thisEntity);
-        if (!(thisEntity instanceof ServerPlayer)) { return original.call(world, itemCounterpart); }
-        if (!itemCounterpart.isEdible()) { return original.call(world, itemCounterpart); }
-        if (!(itemCounterpart.getItem() instanceof ASIPSHeldEntityItem)) { return original.call(world, itemCounterpart); }
+        if (!(thisEntity instanceof ServerPlayer)) {
+
+            if (thisEntity.isShiftKeyDown() && itemCounterpart.getItem() instanceof ASIPSHeldEntityItem && ((ASIPSHeldEntityItem) itemCounterpart.getItem()).isPlayer()) { itemCounterpart.setCount(2); }
+            return original.call(world, itemCounterpart);
+        }
+        if (!itemCounterpart.isEdible()) {return original.call(world, itemCounterpart);}
+        if (!(itemCounterpart.getItem() instanceof ASIPSHeldEntityItem)) {return original.call(world, itemCounterpart);}
 
         // Identify
         ASIPSHeldEntityItem asASIItem = (ASIPSHeldEntityItem) itemCounterpart.getItem();
         ServerPlayer beeg = (ServerPlayer) thisEntity;
         Entity entityCounterpart = asASIItem.counterpartOrRebuild(world, itemCounterpart, beeg.getAbilities().instabuild, false);
         EntityDualityCounterpart entityDuality = (EntityDualityCounterpart) entityCounterpart;
-        if (entityCounterpart == null) {return original.call(world, itemCounterpart); }
+        if (entityCounterpart == null) {return original.call(world, itemCounterpart);}
         //FOO//ActuallySizeInteractions.Log("ASI &1 PMX-FOO &r Edacious mob &6 " + entityCounterpart.getScoreboardName() + " " + entityCounterpart.getClass().getSimpleName());
 
         // Run event
         ASIPSConsumeMobEvent mobEvent = new ASIPSConsumeMobEvent(beeg, entityCounterpart, itemCounterpart);
         boolean cancelled = MinecraftForge.EVENT_BUS.post(mobEvent);
-        if (cancelled) { return itemCounterpart; }
+        if (cancelled) {return itemCounterpart;}
         Edacious asASI = ((Edacious) (Object) itemCounterpart);
 
         // When not consuming a player, not much happens
@@ -248,7 +254,7 @@ public abstract class PlayerMixin extends LivingEntity implements HoldPointConfi
             //FOO//ActuallySizeInteractions.Log("ASI &1 PMX-FOO &r Edacious &9 NON-PLAYER");
 
             // If there is no event, or it is not set to consume, ASI is done.
-            if (!mobEvent.isConsumeMob()) { return original.call(world, itemCounterpart); }
+            if (!mobEvent.isConsumeMob()) {return original.call(world, itemCounterpart);}
 
             // Break the entity-duality link between item and entity
             ASIPSDualityEscapeAction action = new ASIPSDualityEscapeAction(entityDuality);
@@ -260,31 +266,36 @@ public abstract class PlayerMixin extends LivingEntity implements HoldPointConfi
             if (entityCounterpart instanceof LivingEntity) {
                 LivingEntity eatenLiving = (LivingEntity) entityCounterpart;
                 eda = (Edacious) entityCounterpart;
-                eatenLiving.setLastHurtByPlayer(beeg); }
+                eatenLiving.setLastHurtByPlayer(beeg);
+            }
 
             // Deal fatal amount of damage and record the food properties of all this mobs' drops
             asASI.actuallysize$setEdaciousProperties(null);
             if (eda != null) {
-                eda.actuallysize$setWasConsumed(true); }
+                eda.actuallysize$setWasConsumed(true);
+            }
             entityCounterpart.kill();
             if (eda != null) {
                 asASI.actuallysize$setEdaciousProperties(eda.actuallysize$getEdaciousProperties());
-                if (!(eda instanceof Slime)) { eda.actuallysize$setWasConsumed(false); } }
+                if (!(eda instanceof Slime)) {eda.actuallysize$setWasConsumed(false);}
+            }
             asASIItem.resetFoodTick();
             return original.call(world, itemCounterpart);
         }
         //FOO//ActuallySizeInteractions.Log("ASI &1 PMX-FOO &r Edacious &5 PLAYER");
 
         // Consuming a player, that's special
+        ASIPSPlayerConsumption consumer = beeg.isShiftKeyDown() ? new ASIPSCKiss() : new ASIPSCInstantKill();
         ServerPlayer tiny = (ServerPlayer) entityCounterpart;
-        ASIPSConsumeTinyEvent playerEvent = new ASIPSConsumeTinyEvent(beeg, tiny, itemCounterpart, new ASIPSCInstantKill());
+        ASIPSConsumeTinyEvent playerEvent = new ASIPSConsumeTinyEvent(beeg, tiny, itemCounterpart, consumer);
         boolean canceled = MinecraftForge.EVENT_BUS.post(playerEvent);
         if (canceled) { return itemCounterpart; }
 
         // Snack on the drops that were consumed
         asASI.actuallysize$setEdaciousProperties(((Edacious) tiny).actuallysize$getEdaciousProperties());
         asASIItem.resetFoodTick();
-        ItemStack ret = original.call(world, itemCounterpart);
+        ItemStack ret = itemCounterpart;
+        if (playerEvent.getConsumer().eats()) { ret = original.call(world, itemCounterpart); }
 
         // Apply consumer
         playerEvent.getConsumer().snack(beeg, tiny);

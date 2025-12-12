@@ -27,4 +27,10 @@ public class ASIPSCRespawn implements ASIPSPlayerConsumption {
         // Respawn lul
         tiny.server.getPlayerList().respawn(tiny, true);
     }
+
+    /**
+     * @since 1.0.0
+     * @author Actually Portals
+     */
+    @Override public boolean eats() { return true; }
 }
