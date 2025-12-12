@@ -115,6 +115,14 @@ public class ASIClientsideRequests {
     }
 
     /**
+     * @return True when connection exists
+     *
+     * @since 1.0.0
+     * @author Actually Portals
+     */
+    public static boolean hasConnection() { return Minecraft.getInstance().getConnection() != null; }
+
+    /**
      * @since 1.0.0
      * @author Actually Portals
      */
@@ -162,6 +170,7 @@ public class ASIClientsideRequests {
 
             // Initial world join sync
             SchedulingManager.scheduleTask(() -> {
+                if (me == null) { return; }
 
                 // Resolve without asking
                 ASIPSHoldingSyncAction syncing = new ASIPSHoldingSyncAction(me);

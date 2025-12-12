@@ -1,6 +1,7 @@
 package actually.portals.ActuallySize.netcode;
 
 import actually.portals.ActuallySize.ActuallySizeInteractions;
+import actually.portals.ActuallySize.controlling.execution.ASIClientsideRequests;
 import actually.portals.ActuallySize.netcode.packets.clientbound.*;
 import actually.portals.ActuallySize.netcode.packets.serverbound.*;
 import actually.portals.ActuallySize.pickup.holding.model.ASIPSModelPartInfo;
@@ -129,6 +130,7 @@ public class ASINetworkManager {
      * @author Actually Portals
      */
     public static void playerToServer(@Nullable Object msg) {
+        if (!ASIClientsideRequests.hasConnection()) { return; }
         MAIN_CHANNEL.send(PacketDistributor.SERVER.noArg(), msg);
     }
 
@@ -139,6 +141,7 @@ public class ASINetworkManager {
      * @author Actually Portals
      */
     public static void playerToEveryone(@Nullable Object msg) {
+        if (!ASIClientsideRequests.hasConnection()) { return; }
         MAIN_CHANNEL.send(PacketDistributor.ALL.noArg(), msg);
     }
 
@@ -149,6 +152,7 @@ public class ASINetworkManager {
      * @author Actually Portals
      */
     public static void playerToPlayer(@NotNull ServerPlayer player, @Nullable Object msg) {
+        if (!ASIClientsideRequests.hasConnection()) { return; }
         MAIN_CHANNEL.send(PacketDistributor.PLAYER.with(() -> player), msg);
     }
 
