@@ -9,8 +9,6 @@ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import gunging.ootilities.GungingOotilitiesMod.exploring.ItemStackLocation;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.item.Item;
@@ -33,6 +31,8 @@ public abstract class ItemStackMixin extends net.minecraftforge.common.capabilit
     @Shadow public abstract Item getItem();
 
     @Shadow @javax.annotation.Nullable public abstract CompoundTag getTag();
+
+    @Shadow @javax.annotation.Nullable private CompoundTag tag;
 
     protected ItemStackMixin(Class<ItemStack> baseClass) { super(baseClass); }
 
@@ -292,5 +292,16 @@ public abstract class ItemStackMixin extends net.minecraftforge.common.capabilit
 
         // During beeg breaking, the item cannot be damaged
         if (actuallysize$isBeegBreaking) { cir.setReturnValue(false); cir.cancel(); }
+    }
+
+    @Inject(method = "save", at = @At("HEAD"))
+    public void OnDoNotSaveNonASI(CompoundTag pCompoundTag, CallbackInfoReturnable<CompoundTag> cir) {
+        boolean nonASI = !(getItem() instanceof ASIPSHeldEntityItem);
+        if (nonASI && this.tag != null) {
+            tag.remove(ASIPSHeldEntityItem.TAG_ENTITY);
+            tag.remove(ASIPSHeldEntityItem.TAG_ENTITY_UUID);
+            tag.remove(ASIPSHeldEntityItem.TAG_ENTITY_NAME);
+            tag.remove(ASIPSHeldEntityItem.TAG_ENTITY_ID);
+        }
     }
 }

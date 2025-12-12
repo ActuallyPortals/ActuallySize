@@ -49,6 +49,7 @@ import net.minecraft.world.entity.vehicle.ContainerEntity;
 import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.item.trading.Merchant;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.common.MinecraftForge;
@@ -367,6 +368,17 @@ public class ASIPickupSystemManager {
             Entity enclosed = itemCounterpart.actuallysize$getEnclosedEntity(tiny.level());
             if (enclosed == null) { throw new UnsupportedOperationException("An active Item-Entity duality has no enclosed entity? Impossible. "); }
             original = enclosed.getUUID();
+        }
+
+        /*
+         * Sneet Ban Moment: WHY IS AIR GETTING RECURSIVE HELD ENTITY TAGS IN VILLAGER TRADES?
+         */
+        if (!(item.getItem() instanceof ASIPSHeldEntityItem)) {
+            if (item.hasTag()) {
+                item.getTag().remove(ASIPSHeldEntityItem.TAG_ENTITY);
+                item.getTag().remove(ASIPSHeldEntityItem.TAG_ENTITY_UUID);
+                item.getTag().remove(ASIPSHeldEntityItem.TAG_ENTITY_NAME);
+            }
         }
 
         // Extract entity NBT
