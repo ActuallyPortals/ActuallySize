@@ -55,7 +55,7 @@ public abstract class PlayerMixin extends LivingEntity implements HoldPointConfi
 
     @Shadow public abstract FoodData getFoodData();
 
-    @Shadow @javax.annotation.Nullable private Pose forcedPose;
+    @Shadow @Nullable private Pose forcedPose;
 
     protected PlayerMixin(EntityType<? extends LivingEntity> pEntityType, Level pLevel) { super(pEntityType, pLevel); }
 

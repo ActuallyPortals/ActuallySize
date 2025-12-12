@@ -611,7 +611,7 @@ public class ASIEventExecutionListener {
         ServerLevel world = (ServerLevel) event.getLevel();
 
         // Run as multi-block event, next tick
-        SchedulingManager.scheduleTask(() -> beegBlock.tryPlace(new ArrayList<>(), event.getBlockSnapshot(), event.getPlacedBlock(), dir, placer, world, -1),0, false);
+        SchedulingManager.scheduleTask(() -> beegBlock.tryBeegBuild(new ArrayList<>(), event.getBlockSnapshot(), event.getPlacedBlock(), dir, placer, world, -1),0, false);
     }
 
     /**
@@ -649,7 +649,7 @@ public class ASIEventExecutionListener {
         // Simulate breaking by this player
         try {
             breaker.actuallysize$setBeegBreaking(true);
-            beegBlock.tryBreak(block, beeg, (ServerLevel) event.getLevel());
+            beegBlock.tryBeegBreak(block, beeg, (ServerLevel) event.getLevel());
 
         } finally { breaker.actuallysize$setBeegBreaking(false); }
     }

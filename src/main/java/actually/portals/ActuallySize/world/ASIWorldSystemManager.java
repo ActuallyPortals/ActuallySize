@@ -64,14 +64,19 @@ public class ASIWorldSystemManager {
         RegisterBeegItem(Items.CLAY_BALL);
         RegisterBeegItem(Items.GLOWSTONE_DUST);
 
+        /*
         RegisterBeegItem(Items.RAW_COPPER);
+        RegisterBeegItem(Items.COPPER_INGOT);
         RegisterBeegItem(Items.RAW_IRON);
+        RegisterBeegItem(Items.IRON_INGOT);
         RegisterBeegItem(Items.RAW_GOLD);
+        RegisterBeegItem(Items.GOLD_INGOT);
         RegisterBeegItem(Items.COAL);
         RegisterBeegItem(Items.DIAMOND);
         RegisterBeegItem(Items.QUARTZ);
         RegisterBeegItem(Items.REDSTONE);
-        RegisterBeegItem(Items.GOLD_NUGGET);
+        RegisterBeegItem(Items.LAPIS_LAZULI);
+         */
     }
 
     /**

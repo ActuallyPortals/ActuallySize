@@ -1,5 +1,7 @@
-package actually.portals.ActuallySize.world.grid;
+package actually.portals.ActuallySize.world.grid.events;
 
+import actually.portals.ActuallySize.world.grid.ASIBeegBlock;
+import actually.portals.ActuallySize.world.grid.ASIWorldBlock;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.eventbus.api.Cancelable;
@@ -16,7 +18,7 @@ import java.util.ArrayList;
  * @author Actually Portals
  */
 @Cancelable
-public class ASIBeegBreakEvent extends Event {
+public class ASIBeegBreakEvent extends Event implements ASIBeegBlockEvent {
 
     /**
      * The beeg block that is being broken
@@ -106,6 +108,7 @@ public class ASIBeegBreakEvent extends Event {
      * @since 1.0.0
      * @author Actually Portals
      */
+    @Override
     public @NotNull ASIBeegBlock getBeegBlock() {
         return beegBlock;
     }
@@ -132,5 +135,5 @@ public class ASIBeegBreakEvent extends Event {
      * @since 1.0.0
      * @author Actually Portals
      */
-    @NotNull ItemStack getTool() { return getPlayer().getMainHandItem(); }
+    @NotNull public ItemStack getTool() { return getPlayer().getMainHandItem(); }
 }

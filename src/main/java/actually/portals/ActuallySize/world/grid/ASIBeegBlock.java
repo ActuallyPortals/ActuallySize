@@ -3,6 +3,11 @@ package actually.portals.ActuallySize.world.grid;
 import actually.portals.ActuallySize.ASIUtilities;
 import actually.portals.ActuallySize.world.grid.construction.ASIGConstructor;
 import actually.portals.ActuallySize.world.grid.construction.cube.ASIGCShelled;
+import actually.portals.ActuallySize.world.grid.events.ASIBeegBreakEvent;
+import actually.portals.ActuallySize.world.grid.events.ASIBeegDrainEvent;
+import actually.portals.ActuallySize.world.grid.events.ASIBeegFillEvent;
+import actually.portals.ActuallySize.world.grid.events.ASIBeegPlaceEvent;
+import actually.portals.ActuallySize.world.grid.fluids.ASIWorldFluid;
 import actually.portals.ActuallySize.world.mixininterfaces.BeegBreaker;
 import actually.portals.ActuallySize.world.mixininterfaces.DitzDestroyer;
 import gunging.ootilities.GungingOotilitiesMod.ootilityception.OotilityNumbers;
@@ -13,12 +18,14 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.material.Fluid;
+import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.util.BlockSnapshot;
+import net.minecraftforge.fluids.FluidType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -251,7 +258,7 @@ public class ASIBeegBlock {
      * @since 1.0.0
      * @author Actually Portals
      */
-    public boolean tryPlace(@NotNull List<BlockSnapshot> results, @NotNull BlockSnapshot input, @NotNull BlockState block, @Nullable Direction against, @NotNull Entity placer, @NotNull ServerLevel world, int counts) {
+    public boolean tryBeegBuild(@NotNull List<BlockSnapshot> results, @NotNull BlockSnapshot input, @NotNull BlockState block, @Nullable Direction against, @NotNull Entity placer, @NotNull ServerLevel world, int counts) {
 
         // When empty, use this chunk
         if (isEmpty(world, true, input)) {
@@ -289,7 +296,7 @@ public class ASIBeegBlock {
 
         // Else, try to move directionally
         } else if (against != null) {
-            boolean ret = getAdjacent(against).tryPlace(results, input, block,null, placer, world, counts);
+            boolean ret = getAdjacent(against).tryBeegBuild(results, input, block,null, placer, world, counts);
 
             // Input is undone no matter what
             world.restoringBlockSnapshots = true;
@@ -304,6 +311,9 @@ public class ASIBeegBlock {
     }
 
     /**
+     * This will send out a proper event and cancel if cancelable,
+     * as well as testing each individual block for a break event
+     *
      * @param original The block break that triggered the Beeg Break
      * @param player Player that beeg broke this beeg block
      * @param world The world where it happened
@@ -311,7 +321,7 @@ public class ASIBeegBlock {
      * @since 1.0.0
      * @author Actually Portals
      */
-    public void tryBreak(@Nullable ASIWorldBlock original, @NotNull ServerPlayer player, @NotNull ServerLevel world) {
+    public void tryBeegBreak(@Nullable ASIWorldBlock original, @NotNull ServerPlayer player, @NotNull ServerLevel world) {
 
         // Identify original block position
         BlockPos input = original == null ? null : original.getPos();
@@ -371,5 +381,141 @@ public class ASIBeegBlock {
 
         // Finalize beeg breaking
         beeg.hurtAndBreak(event.getExpectedDurabilityDamage(), player, who -> who.broadcastBreakEvent(EquipmentSlot.MAINHAND));
+    }
+
+    /**
+     * This will send out a proper event and cancel if cancelable
+     *
+     * @param original The bucket drain that triggered the Beeg Drain
+     * @param player Player that beeg drained this beeg block
+     * @param world The world where it happened
+     * @param match The fluid to drain, if {@link Fluids#EMPTY} this will drain EVERY FLUID
+     * @param emptyBucket The bucket before going in to this
+     * @param filledBucket The bucket after going in to this
+     *
+     * @since 1.0.0
+     * @author Actually Portals
+     */
+    public void tryBeegDrain(@Nullable ASIWorldBlock original,
+                             @NotNull ServerPlayer player,
+                             @NotNull ServerLevel world,
+                             @NotNull Fluid match,
+                             @NotNull ItemStack emptyBucket,
+                             @NotNull ItemStack filledBucket) {
+
+        // Identify original block position
+        BlockPos input = original == null ? null : original.getPos();
+        boolean ign = input != null;
+        boolean mch = match != Fluids.EMPTY;
+        int fluidTotal = 0;
+
+        // Build list of mined blocks
+        ArrayList<ASIWorldFluid> toDrain = new ArrayList<>();
+        for (int x = minX(); x < maxX(); x++) {
+            for (int y = minY(); y < maxY(); y++) {
+                for (int z = minZ(); z < maxZ(); z++) {
+
+                    // Input block will already be drained
+                    if (ign) { if (input.getX() == x && input.getY() == y && input.getZ() == z) { continue; } }
+
+                    // Find target block
+                    BlockPos target = BlockPos.containing(x + 0.2D, y + 0.2D, z + 0.2D);
+                    BlockState state = world.getBlockState(target);
+                    ASIWorldFluid block = new ASIWorldBlock(state, target, world).toFluid();
+
+                    // We only care about blocks that can handle fluid
+                    if (!block.hasFluidCapabilities()) { continue; }
+
+                    // Check tool to be the correct one
+                    if (mch) { if (!block.getFluid().isSame(match)) { continue; } }
+
+                    // Drain it with this players' authority
+                    toDrain.add(block);
+                    fluidTotal += block.getFluidAmount();
+                }
+            }
+        }
+        int maxDrain = getScale() * getScale() * getScale() * FluidType.BUCKET_VOLUME;
+
+        // Run Beeg Break Event, cancel if cancelled
+        ASIBeegDrainEvent event = new ASIBeegDrainEvent(this, toDrain, original, player, match, emptyBucket, filledBucket, fluidTotal);
+        if (MinecraftForge.EVENT_BUS.post(event)) { return; }
+
+        // Begin beeg draining
+        BeegBreaker breaker = ((BeegBreaker) (Object) emptyBucket);
+        try {
+            breaker.actuallysize$setBeegBreaking(true);
+            for (ASIWorldFluid des : toDrain) { maxDrain -= des.dry(maxDrain); }
+
+        } finally { breaker.actuallysize$setBeegBreaking(false); }
+    }
+
+    /**
+     * This will send out a proper event and cancel if cancelable
+     *
+     * @param original The bucket drain that triggered the Beeg Fill
+     * @param player Player that beeg filled this beeg block
+     * @param world The world where it happened
+     * @param pour The fluid to fill empty space with
+     * @param emptyBucket The bucket after going in to this
+     * @param filledBucket The bucket before going in to this
+     *
+     * @since 1.0.0
+     * @author Actually Portals
+     */
+    public void tryBeegFill(@Nullable ASIWorldBlock original,
+                             @NotNull ServerPlayer player,
+                             @NotNull ServerLevel world,
+                             @NotNull Fluid pour,
+                             @NotNull ItemStack emptyBucket,
+                             @NotNull ItemStack filledBucket) {
+
+        // Nothing to fill when filling empty
+        if (pour == Fluids.EMPTY) { return; }
+
+        // Identify original block position
+        BlockPos input = original == null ? null : original.getPos();
+        boolean ign = input != null;
+        int fluidTotal = 0;
+
+        // Build list of mined blocks
+        ArrayList<ASIWorldFluid> toFill = new ArrayList<>();
+        for (int x = minX(); x < maxX(); x++) {
+            for (int y = minY(); y < maxY(); y++) {
+                for (int z = minZ(); z < maxZ(); z++) {
+
+                    // Input block will already be drained
+                    if (ign) { if (input.getX() == x && input.getY() == y && input.getZ() == z) { continue; } }
+
+                    // Find target block
+                    BlockPos target = BlockPos.containing(x + 0.2D, y + 0.2D, z + 0.2D);
+                    BlockState state = world.getBlockState(target);
+                    ASIWorldFluid block = new ASIWorldBlock(state, target, world).toFluid();
+
+                    // We only care about blocks that can handle fluid
+                    if (!block.hasFluidCapabilities()) { continue;  }
+
+                    // If there is already fluid there, it has to be the same we are pouring
+                    if (block.getFluidAmount() > 0) { if (!block.getFluid().isSame(pour)) { continue; }}
+
+                    // Fill it with this players' authority
+                    toFill.add(block);
+                    fluidTotal += block.getMaximumFluidAmount() - block.getFluidAmount();
+                }
+            }
+        }
+        int maxFill = getScale() * getScale() * getScale() * FluidType.BUCKET_VOLUME;
+
+        // Run Beeg Break Event, cancel if cancelled
+        ASIBeegFillEvent event = new ASIBeegFillEvent(this, toFill, original, player, pour, emptyBucket, filledBucket, fluidTotal);
+        if (MinecraftForge.EVENT_BUS.post(event)) { return; }
+
+        // Begin beeg draining
+        BeegBreaker breaker = ((BeegBreaker) (Object) emptyBucket);
+        try {
+            breaker.actuallysize$setBeegBreaking(true);
+            for (ASIWorldFluid des : toFill) { maxFill -= des.fill(maxFill, pour); }
+
+        } finally { breaker.actuallysize$setBeegBreaking(false); }
     }
 }

@@ -58,6 +58,7 @@
     "holding.food.SwellGoalMixin",
     "holding.pose.GuiGraphicsMixin",
     "world.StepHeightOverride$Pehkui",
+    "world.building.BucketItemMixin",
     "world.building.DiggerItemMixin",
     "world.building.ForgeEventFactoryMixin",
     "world.building.ForgeHooksMixin",

@@ -29,7 +29,8 @@ import java.util.List;
 @Mixin(value = ForgeHooks.class, remap = false)
 public class ForgeHooksMixin {
 
-    @Unique private static double actuallysize$placingScale;
+    @Unique private static int actuallysize$placingScale;
+    @Unique private static int actuallysize$consumptionScale;
     @Unique private static boolean actuallysize$consuming;
     @Unique @Nullable private static List<BlockSnapshot> actuallysize$snaps;
     @Unique private static int actuallysize$originalCount;
@@ -41,6 +42,7 @@ public class ForgeHooksMixin {
 
         // Identify
         actuallysize$placingScale = -1;
+        actuallysize$consumptionScale = -1;
         actuallysize$consuming = false;
         actuallysize$snaps = null;
         actuallysize$originalCount = context.getItemInHand().getCount();
@@ -49,12 +51,13 @@ public class ForgeHooksMixin {
         if (!(actuallysize$placer instanceof ServerPlayer)) { return; }
 
         // Approved preconditions
-        double scale = ASIUtilities.getEntityScale(actuallysize$placer);
+        int scale = OotilityNumbers.ceil(ASIUtilities.getEntityScale(actuallysize$placer));
         if (scale <= 1) { return; }
         if (!ASIWorldSystemManager.CanBeBeegBlock(context.getItemInHand())) { return; }
 
         // Good one
         actuallysize$placingScale = scale;
+        actuallysize$consumptionScale = OotilityNumbers.ceil(scale);
 
         // Lower grid when crouching
         if (actuallysize$placer.isShiftKeyDown()) { actuallysize$placingScale = OotilityNumbers.floor(scale * 0.5); }
@@ -80,12 +83,44 @@ public class ForgeHooksMixin {
             actuallysize$consuming = false;
 
             // Multiply use consumption by scale
-            if (actuallysize$placingScale > 1)  {
-                int diff = actuallysize$originalCount - ret;
-                diff *= OotilityNumbers.ceil(actuallysize$placingScale);
-                if (diff > actuallysize$originalCount) { diff = actuallysize$originalCount; }
-                ret = actuallysize$originalCount - diff;
-                actuallysize$totalConsume = diff;
+            if (actuallysize$consumptionScale > 1)  {
+                double scaledConsumption = actuallysize$consumptionScale;
+
+                // Adjust to a fraction of placing scale
+                if (actuallysize$placingScale != actuallysize$consumptionScale) {
+
+                    // Usually you are placing at a smaller scale than normal
+                    double ratio = scaledConsumption / actuallysize$placingScale;
+
+                    // The most common ratio, resulting in 1/8
+                    if (ratio == 2) {
+                        scaledConsumption = actuallysize$consumptionScale * 0.125;
+
+                    // I guess we are calculating on-the-go
+                    } else {
+                        ratio = ratio * ratio * ratio;
+                        scaledConsumption = actuallysize$consumptionScale / ratio;
+                    }
+                }
+
+                // Calculate the blocks needed for this VS the blocks we actually have
+                int maxConsume = OotilityNumbers.ceil(scaledConsumption);
+                int actualConsume = actuallysize$originalCount - ret;
+                actualConsume *= maxConsume;
+                if (actualConsume > actuallysize$originalCount) { actualConsume = actuallysize$originalCount; }
+
+                // Calculate consumption and count
+                ret = actuallysize$originalCount - actualConsume;
+                actuallysize$totalConsume = actualConsume;
+
+                /*
+                 * When placing a smaller block, it should still use
+                 * your larger grid's consumption to generate the
+                 * volume, we revert the calculation from the ratio above
+                 */
+                if (actuallysize$placingScale != actuallysize$consumptionScale) {
+                    actuallysize$totalConsume = actuallysize$placingScale * (actualConsume / maxConsume);
+                }
             }
         }
 
@@ -119,7 +154,7 @@ public class ForgeHooksMixin {
 
             // Find beeg block where it is placed
             ASIBeegBlock beegBlock = ASIBeegBlock.containing(actuallysize$placingScale, blockSnapshot.getPos().getCenter());
-            return !beegBlock.tryPlace(actuallysize$snaps, blockSnapshot, blockSnapshot.getCurrentBlock(), direction, actuallysize$placer, level, cons);
+            return !beegBlock.tryBeegBuild(actuallysize$snaps, blockSnapshot, blockSnapshot.getCurrentBlock(), direction, actuallysize$placer, level, cons);
         }
     }
 
@@ -128,6 +163,7 @@ public class ForgeHooksMixin {
 
         // Reset
         actuallysize$placingScale = -1;
+        actuallysize$consumptionScale = -1;
         actuallysize$consuming = false;
         actuallysize$snaps = null;
         actuallysize$originalCount = -1;
