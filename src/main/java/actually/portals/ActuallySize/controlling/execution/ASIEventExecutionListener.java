@@ -634,16 +634,13 @@ public class ASIEventExecutionListener {
         BeegBreaker breaker = (BeegBreaker) beeg;
         if (breaker.actuallysize$isBeegBreaking()) { return; }
 
-        // Adjust scale of breaking
-        double scale = ASIUtilities.getEntityScale(beeg);
-        if (beeg.isShiftKeyDown()) { scale = OotilityNumbers.floor(scale * 0.5); }
-        if (scale <= 1) { return; }
+        // Find block
+        ASIBeegBlock beegBlock = ASIBeegBlock.containing(ASIUtilities.getEntityScale(beeg), event.getPos().getCenter()).withHalved(beeg.isShiftKeyDown());
+        if (beegBlock.getEffectiveScale() <= 1) { return; }
 
         // Not a participant block? I sleep
         if (!ASIWorldSystemManager.CanBeBeegBlock(event.getState().getBlock())) { return; }
 
-        // Find block
-        ASIBeegBlock beegBlock = ASIBeegBlock.containing(scale, event.getPos().getCenter());
         ASIWorldBlock block = new ASIWorldBlock(event.getState(), event.getPos(), (Level) event.getLevel());
 
         // Simulate breaking by this player

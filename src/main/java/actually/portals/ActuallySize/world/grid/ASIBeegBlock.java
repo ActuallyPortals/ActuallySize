@@ -58,13 +58,83 @@ public class ASIBeegBlock {
 
     /**
      * @since 1.0.0
+     * @author Actually Portals
      */
     public @NotNull Vec3i getBeegPos() { return beegPos; }
 
     /**
+     * Sometimes the effective scale will be different,
+     * for example when {@link #isHalved()}.
+     *
+     * @return The grid scale of this beeg block.
+     *
      * @since 1.0.0
+     * @author Actually Portals
      */
     public int getScale() { return scale; }
+
+    /**
+     * @return The grid scale of this beeg block when halved.
+     *
+     * @since 1.0.0
+     * @author Actually Portals
+     */
+    public int getHalvedScale() { return OotilityNumbers.ceil(OotilityNumbers.round(scale * 0.5, 1)); }
+
+    /**
+     * @return The grid scale used by this block's operations
+     *
+     * @since 1.0.0
+     * @author Actually Portals
+     */
+    public int getEffectiveScale() { return isHalved() ? getHalvedScale() : getScale(); }
+
+    /**
+     * The ZERO coordinate toward which this grid block is biased.
+     *
+     * @since 1.0.0
+     */
+    @NotNull Vec3i bias = Vec3i.ZERO;
+
+    /**
+     * @since 1.0.0
+     * @author Actually Portals
+     */
+    public @NotNull Vec3i getBias() { return bias; }
+
+    /**
+     * @param parent The ZERO coordinate toward which this grid block is biased.
+     *
+     * @return This
+     *
+     * @since 1.0.0
+     * @author Actually Portals
+     */
+    @NotNull public ASIBeegBlock withBias(@NotNull Vec3i parent) { this.bias = parent; return this; }
+
+    /**
+     * If the halved mode of this beeg block is active.
+     * For example, placing down blocks uses a smaller grid size.
+     *
+     * @since 1.0.0
+     */
+    boolean halved;
+
+    /**
+     * @since 1.0.0
+     * @author Actually Portals
+     */
+    public boolean isHalved() { return halved; }
+
+    /**
+     * @param spec Activate the HALVED mode of this beeg block
+     *
+     * @return This
+     *
+     * @since 1.0.0
+     * @author Actually Portals
+     */
+    @NotNull public ASIBeegBlock withHalved(boolean spec) { this.halved = spec; return this; }
 
     /**
      * @param scale The scale of this beeg block
@@ -89,6 +159,42 @@ public class ASIBeegBlock {
     public ASIBeegBlock(int scale, @NotNull Vec3i beegPos) {
         this.scale = scale;
         this.beegPos = beegPos;
+    }
+
+    /**
+     * @param worldPos The world pos we are looking for
+     *
+     * @return The half-beeg block contained within this beeg block
+     *         for the specified world position. Note that this means
+     *         the new 0,0 origin bias for the grid of these
+     *         sub-blocks is the closest corner that these were placed
+     *         in.
+     *
+     * @since 1.0.0
+     * @author Actually Portals
+     */
+    @NotNull ASIBeegBlock getHalf(@NotNull Vec3 worldPos) {
+
+        /*
+         * The main point of this is to identify the corner
+         * of this beeg block to which the world position
+         * is closest to.
+         *
+         * For this, it is imperative to know the half
+         * coordinate. Ceilled for odd blocks.
+         */
+        int half = getHalvedScale();
+        int midX = minX() + half;
+        int midY = minY() + half;
+        int midZ = minZ() + half;
+
+        // If the specified world block is after the mid, then the maximum is taken
+        int biasX = worldPos.x > midX ? maxX() : minX();
+        int biasY = worldPos.y > midY ? maxY() : minY();
+        int biasZ = worldPos.z > midZ ? maxZ() : minZ();
+
+        // Identify this beeg block
+        return containing(half, worldPos.subtract(biasX, biasY, biasZ)).withBias(new Vec3i(biasX, biasY, biasZ));
     }
 
     /**
@@ -136,14 +242,14 @@ public class ASIBeegBlock {
      * @author Actually Portals
      */
     public int maxX() { return minX() + getScale(); }
-
     /**
      * @return The minimum world X encompassed by this beeg block, inclusive.
      *
      * @since 1.0.0
      * @author Actually Portals
      */
-    public int minX() { return getScale() * getBeegPos().getX(); }
+    public int minX() { return getScale() * getBeegPos().getX() + getBias().getX(); }
+
     /**
      * @return The maximum world Y encompassed by this beeg block, exclusive.
      *         Essentially, it encloses up to this number minus 0.00000000001
@@ -152,14 +258,13 @@ public class ASIBeegBlock {
      * @author Actually Portals
      */
     public int maxY() { return minY() + getScale(); }
-
     /**
      * @return The minimum world Y encompassed by this beeg block, inclusive.
      *
      * @since 1.0.0
      * @author Actually Portals
      */
-    public int minY() { return getScale() * getBeegPos().getY(); }
+    public int minY() { return getScale() * getBeegPos().getY() + getBias().getY(); }
 
     /**
      * @return The maximum world Z encompassed by this beeg block, exclusive.
@@ -169,14 +274,13 @@ public class ASIBeegBlock {
      * @author Actually Portals
      */
     public int maxZ() { return minZ() + getScale(); }
-
     /**
      * @return The minimum world Z encompassed by this beeg block, inclusive.
      *
      * @since 1.0.0
      * @author Actually Portals
      */
-    public int minZ() { return getScale() * getBeegPos().getZ(); }
+    public int minZ() { return getScale() * getBeegPos().getZ() + getBias().getZ(); }
 
     /**
      * @return A constructor that spans this beeg block
@@ -190,17 +294,35 @@ public class ASIBeegBlock {
     }
 
     /**
-     * @param acceptReplace When true, liquids and grass and other
-     *                      blocks you can replace while building will
-     *                      be considered empty.
+     * @param world The world to check this Beeg Block in
      *
      * @return true if there are no solid blocks, with block placing in mind
      *
      * @since 1.0.0
      * @author Actually Portals
      */
-    public boolean isEmpty(@NotNull ServerLevel world, boolean acceptReplace, @Nullable BlockSnapshot ignored) {
+    public boolean isEmpty(@NotNull ServerLevel world) { return isEmpty(world, false, null, 0); }
+
+    /**
+     * @param world The world to check this Beeg Block in
+     *
+     * @param acceptReplace When true, liquids and grass and other
+     *                      blocks you can replace while building will
+     *                      be considered empty.
+     *
+     * @param ignored If there is one block that we may skip to check if it is empty
+     *
+     * @param sameIgnored The number of blocks similar to the ignored block that we may skip
+     *                    and still consider this beeg block empty.
+     *
+     * @return true if there are no solid blocks, with block placing in mind
+     *
+     * @since 1.0.0
+     * @author Actually Portals
+     */
+    public boolean isEmpty(@NotNull ServerLevel world, boolean acceptReplace, @Nullable BlockSnapshot ignored, int sameIgnored) {
         boolean ign = ignored != null;
+        int sms = sameIgnored;
 
         // First failure ends method
         for (int x = minX(); x < maxX(); x++) {
@@ -212,6 +334,7 @@ public class ASIBeegBlock {
                     BlockState at = world.getBlockState(BlockPos.containing(x + 0.2D, y + 0.2D, z + 0.2D));
                     if (at.isAir()) { continue; }
                     if (acceptReplace && at.canBeReplaced()) { continue; }
+                    if (sms > 0 && ign) { if (at.is(ignored.getCurrentBlock().getBlock())) { sms--; continue; } }
 
                     // Obstruction found
                     return false;
@@ -232,7 +355,7 @@ public class ASIBeegBlock {
      * @author Actually Portals
      */
     @NotNull ASIBeegBlock getAdjacent(@NotNull Direction dir) {
-        return new ASIBeegBlock(getScale(), getBeegPos().relative(dir));
+        return new ASIBeegBlock(getScale(), getBeegPos().relative(dir)).withBias(getBias());
     }
 
     /**
@@ -260,8 +383,11 @@ public class ASIBeegBlock {
      */
     public boolean tryBeegBuild(@NotNull List<BlockSnapshot> results, @NotNull BlockSnapshot input, @NotNull BlockState block, @Nullable Direction against, @NotNull Entity placer, @NotNull ServerLevel world, int counts) {
 
+        // Delegate to half
+        if (isHalved()) { return getHalf(input.getPos().getCenter()).tryBeegBuild(results, input, block, against, placer, world, counts);  }
+
         // When empty, use this chunk
-        if (isEmpty(world, true, input)) {
+        if (isEmpty(world, true, input, getEffectiveScale() * getEffectiveScale() * 3)) {
 
             // Get limit from player inventory
             int limit;
@@ -322,6 +448,11 @@ public class ASIBeegBlock {
      * @author Actually Portals
      */
     public void tryBeegBreak(@Nullable ASIWorldBlock original, @NotNull ServerPlayer player, @NotNull ServerLevel world) {
+
+        // Delegate to half
+        if (isHalved() && original != null) {
+            getHalf(original.getPos().getCenter()).tryBeegBreak(original, player, world);
+            return; }
 
         // Identify original block position
         BlockPos input = original == null ? null : original.getPos();
@@ -403,6 +534,11 @@ public class ASIBeegBlock {
                              @NotNull ItemStack emptyBucket,
                              @NotNull ItemStack filledBucket) {
 
+        // Delegate to half
+        if (isHalved() && original != null) {
+            getHalf(original.getPos().getCenter()).tryBeegDrain(original, player, world, match, emptyBucket, filledBucket);
+            return; }
+
         // Identify original block position
         BlockPos input = original == null ? null : original.getPos();
         boolean ign = input != null;
@@ -472,6 +608,11 @@ public class ASIBeegBlock {
 
         // Nothing to fill when filling empty
         if (pour == Fluids.EMPTY) { return; }
+
+        // Delegate to half
+        if (isHalved() && original != null) {
+            getHalf(original.getPos().getCenter()).tryBeegFill(original, player, world, pour, emptyBucket, filledBucket);
+            return; }
 
         // Identify original block position
         BlockPos input = original == null ? null : original.getPos();

@@ -10,6 +10,7 @@ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import gunging.ootilities.GungingOotilitiesMod.ootilityception.OotilityNumbers;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
@@ -19,6 +20,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.BucketItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.phys.BlockHitResult;
@@ -33,9 +35,12 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 
 @Mixin(BucketItem.class)
-public class BucketItemMixin {
+public abstract class BucketItemMixin {
 
     @Shadow @Final private Fluid content;
+
+    @Shadow protected abstract boolean canBlockContainFluid(Level worldIn, BlockPos posIn, BlockState blockstate);
+
     @Unique HitResult actuallysize$latestRaycast;
 
     @WrapMethod(method = "use")
@@ -67,17 +72,13 @@ public class BucketItemMixin {
         if (!(pLevel instanceof ServerLevel)) { return ret; }
         ServerLevel world = (ServerLevel) pLevel;
 
-        // Adjust scale of breaking
-        double scale = ASIUtilities.getEntityScale(beeg);
-        if (beeg.isShiftKeyDown()) { scale = OotilityNumbers.floor(scale * 0.5); }
-        if (scale <= 1) { return ret; }
-
-        // Check for valid hit result
-        ASIBeegBlock beegBlock = ASIBeegBlock.containing(scale, blockpos.getCenter());
-        ASIWorldBlock block = new ASIWorldBlock(world.getBlockState(blockpos), blockpos, world);
-
         // When fluid was picked up
         if (draining) {
+
+            // Adjust scale of breaking
+            ASIBeegBlock beegBlock = ASIBeegBlock.containing(ASIUtilities.getEntityScale(beeg), blockpos.getCenter()).withHalved(beeg.isShiftKeyDown());
+            if (beegBlock.getEffectiveScale() <= 1) { return ret; }
+            ASIWorldBlock block = new ASIWorldBlock(world.getBlockState(blockpos), blockpos, world);
 
             // Identify the fluid that was harvested
             ItemStack filledBucket = ret.getObject();
@@ -98,6 +99,15 @@ public class BucketItemMixin {
 
         // Not draining, filling!
         } else {
+
+            // Adjust when placing against a solid block
+            BlockState blockstate = pLevel.getBlockState(blockpos);
+            if (!canBlockContainFluid(pLevel, blockpos, blockstate)) {
+                Direction direction = ((BlockHitResult) actuallysize$latestRaycast).getDirection();
+                blockpos = blockpos.relative(direction); }
+            ASIBeegBlock beegBlock = ASIBeegBlock.containing(ASIUtilities.getEntityScale(beeg), blockpos.getCenter()).withHalved(beeg.isShiftKeyDown());
+            if (beegBlock.getEffectiveScale() <= 1) { return ret; }
+            ASIWorldBlock block = new ASIWorldBlock(world.getBlockState(blockpos), blockpos, world);
 
             // Identify the fluid that was harvested
             ItemStack emptyBucket = ret.getObject();
