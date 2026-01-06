@@ -50,7 +50,7 @@ public class ASIPSHeldEntityModelLoader implements IGeometryLoader<ASIPSHeldEnti
      *
      * <pre>{@code
      * {
-     *   "loader": "actuallysizeinteractions:held_entity_loader",
+     *   "loader": "actuallysize:held_entity_loader",
      *   "parent": "minecraft:item/generated",
      *   "textures": {
      *     "layer0": "minecraft:item/diamond"

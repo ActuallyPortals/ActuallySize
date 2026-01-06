@@ -7,6 +7,8 @@ import actually.portals.ActuallySize.world.ASIWorldSystemManager;
 import com.mojang.logging.LogUtils;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.level.block.Block;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -15,6 +17,8 @@ import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.minecraftforge.registries.DeferredRegister;
+import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -31,6 +35,20 @@ import org.slf4j.Logger;
  */
 @Mod(ActuallySizeInteractions.MODID)
 public class ActuallySizeInteractions {
+
+    /**
+     * Registry of blocks added by this mod
+     *
+     * @since 1.0.0
+     */
+    public static final DeferredRegister<Block> BLOCK_REGISTRY = DeferredRegister.create(ForgeRegistries.BLOCKS, ActuallySizeInteractions.MODID);
+
+    /**
+     * Registry of items added by this mod
+     *
+     * @since 1.0.0
+     */
+    public static final DeferredRegister<Item> ITEM_REGISTRY = DeferredRegister.create(ForgeRegistries.ITEMS, ActuallySizeInteractions.MODID);
 
     /**
      * The Manager for the system that allows you
@@ -52,6 +70,28 @@ public class ActuallySizeInteractions {
         // Just create a new Renderer without level
         PICKUP_SYSTEM = new ASIPickupSystemManager();
         return PICKUP_SYSTEM;
+    }
+
+    /**
+     * The Manager for the system that allows you
+     * to pickup entities smaller than you.
+     *
+     * @since 1.0.0
+     */
+    public static ASIWorldSystemManager WORLD_SYSTEM = null;
+
+    /**
+     * @return The Pickup System manager
+     *
+     * @since 1.0.0
+     * @author Actually Portals
+     */
+    @NotNull public ASIWorldSystemManager getWorldSystem() {
+        if (WORLD_SYSTEM != null) { return WORLD_SYSTEM; }
+
+        // Just create a new Renderer without level
+        WORLD_SYSTEM = new ASIWorldSystemManager();
+        return WORLD_SYSTEM;
     }
 
     /**
@@ -81,6 +121,9 @@ public class ActuallySizeInteractions {
 
         // Register the various systems
         getPickupSystem().OnModLoadInitialize(context);
+        getWorldSystem().OnModLoadInitialize(context);
+        ITEM_REGISTRY.register(context.getModEventBus());
+        BLOCK_REGISTRY.register(context.getModEventBus());
     }
 
     /**

@@ -1,11 +1,14 @@
 {
-  "item.actuallysizeinteractions.held_living_entity": "Held Entity",
-  "item.actuallysizeinteractions.held_nonliving_entity": "Held Mob",
-  "item.actuallysizeinteractions.held_player": "Held Tiny",
+  "block.actuallysize.beeg_torch_block": "Block of Flaming Coal",
+  "block.actuallysize.beeg_light_block": "Block of Illumination",
 
-  "tooltip.actuallysizeinteractions.invalid": "Invalid Held Entity",
+  "item.actuallysize.held_living_entity": "Held Entity",
+  "item.actuallysize.held_nonliving_entity": "Held Mob",
+  "item.actuallysize.held_player": "Held Tiny",
 
-  "death.attack.actuallysizeinteractions.nom": " was nommed by ",
-  "death.attack.actuallysizeinteractions.squish": " was squished by ",
-  "death.attack.actuallysizeinteractions.felled": " was felled by "
+  "tooltip.actuallysize.invalid": "Invalid Held Entity",
+
+  "death.attack.actuallysize.nom": " was nommed by ",
+  "death.attack.actuallysize.squish": " was squished by ",
+  "death.attack.actuallysize.felled": " was felled by "
 }

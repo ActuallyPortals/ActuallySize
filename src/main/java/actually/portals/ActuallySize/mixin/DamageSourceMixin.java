@@ -48,7 +48,7 @@ public abstract class DamageSourceMixin implements AmountMatters {
             Edacious eda = (Edacious) tiny;
             if (eda.actuallysize$wasConsumed()) {
 
-                cir.setReturnValue(tiny.getDisplayName().copy().append(Component.translatable("death.attack.actuallysizeinteractions.nom")).append(beeg.getDisplayName()));
+                cir.setReturnValue(tiny.getDisplayName().copy().append(Component.translatable("death.attack.actuallysize.nom")).append(beeg.getDisplayName()));
                 cir.cancel();
                 return;
             }
@@ -58,7 +58,7 @@ public abstract class DamageSourceMixin implements AmountMatters {
             if (relative > 4) {
                 if (typeHolder().is(DamageTypes.PLAYER_ATTACK) || typeHolder().is(DamageTypes.MOB_ATTACK)) {
 
-                    cir.setReturnValue(tiny.getDisplayName().copy().append(Component.translatable("death.attack.actuallysizeinteractions.squish")).append(beeg.getDisplayName()));
+                    cir.setReturnValue(tiny.getDisplayName().copy().append(Component.translatable("death.attack.actuallysize.squish")).append(beeg.getDisplayName()));
                     cir.cancel();
                     return;
                 }
@@ -67,7 +67,7 @@ public abstract class DamageSourceMixin implements AmountMatters {
             } else if (relative < 0.25) {
                 if (typeHolder().is(DamageTypes.PLAYER_ATTACK) || typeHolder().is(DamageTypes.MOB_ATTACK)) {
 
-                    cir.setReturnValue(tiny.getDisplayName().copy().append(Component.translatable("death.attack.actuallysizeinteractions.felled")).append(beeg.getDisplayName()));
+                    cir.setReturnValue(tiny.getDisplayName().copy().append(Component.translatable("death.attack.actuallysize.felled")).append(beeg.getDisplayName()));
                     cir.cancel();
                     return;
                 }

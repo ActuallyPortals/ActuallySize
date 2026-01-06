@@ -161,11 +161,11 @@ public class ASIPSHeldEntityItem extends Item {
         if (entityCounterpart != null) { return entityCounterpart.getName(); }
 
         // Not sure when this would happen
-        if (!pStack.hasTag()) { return Component.translatable("tooltip.actuallysizeinteractions.invalid"); }
+        if (!pStack.hasTag()) { return Component.translatable("tooltip.actuallysize.invalid"); }
 
         // Also a strange situation
         CompoundTag compoundTag = pStack.getTag();
-        if (compoundTag == null) { return Component.translatable("tooltip.actuallysizeinteractions.invalid"); }
+        if (compoundTag == null) { return Component.translatable("tooltip.actuallysize.invalid"); }
 
         // Decode tag
         String entityName = compoundTag.getString(TAG_ENTITY_NAME);

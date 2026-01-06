@@ -77,18 +77,11 @@ import java.util.function.Function;
 public class ASIPickupSystemManager {
 
     /**
-     * Registry of items added by this mod
-     *
-     * @since 1.0.0
-     */
-    public static final DeferredRegister<Item> ITEM_REGISTRY = DeferredRegister.create(ForgeRegistries.ITEMS, ActuallySizeInteractions.MODID);
-
-    /**
      * An item that represents a non-player entity while being held as an item
      *
      * @since 1.0.0
      */
-    public static final RegistryObject<Item> HELD_LIVING_ENTITY = ITEM_REGISTRY.register("held_living_entity",
+    public static final RegistryObject<Item> HELD_LIVING_ENTITY = ActuallySizeInteractions.ITEM_REGISTRY.register("held_living_entity",
             () -> new ASIPSHeldEntityItem(new Item.Properties().stacksTo(1).food(new FoodProperties.Builder().alwaysEat().build())));
 
     /**
@@ -96,7 +89,7 @@ public class ASIPickupSystemManager {
      *
      * @since 1.0.0
      */
-    public static final RegistryObject<Item> HELD_NONLIVING_ENTITY = ITEM_REGISTRY.register("held_nonliving_entity",
+    public static final RegistryObject<Item> HELD_NONLIVING_ENTITY = ActuallySizeInteractions.ITEM_REGISTRY.register("held_nonliving_entity",
             () -> new ASIPSHeldEntityItem(new Item.Properties().stacksTo(1)));
 
     /**
@@ -104,7 +97,7 @@ public class ASIPickupSystemManager {
      *
      * @since 1.0.0
      */
-    public static final RegistryObject<Item> HELD_PLAYER = ITEM_REGISTRY.register("held_player",
+    public static final RegistryObject<Item> HELD_PLAYER = ActuallySizeInteractions.ITEM_REGISTRY.register("held_player",
             () -> new ASIPSHeldEntityItem(new Item.Properties().stacksTo(1).food(new FoodProperties.Builder().alwaysEat().build()), true));
 
     /**
@@ -276,7 +269,6 @@ public class ASIPickupSystemManager {
      * @author Actually Portals
      */
     public void OnModLoadInitialize(FMLJavaModLoadingContext context) {
-        ITEM_REGISTRY.register(context.getModEventBus());
 
         // Run the registered hold points event
         registerASIHoldPoints();

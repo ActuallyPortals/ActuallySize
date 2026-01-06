@@ -2,6 +2,12 @@ package actually.portals.ActuallySize.world;
 
 import actually.portals.ActuallySize.ASIUtilities;
 import actually.portals.ActuallySize.ActuallyServerConfig;
+import actually.portals.ActuallySize.ActuallySizeInteractions;
+import actually.portals.ActuallySize.pickup.events.ASIHoldPointRegistryEvent;
+import actually.portals.ActuallySize.world.blocks.BBlock;
+import actually.portals.ActuallySize.world.blocks.BeegLightBlock;
+import actually.portals.ActuallySize.world.blocks.BeegLightSource;
+import actually.portals.ActuallySize.world.blocks.BlockItemRegistry;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.EntityTypeTags;
 import net.minecraft.world.damagesource.DamageSource;
@@ -10,19 +16,31 @@ import net.minecraft.world.entity.MobType;
 import net.minecraft.world.entity.animal.AbstractGolem;
 import net.minecraft.world.entity.monster.Creeper;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.LightBlock;
+import net.minecraft.world.level.block.SoundType;
+import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.IntegerProperty;
+import net.minecraft.world.level.block.state.properties.NoteBlockInstrument;
+import net.minecraft.world.level.material.MapColor;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraftforge.registries.RegistryObject;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
+import java.util.function.Supplier;
 
 /**
  * The class that handles systems related to interacting
@@ -33,6 +51,61 @@ import java.util.HashMap;
  */
 public class ASIWorldSystemManager {
 
+    /**
+     * Load this system onto the mod during mod loading initialization
+     *
+     * @param context Mod Loading context
+     *
+     * @since 1.0.0
+     * @author Actually Portals
+     */
+    public void OnModLoadInitialize(FMLJavaModLoadingContext context) {
+
+    }
+
+    //region Beeg Building Furniture
+    /**
+     * The block state property for Simple Beeg Blocks
+     *
+     * @since 1.0.0
+     */
+    public static final IntegerProperty BEEG_SCALE = IntegerProperty.create("asi_scale", 1, 8);
+
+    /**
+     * Beeg blocks that sequentially stretch each other must know how much they have stretched
+     *
+     * @since 1.0.0
+     */
+    public static final IntegerProperty BEEG_SPREAD = IntegerProperty.create("asi_spread", 1, 8);
+
+    /**
+     * A block that emits hella light
+     *
+     * @since 1.0.0
+     */
+    public static final BlockItemRegistry BEEG_TORCH_BLOCK = new BlockItemRegistry("beeg_torch_block", () ->
+            new BeegLightSource(BlockBehaviour.Properties.of().
+                            mapColor(MapColor.SAND).
+                            instrument(NoteBlockInstrument.BASEDRUM).
+                            ignitedByLava().
+                            strength(2.0F).
+                            sound(SoundType.WOOD).
+                            isRedstoneConductor((a, b, c) -> false), 15));
+
+    /**
+     * You cannot simply give a light block a tremendous light amount,
+     * as such, Beeg Torches actually place a ton of light blocks
+     * around them. These are the beeg light blocks that fill the
+     * space when a torch is placed.
+     *
+     * @since 1.0.0
+     */
+    public static final BlockItemRegistry BEEG_LIGHT_BLOCK = new BlockItemRegistry("beeg_light_block", () ->
+            new BeegLightBlock(BlockBehaviour.Properties.copy(Blocks.LIGHT)));
+
+    //endregion
+
+    //region Beeg Building Item Drop Rate
     /**
      * Items that participate in beeg building system
      *
@@ -139,7 +212,9 @@ public class ASIWorldSystemManager {
         BlockItem block = (BlockItem) item.getItem();
         return CanBeBeegBlock(block.getBlock());
     }
+    //endregion
 
+    //region Fear
     /**
      * @param beeg The beeg
      * @param tiny The tiny
@@ -198,7 +273,9 @@ public class ASIWorldSystemManager {
         double least = Math.min(pos, eye);
         return least < (relative * relative * 49);
     }
+    //endregion
 
+    //region Damage Taken
     /**
      * @param world The world where damage takes place
      * @param type The type of damage
@@ -355,4 +432,5 @@ public class ASIWorldSystemManager {
         // Adjust effect
         return originalDamage * sizeAmplificationFactor;
     }
+    //endregion
 }
