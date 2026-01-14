@@ -6,6 +6,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.RotatedPillarBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructurePlaceSettings;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureProcessor;
@@ -147,10 +148,10 @@ public class ASIFurnitureChoiceProcessor extends StructureProcessor {
         // We only care for block choices
         Block block = result.state().getBlock();
         if (block == ASIWorldSystemManager.BEEG_LOG_BLOCK.getAsBlock().get()) {
-            return new StructureTemplate.StructureBlockInfo(result.pos(), choiceOfLog, result.nbt()); }
+            return new StructureTemplate.StructureBlockInfo(result.pos(), choiceOfLog.setValue(RotatedPillarBlock.AXIS, result.state().getValue(RotatedPillarBlock.AXIS)), result.nbt()); }
 
         if (block == ASIWorldSystemManager.BEEG_WOOD_BLOCK.getAsBlock().get()) {
-            return new StructureTemplate.StructureBlockInfo(result.pos(), choiceOfWood, result.nbt()); }
+            return new StructureTemplate.StructureBlockInfo(result.pos(), choiceOfWood.setValue(RotatedPillarBlock.AXIS, result.state().getValue(RotatedPillarBlock.AXIS)), result.nbt()); }
 
         if (block == ASIWorldSystemManager.BEEG_WOOL_BLOCK.getAsBlock().get()) {
             return new StructureTemplate.StructureBlockInfo(result.pos(), choiceOfWool, result.nbt()); }

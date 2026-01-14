@@ -76,7 +76,7 @@ public class BeegLightSource extends BBlock {
             BlockState state = world.getBlockState(blockpos);
 
             // Air blocks are immediately spread onto
-            if (BeegLightBlock.canSpreadTo(state, myLightLevel, myScale, myScale, true)) {
+            if (BeegLightBlock.canSpreadTo(state, myLightLevel, myScale, BeegLightBlock.SPREADING_YES, myScale, true)) {
                 spill.add(new ASIWorldBlock(state, blockpos, world)); }
         }
 
@@ -90,11 +90,8 @@ public class BeegLightSource extends BBlock {
                 .setValue(BeegLightBlock.SPREAD, myScale)
                 .setValue(BeegLightBlock.SPREADING, BeegLightBlock.SPREADING_YES);
         for (ASIWorldBlock spread : spill) {
-            //BLB//ActuallySizeInteractions.Log("SOURCE ["+ sourceBlock.getPos().toShortString() + "] Spread to " + spread.getPos().toShortString() + ", L=" + myLightLevel + ", P=" + myScale);
             world.setBlock(spread.getPos(), spillState, Block.UPDATE_CLIENTS);
-            world.scheduleTick(spread.getPos(), ASIWorldSystemManager.BEEG_LIGHT_BLOCK.getAsBlock().get(), BeegLightBlock.LIGHT_PROPAGATION_TICK);
-            //world.updateNeighborsAt(spread.getPos(), ASIWorldSystemManager.BEEG_LIGHT_BLOCK.getAsBlock().get());
-        }
+            world.scheduleTick(spread.getPos(), ASIWorldSystemManager.BEEG_LIGHT_BLOCK.getAsBlock().get(), BeegLightBlock.LIGHT_PROPAGATION_TICK);}
     }
 
     /**

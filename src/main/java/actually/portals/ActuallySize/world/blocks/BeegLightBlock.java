@@ -1,6 +1,5 @@
 package actually.portals.ActuallySize.world.blocks;
 
-import actually.portals.ActuallySize.ActuallySizeInteractions;
 import actually.portals.ActuallySize.world.ASIWorldSystemManager;
 import actually.portals.ActuallySize.world.grid.ASIWorldBlock;
 import gunging.ootilities.GungingOotilitiesMod.ootilityception.OotilityNumbers;
@@ -16,7 +15,6 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.LightBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
-import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.IntegerProperty;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
@@ -152,31 +150,23 @@ public class BeegLightBlock extends LightBlock implements SimpleBeegBlock {
      * @author Actually Portals
      * @since 1.0.0
      */
-    public void spread(@NotNull ASIWorldBlock spreadingLightBlock) {
+    public void spread(@NotNull ASIWorldBlock tickBlock, @NotNull ServerLevel world, int myLightLevel, int mySpread, int mySpreading, int myScale) {
 
         // List the blocks to which we will spread
         ArrayList<ASIWorldBlock> spill = new ArrayList<>();
 
-        // Identify
-        BlockPos pos = spreadingLightBlock.getPos();
-        Level world = spreadingLightBlock.getWorld();
-        int myLightLevel = spreadingLightBlock.getState().getValue(LightBlock.LEVEL);
-        int myScale = spreadingLightBlock.getState().getValue(SCALE);
-        int mySpread = spreadingLightBlock.getState().getValue(SPREAD);
-
         // I have now spread
-        BlockState spreadState = spreadingLightBlock.getState().setValue(SPREADING, SPREADING_NO);
-        //BLB//"LIGHT ["+ spreadingLightBlock.getPos().toShortString() + "] &3 Spread from " + logLight(spreadingLightBlock.getState()) + " -> " + logLight(spreadState));
-        world.setBlock(spreadingLightBlock.getPos(), spreadState, LIGHT_BLOCK_SILENT);
+        BlockState spreadState = tickBlock.getState().setValue(SPREADING, SPREADING_NO);
+        world.setBlock(tickBlock.getPos(), spreadState, LIGHT_BLOCK_SILENT);
         if (myLightLevel < MINIMUM_LIGHT_SPREAD) { return; }
 
         // For every direction
         for(Direction direction : Direction.values()) {
-            BlockPos blockpos = pos.relative(direction);
+            BlockPos blockpos = tickBlock.getPos().relative(direction);
             BlockState state = world.getBlockState(blockpos);
 
             // Air blocks are immediately spread onto
-            if (canSpreadTo(state, myLightLevel, myScale, mySpread, false)) {
+            if (canSpreadTo(state, myLightLevel, mySpread, mySpreading, myScale, false)) {
                 spill.add(new ASIWorldBlock(state, blockpos, world)); }
         }
 
@@ -196,209 +186,248 @@ public class BeegLightBlock extends LightBlock implements SimpleBeegBlock {
                 .setValue(SPREAD, spreadLevel)
                 .setValue(SPREADING, BeegLightBlock.SPREADING_YES);
         for (ASIWorldBlock spread : spill) {
-            //BLB//"LIGHT ["+ spread.getPos().toShortString() + "] &b Spreading ticking <" + spread.getPos().toShortString() + "> " + logLight(spread.getState()) + " -> " + logLight(spillState));
             world.setBlock(spread.getPos(), spillState, LIGHT_BLOCK_CLIENTS);
-            world.scheduleTick(spread.getPos(), this, LIGHT_PROPAGATION_TICK);
-            //world.updateNeighborsAt(spread.getPos(), this);
-        }
+            world.scheduleTick(spread.getPos(), this, LIGHT_PROPAGATION_TICK); }
 
     }
 
     /**
      * @param state The block state to spread to
      *
-     * @param myLightLevel Light level of block trying to spread
-     * @param myScale Scale of block trying to spread
-     * @param mySpread Spread level of block trying to spread
+     * @param myLightLevel The light level of this light block
+     * @param myScale The scale of this light block
+     * @param mySpread The spread of this light block
+     * @param mySpreading The spreading state of this light block
      *
      * @param isSource If this light is emitted from a source block that may
-     *                 fill areas where light is fading
+     *                 forcibly fill areas where light is fading
      *
      * @return If this light may spread to this other block
      *
      * @author Actually Portals
      * @since 1.0.0
      */
-    public static boolean canSpreadTo(@NotNull BlockState state, int myLightLevel, int myScale, int mySpread, boolean isSource) {
+    public static boolean canSpreadTo(@NotNull BlockState state, int myLightLevel, int mySpread, int mySpreading, int myScale, boolean isSource) {
 
         // Air blocks are immediately spread onto
         if (state.isAir()) { return true; }
 
-        // Other blocks cannot be spread into
+        // The only other block we can spread into, is Light Blocks. Read their light level.
         if (!(state.getBlock() instanceof LightBlock)) { return false; }
         int level = state.getValue(LightBlock.LEVEL);
+        if (level > myLightLevel) { return false; }
 
-        // If light is trying to spread itself
+        // Specific light level of Beeg Light block will block all light spread
         if (!isSource && state.getBlock() instanceof BeegLightBlock) {
 
             // If the light level is too low for a Beeg Light Block, then it is a DESISTED light block
-            if (level < MINIMUM_LIGHT_SPREAD) { return level == ALLOW_LIGHT_SPREAD; }
-        }
+            if (level < MINIMUM_LIGHT_SPREAD) { return level == ALLOW_LIGHT_SPREAD; } }
 
-        // Light blocks must emit less light
-        if (mySpread <= 1) { level++; } // If this is the last block of this light level, the other's level must be equalized
-        if (level > myLightLevel) { return false; }
-        if (!(state.getBlock() instanceof BeegLightBlock)) { return true; }
+        // For normal light blocks, any lower light level allows spreading
+        if (!(state.getBlock() instanceof BeegLightBlock)) { return level < myLightLevel; }
 
-        // If I still have higher light level, automatically true can spread
+        // If this block is my spill, we do not spread.
+        // We kinda already did no so point in redoing it.
+        if (isMySpill(state, myLightLevel, mySpread, mySpreading, myScale)) { return false; }
+
+        // Lower light level can always spread
         if (level < myLightLevel) { return true; }
 
-        // I cannot spread upstream or at the same light level
-        int spread = state.getValue(SPREAD);
-        if (spread >= mySpread) { return false; }
-
-        // And also, if I already spread there... no point in spreading again,
-        // so spread + 1 = the target must have much lower spread than me
-        return spread + 1 < mySpread;
+        // Okay now read its spread value
+        return state.getValue(SPREAD) < mySpread;
     }
 
     /**
      * Removes this light if there is no source feeding it
      *
+     * @return true if the light block was removed due to having no light source
+     *
      * @author Actually Portals
      * @since 1.0.0
      */
-    public boolean desist(@NotNull ASIWorldBlock desistingBlock) {
-
-        // Identify
-        BlockPos pos = desistingBlock.getPos();
-        Level world = desistingBlock.getWorld();
-        int myLightLevel = desistingBlock.getState().getValue(LightBlock.LEVEL);
-        int mySpread = desistingBlock.getState().getValue(SPREAD);
-        int myScale = desistingBlock.getState().getValue(SCALE);
+    public boolean desist(@NotNull ASIWorldBlock tickBlock, @NotNull ServerLevel world, int myLightLevel, int mySpread, int mySpreading, int myScale) {
 
         // Final desist
-        if (myLightLevel < MINIMUM_LIGHT_SPREAD) {
-            //BLB//"LIGHT ["+ desistingBlock.getPos().toShortString() + "] &e Desisting from " + logLight(desistingBlock.getState()) + " -> AIR");
-            //world.setBlock(desistingBlock.getPos(), Blocks.AIR.defaultBlockState(), LIGHT_BLOCK_CLIENTS);
+        if (myLightLevel < MINIMUM_LIGHT_SPREAD) { world.setBlock(tickBlock.getPos(), Blocks.AIR.defaultBlockState(), LIGHT_BLOCK_CLIENTS); return true; }
 
-            BlockState desistState = defaultBlockState()
-                    .setValue(LightBlock.LEVEL, ALLOW_LIGHT_SPREAD)
-                    .setValue(SCALE, 1)
-                    .setValue(SPREAD, BeegLightBlock.SPREADING_FROZEN);
-            world.setBlock(desistingBlock.getPos(), desistState, LIGHT_BLOCK_CLIENTS);
-            return true;
-        }
+        // Find sources to sixteen blocks
+        ASIWorldBlock source = deepFindMySource(tickBlock, world, myLightLevel, mySpread, mySpreading, myScale, 16);
+        if (source != null) { return false; }
 
-        // For every direction
-        ArrayList<ASIWorldBlock> spill = new ArrayList<>();
-        for (Direction direction : Direction.values()) {
-            BlockPos blockpos = pos.relative(direction);
-            BlockState state = world.getBlockState(blockpos);
-
-            // The other block must strictly be a Beeg Block
-            if (state.isAir()) { continue; }
-            if (!(state.getBlock() instanceof SimpleBeegBlock)) { continue; }
-
-            // When dealing with light itself, the adjacent block must have greater light level or spread
-            if (state.getBlock() instanceof BeegLightBlock) {
-                int spreading = state.getValue(SPREADING);
-                int level = state.getValue(LightBlock.LEVEL);
-                int spread = state.getValue(SPREAD);
-
-                if (level < MINIMUM_LIGHT_SPREAD) { continue; } // This light block has desisted, ignore
-                if (level > myLightLevel) { return !(spread == 1 && mySpread == myScale && (level == myLightLevel + 1)); }     // Qualified as light source
-
-                // When I am the last block at this light level
-                if ((mySpread == 1) && (level == (myLightLevel - 1))) {
-
-                    // This is the first block of that next light level, spill to desist
-                    if ((spread == state.getValue(SCALE)) && (spreading < 2)) { spill.add(new ASIWorldBlock(state, blockpos, world)); continue; }
-                }
-
-                // Not our light source, ignored
-                if (level < myLightLevel) { continue; }
-
-                // Same light level but their spread is higher?
-                if (spread > mySpread) { return !(spread == mySpread + 1); }    // Qualified as light source
-
-                // Are they the next spread level? Spill to desist
-                if ((spread == (mySpread - 1)) && (spreading < 2)) { spill.add(new ASIWorldBlock(state, blockpos, world)); }
-                continue;
-            }
-
-            // The other support for beeg light is a beeg light source itself
-            if (state.getBlock() instanceof BeegLightSource) {
-                int level = ((BeegLightSource) state.getBlock()).getLight();
-                if (level == myLightLevel) { return mySpread != myScale; }   // Qualified as light source
-            }
-        }
+        // Source was not found. Desist
+        ArrayList<ASIWorldBlock> spill = findMySpill(tickBlock, world, myLightLevel, mySpread, mySpreading, myScale);
 
         // Not a single source was found, delete this
-        //BlockState desistState = defaultBlockState()
-                //.setValue(LightBlock.LEVEL, BLOCK_LIGHT_SPREAD)
-                //.setValue(SCALE, 1)
-                //.setValue(SPREAD, BeegLightBlock.SPREADING_FROZEN);
-        //BLB//"LIGHT ["+ desistingBlock.getPos().toShortString() + "] &6 Desisting from " + logLight(desistingBlock.getState()) + " -> " + logLight(desistState));
-        //world.setBlock(desistingBlock.getPos(), desistState, LIGHT_BLOCK_CLIENTS);
-        //world.scheduleTick(desistingBlock.getPos(), this, LIGHT_PROPAGATION_TICK * 8);
-        //world.setBlock(desistingBlock.getPos(), Blocks.AIR.defaultBlockState(), LIGHT_BLOCK_CLIENTS);
+        BlockState desistState = defaultBlockState().setValue(LightBlock.LEVEL, BLOCK_LIGHT_SPREAD).setValue(SPREADING, SPREADING_FROZEN).setValue(SCALE, 1);
+        world.setBlock(tickBlock.getPos(), desistState, LIGHT_BLOCK_CLIENTS);
+        world.scheduleTick(tickBlock.getPos(), this, randomPropagationTick() * 2);
         for (ASIWorldBlock spread : spill) {
-            BlockState tickedState = spread.getState().setValue(SPREADING, BeegLightBlock.SPREADING_FROZEN);
-            //BLB//"LIGHT ["+ desistingBlock.getPos().toShortString() + "] Desist ticking <" + spread.getPos().toShortString() + "> " + logLight(spread.getState()) + " -> " + logLight(tickedState));
-
-            // No more updating this block
-            world.setBlock(spread.getPos(), tickedState, LIGHT_BLOCK_SILENT);
-            world.scheduleTick(spread.getPos(), this, randomPropagationTick() * 2); }
+            world.setBlock(spread.getPos(), spread.getState().setValue(SPREADING, SPREADING_FROZEN), LIGHT_BLOCK_SILENT);
+            world.scheduleTick(spread.getPos(), this, randomPropagationTick() * 2);
+        }
         return true;
     }
 
+    @Nullable public static ASIWorldBlock deepFindMySource(@NotNull ASIWorldBlock tickBlock, @NotNull ServerLevel world, int myLightLevel, int mySpread, int mySpreading, int myScale, int iterations) {
+        if (iterations < 1) { return null; }
+
+        // First iteration
+        ASIWorldBlock source = findMySource(tickBlock, world, myLightLevel, mySpread, mySpreading, myScale);
+        if (source == null) { return null; }
+
+        // Iterate to find source
+        for (int i = 2; i <= iterations; i ++) {
+
+            // Reached the root? Default success
+            if (source.getState().getBlock() instanceof BeegLightSource) { return source; }
+
+            // Go one level deeper
+            source = findMySource(source, world, source.getState().getValue(LEVEL), source.getState().getValue(SPREAD), source.getState().getValue(SPREADING), myScale);
+
+            // The chain was broken? Failure
+            if (source == null) { return null; }
+        }
+
+        // This is the result
+        return source;
+    }
+
     /**
-     * @param sourcingBlock The light block whose source you are looking for
+     * @param state The light block being checked
+     * @param myLightLevel The light level of this light block
+     * @param myScale The scale of this light block
+     * @param mySpread The spread of this light block
+     * @param mySpreading The spreading state of this light block
+     *
+     * @return If the target block could have spawned me
+     *
+     * @author Actually Portals
+     * @since 1.0.0
+     */
+    public static boolean isMySource(@NotNull BlockState state, int myLightLevel, int mySpread, int mySpreading, int myScale) {
+        if (!(state.getBlock() instanceof SimpleBeegBlock)) { return false; }
+        int scale = state.getValue(SCALE);
+        if (!(scale == myScale)) { return false; }
+
+        // Special case for beeg light is a beeg light source itself
+        if (state.getBlock() instanceof BeegLightSource) {
+            int level = ((BeegLightSource) state.getBlock()).getLight();
+            return mySpread == myScale && level == myLightLevel; }
+
+        // Not a beeg light block, not my source
+        if (!(state.getBlock() instanceof BeegLightBlock)) { return false; }
+
+        // Identify the other light block
+        int level = state.getValue(LightBlock.LEVEL);
+        int spread = state.getValue(SPREAD);
+
+        // Special case when I am the first of my light level
+        if (mySpread == myScale) {
+            return (level == myLightLevel + 1) && (spread == 1);
+
+        // Otherwise, they must be in the same light level but 1 spread before
+        } else {
+            return (level == myLightLevel) && (spread == mySpread + 1);
+        }
+    }
+
+    /**
+     * @param state The light block being checked
+     * @param myLightLevel The light level of this light block
+     * @param myScale The scale of this light block
+     * @param mySpread The spread of this light block
+     * @param mySpreading The spreading state of this light block
+     *
+     * @return If I could have spawned the target block
+     *
+     * @author Actually Portals
+     * @since 1.0.0
+     */
+    public static boolean isMySpill(@NotNull BlockState state, int myLightLevel, int mySpread, int mySpreading, int myScale) {
+        if (!(state.getBlock() instanceof BeegLightBlock)) { return false; }
+        int scale = state.getValue(SCALE);
+        if (!(scale == myScale)) { return false; }
+
+        // Identify the other light block
+        int level = state.getValue(LightBlock.LEVEL);
+        int spread = state.getValue(SPREAD);
+
+        // Special case when I am the last of my light level
+        if (mySpread == 1) {
+            return (level + 1 == myLightLevel) && (spread == myScale);
+
+        // Otherwise, they must be in the same light level but 1 spread before
+        } else {
+            return (level == myLightLevel) && (spread + 1 == mySpread);
+        }
+    }
+
+    /**
+     * @param tickBlock The light block being evaluated
+     * @param world The world where it is being ticked
+     * @param myLightLevel The light level of this light block
+     * @param myScale The scale of this light block
+     * @param mySpread The spread of this light block
+     * @param mySpreading The spreading state of this light block
      *
      * @return The block that sourced this light block
      *
      * @author Actually Portals
      * @since 1.0.0
      */
-    @Nullable public ASIWorldBlock traceSource(@NotNull ASIWorldBlock sourcingBlock) {
+    @Nullable public static ASIWorldBlock findMySource(@NotNull ASIWorldBlock tickBlock, @NotNull ServerLevel world, int myLightLevel, int mySpread, int mySpreading, int myScale) {
 
-        // Identify
-        BlockPos pos = sourcingBlock.getPos();
-        Level world = sourcingBlock.getWorld();
-        int myLightLevel = sourcingBlock.getState().getValue(LightBlock.LEVEL);
-        int mySpread = sourcingBlock.getState().getValue(SPREAD);
-        int myScale = sourcingBlock.getState().getValue(SCALE);
-
-        // For every direction
-        ArrayList<ASIWorldBlock> spill = new ArrayList<>();
+        // Check every adjacent direction
         for (Direction direction : Direction.values()) {
-            BlockPos blockpos = pos.relative(direction);
+
+            // Check this adjacent block
+            BlockPos blockpos = tickBlock.getPos().relative(direction);
             BlockState state = world.getBlockState(blockpos);
-
-            // The other block must strictly be a Beeg Block
             if (state.isAir()) { continue; }
-            if (!(state.getBlock() instanceof SimpleBeegBlock)) { continue; }
 
-            // When dealing with light itself, the adjacent block must have greater light level or spread
-            if (state.getBlock() instanceof BeegLightBlock) {
-                int spreading = state.getValue(SPREADING);
-                int level = state.getValue(LightBlock.LEVEL);
-                int spread = state.getValue(SPREAD);
-
-                if (level < MINIMUM_LIGHT_SPREAD) { continue; } // This light block has desisted, ignore
-                if (spread == 1 && mySpread == myScale && (level == myLightLevel + 1)) { return new ASIWorldBlock(state, blockpos, world); }     // Qualified as light source
-
-                // Not our light source, ignored
-                if (level < myLightLevel) { continue; }
-
-                // Same light level but their spread is higher?
-                if (spread == mySpread + 1) { return new ASIWorldBlock(state, blockpos, world); }    // Qualified as light source
-
-                continue;
-            }
-
-            // The other support for beeg light is a beeg light source itself
-            if (state.getBlock() instanceof BeegLightSource) {
-                int level = ((BeegLightSource) state.getBlock()).getLight();
-                if ((level == myLightLevel) && (mySpread == myScale)) { return new ASIWorldBlock(state, blockpos, world); }   // Qualified as light source
-            }
+            // Is this my source? Done
+            if (isMySource(state, myLightLevel, mySpread, mySpreading, myScale)) {
+                return new ASIWorldBlock(state, blockpos, world); }
         }
 
+        // Source not found
         return null;
     }
 
-    @NotNull String logLight(@NotNull BlockState lightBlock) {
+    /**
+     * @param tickBlock The light block being evaluated
+     * @param world The world where it is being ticked
+     * @param myLightLevel The light level of this light block
+     * @param myScale The scale of this light block
+     * @param mySpread The spread of this light block
+     * @param mySpreading The spreading state of this light block
+     *
+     * @return The block that sourced this light block
+     *
+     * @author Actually Portals
+     * @since 1.0.0
+     */
+    @NotNull public static ArrayList<ASIWorldBlock> findMySpill(@NotNull ASIWorldBlock tickBlock, @NotNull ServerLevel world, int myLightLevel, int mySpread, int mySpreading, int myScale) {
+
+        // Check every adjacent direction
+        ArrayList<ASIWorldBlock> ret = new ArrayList<>();
+        for (Direction direction : Direction.values()) {
+
+            // Check this adjacent block
+            BlockPos blockpos = tickBlock.getPos().relative(direction);
+            BlockState state = world.getBlockState(blockpos);
+            if (state.isAir()) { continue; }
+
+            // Is this my spill? Collect
+            if (isMySpill(state, myLightLevel, mySpread, mySpreading, myScale)) {
+                ret.add(new ASIWorldBlock(state, blockpos, world)); }
+        }
+
+        // Done
+        return ret;
+    }
+
+    @NotNull public static String logLight(@NotNull BlockState lightBlock) {
         if (!(lightBlock.getBlock() instanceof BeegLightBlock)) { return lightBlock.getBlock().getClass().getSimpleName(); }
         return "[L=" + lightBlock.getValue(LEVEL) + ", P=" + lightBlock.getValue(SPREAD) + ", Z=" + lightBlock.getValue(SPREADING) + "]"; }
 
@@ -412,29 +441,21 @@ public class BeegLightBlock extends LightBlock implements SimpleBeegBlock {
     void lightTick(@NotNull ASIWorldBlock worldBlock) {
         if (worldBlock.getWorld().isClientSide) { return; }
         if (!(worldBlock.getState().getBlock() instanceof BeegLightBlock)) { return; }
-        //BLB//"&8 =========== TICKING ["+ worldBlock.getPos().toShortString() + "] " + logLight(worldBlock.getState()) + " ===========");
+
+        // Identify metrics
+        ServerLevel world = (ServerLevel) worldBlock.getWorld();
+        int myLightLevel = worldBlock.getState().getValue(LightBlock.LEVEL);
+        int mySpread = worldBlock.getState().getValue(SPREAD);
+        int mySpreading = worldBlock.getState().getValue(SPREADING);
+        int myScale = worldBlock.getState().getValue(SCALE);
 
         // Desist if standalone
-        if (desist(worldBlock)) {
-            //BLB//"&8 =========== DESISTED ===========");
-            return;
-        }
+        if (desist(worldBlock, world, myLightLevel, mySpread, mySpreading, myScale)) { return; }
+        if (myLightLevel < MINIMUM_LIGHT_SPREAD) { return; }
 
-        // Spread if spreading, clear special spread flag
-        int spreading = worldBlock.getState().getValue(SPREADING);
-        if (spreading == 2) {
-            BlockState thawState = worldBlock.getState().setValue(SPREADING, BeegLightBlock.SPREADING_NO);
-            //BLB//"LIGHT ["+ worldBlock.getPos().toShortString() + "] &3 Thawed from " + logLight(worldBlock.getState()) + " -> " + logLight(thawState));
-            worldBlock.getWorld().setBlock(worldBlock.getPos(), thawState, LIGHT_BLOCK_SILENT);
-            //BLB//"&8 =========== THAWED ===========");
-            return;
-        }
-        if (spreading == 1) {
-            spread(worldBlock);
-            //BLB//"&8 =========== SPREAD ===========");
-            return;
-        }
-        //BLB//"&8 =========== NONE ===========");
+        // Spread if spreading
+        if (mySpreading == SPREADING_YES) { spread(worldBlock, world, myLightLevel, mySpread, mySpreading, myScale); }
+        if (mySpreading == SPREADING_FROZEN) { world.setBlock(worldBlock.getPos(), worldBlock.getState().setValue(SPREADING, SPREADING_NO), LIGHT_BLOCK_SILENT); }
     }
 
     /**
@@ -475,7 +496,7 @@ public class BeegLightBlock extends LightBlock implements SimpleBeegBlock {
         }
 
         int myLightLevel = pState.getValue(LEVEL);
-        if (myLightLevel <= MINIMUM_LIGHT_SPREAD) {
+        if (myLightLevel < MINIMUM_LIGHT_SPREAD) {
             //BLB//"&8 =========== NONE: OFF LIGHT ===========");
             return super.updateShape(pState, pDirection, pNeighborState, pLevel, pPos, pNeighborPos);
         }
