@@ -1,5 +1,6 @@
 package actually.portals.ActuallySize.world.blocks;
 
+import actually.portals.ActuallySize.ActuallySizeInteractions;
 import actually.portals.ActuallySize.world.ASIWorldSystemManager;
 import actually.portals.ActuallySize.world.grid.ASIWorldBlock;
 import net.minecraft.core.BlockPos;
@@ -62,16 +63,14 @@ public class BeegLightSource extends BBlock {
         int myScale = sourceBlock.getState().getValue(SCALE);
         if (myScale <= 1) { return; }
 
-        // List the blocks to which we will spread
-        ArrayList<ASIWorldBlock> spill = new ArrayList<>();
-
         // Identify
         BlockPos pos = sourceBlock.getPos();
         Level world = sourceBlock.getWorld();
         int myLightLevel = getLight();
         if (myLightLevel < 1) { return; }
 
-        // For every direction
+        // List the blocks to which we will spread
+        ArrayList<ASIWorldBlock> spill = new ArrayList<>();
         for(Direction direction : Direction.values()) {
             BlockPos blockpos = pos.relative(direction);
             BlockState state = world.getBlockState(blockpos);
@@ -88,11 +87,13 @@ public class BeegLightSource extends BBlock {
         BlockState spillState = ASIWorldSystemManager.BEEG_LIGHT_BLOCK.getAsBlock().get().defaultBlockState()
                 .setValue(LightBlock.LEVEL, myLightLevel)
                 .setValue(BeegLightBlock.SCALE, myScale)
-                .setValue(BeegLightBlock.SPREAD, myScale);
+                .setValue(BeegLightBlock.SPREAD, myScale)
+                .setValue(BeegLightBlock.SPREADING, BeegLightBlock.SPREADING_YES);
         for (ASIWorldBlock spread : spill) {
+            //BLB//ActuallySizeInteractions.Log("SOURCE ["+ sourceBlock.getPos().toShortString() + "] Spread to " + spread.getPos().toShortString() + ", L=" + myLightLevel + ", P=" + myScale);
             world.setBlock(spread.getPos(), spillState, Block.UPDATE_CLIENTS);
             world.scheduleTick(spread.getPos(), ASIWorldSystemManager.BEEG_LIGHT_BLOCK.getAsBlock().get(), BeegLightBlock.LIGHT_PROPAGATION_TICK);
-            world.updateNeighborsAt(spread.getPos(), ASIWorldSystemManager.BEEG_LIGHT_BLOCK.getAsBlock().get());
+            //world.updateNeighborsAt(spread.getPos(), ASIWorldSystemManager.BEEG_LIGHT_BLOCK.getAsBlock().get());
         }
     }
 

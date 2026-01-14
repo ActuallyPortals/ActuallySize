@@ -33,7 +33,7 @@ public class ASIPSCInstantKill implements ASIPSPlayerConsumption {
         // Deal fatal amount of damage and record the food properties of all this player' drops
         tiny.setLastHurtByPlayer(beeg);
         edacious.actuallysize$setWasConsumed(true);
-        tiny.hurt(new DamageSource(tiny.damageSources().genericKill().typeHolder(), beeg), Float.MAX_VALUE);
+        tiny.hurt(new DamageSource(tiny.damageSources().genericKill().typeHolder(), beeg), 512 * tiny.getMaxHealth());
         edacious.actuallysize$setWasConsumed(false);
     }
 

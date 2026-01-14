@@ -1,6 +1,10 @@
 {
   "block.actuallysize.beeg_torch_block": "Block of Flaming Coal",
   "block.actuallysize.beeg_light_block": "Block of Illumination",
+  "block.actuallysize.beeg_wood_block": "Block Choice of Wood",
+  "block.actuallysize.beeg_wool_block": "Block Choice of Dyed Wool",
+  "block.actuallysize.beeg_log_block": "Block Choice of Wooden Log",
+  "block.actuallysize.beeg_planks_block": "Block Choice of Wooden Planks",
 
   "item.actuallysize.held_living_entity": "Held Entity",
   "item.actuallysize.held_nonliving_entity": "Held Mob",

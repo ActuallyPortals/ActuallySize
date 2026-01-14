@@ -597,12 +597,12 @@ public class ASIEventExecutionListener {
         // Must be placed by a beeg
         Entity placer = event.getEntity();
         if (placer == null) { return; }
-        if (placer instanceof Player) { return; }
+        if (placer instanceof Player) { return; }   // NOT FOR PLAYERS
         double scale = ASIUtilities.getEntityScale(placer);
         if (scale <= 1) { return; }
 
         // Not a participant block? I sleep
-        if (!ASIWorldSystemManager.CanBeBeegBlock(event.getPlacedBlock().getBlock())) { return; }
+        if (!ActuallySizeInteractions.WORLD_SYSTEM.canBeBeegBlock(event.getPlacedBlock().getBlock())) { return; }
 
         // Delegate to the beeg block system
         ASIBeegBlock beegBlock = ASIBeegBlock.containing(scale, event.getBlockSnapshot().getPos().getCenter());
@@ -639,7 +639,7 @@ public class ASIEventExecutionListener {
         if (beegBlock.getEffectiveScale() <= 1) { return; }
 
         // Not a participant block? I sleep
-        if (!ASIWorldSystemManager.CanBeBeegBlock(event.getState().getBlock())) { return; }
+        if (!ActuallySizeInteractions.WORLD_SYSTEM.canBeBeegBlock(event.getState().getBlock())) { return; }
 
         ASIWorldBlock block = new ASIWorldBlock(event.getState(), event.getPos(), (Level) event.getLevel());
 
@@ -665,7 +665,7 @@ public class ASIEventExecutionListener {
         if (!ActuallyServerConfig.beegBuildingDropRate) {return;}
 
         // Not a participant block? I sleep
-        if (!ASIWorldSystemManager.CanBeBeegBlock(event.getItem().getItem())) {return;}
+        if (!ActuallySizeInteractions.WORLD_SYSTEM.canBeBeegBlock(event.getItem().getItem())) {return;}
 
         // Read their scale, tinies don't participate in this
         double scale = ASIUtilities.getEntityScale(event.getEntity());

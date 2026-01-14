@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/cube_column",
+  "textures": {
+    "particle": "actuallysize:block/beeg_log_block",
+    "end": "actuallysize:block/beeg_log_block",
+    "side": "actuallysize:block/beeg_wood_block"
+  }
+}

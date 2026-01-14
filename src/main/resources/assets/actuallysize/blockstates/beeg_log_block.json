@@ -1,0 +1,8 @@
+{
+  "variants": {
+    "axis=y": { "model": "actuallysize:block/beeg_log_block" },
+    "axis=z": { "model": "actuallysize:block/beeg_log_block", "x": 90 },
+    "axis=x": { "model": "actuallysize:block/beeg_log_block", "x": 90, "y": 90 },
+    "axis=none": { "model": "actuallysize:block/beeg_log_block" }
+  }
+}

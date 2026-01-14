@@ -18,6 +18,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.Fluid;
@@ -173,7 +174,7 @@ public class ASIBeegBlock {
      * @since 1.0.0
      * @author Actually Portals
      */
-    @NotNull ASIBeegBlock getHalf(@NotNull Vec3 worldPos) {
+    @NotNull public ASIBeegBlock getHalf(@NotNull Vec3 worldPos) {
 
         /*
          * The main point of this is to identify the corner
@@ -347,6 +348,49 @@ public class ASIBeegBlock {
     }
 
     /**
+     * Returns a volume of Beeg Blocks that fully contain
+     * the specified volume of world blocks, defined as
+     * the volume contained by two vertices.
+     * <br><br>
+     * The corners are inclusive, such that a 1x1x1 space
+     * would be two identical vectors.
+     *
+     * @param v1 First corner of the world blocks volume, inclusive
+     * @param v2 Second corner of the world blocks volume, inclusive
+     *
+     * @return A cuboid of Beeg Blocks that fully contains these world blocks.
+     *
+     * @since 1.0.0
+     * @author Actually Portals
+     */
+    @NotNull public ArrayList<ASIBeegBlock> beegCuboidContaining(@NotNull Vec3i v1, @NotNull Vec3i v2) {
+        Vec3i min = new Vec3i(Math.min(v1.getX(), v2.getX()), Math.min(v1.getY(), v2.getY()), Math.min(v1.getZ(), v2.getZ()));
+        Vec3i max = new Vec3i(Math.max(v1.getX(), v2.getX()), Math.max(v1.getY(), v2.getY()), Math.max(v1.getZ(), v2.getZ()));
+
+        // Find the minimum block that can contain this rect
+        ASIBeegBlock minBlock = this;
+        while (minBlock.minX() > min.getX()) { minBlock = minBlock.getAdjacent(Direction.WEST); }
+        while (minBlock.minY() > min.getY()) { minBlock = minBlock.getAdjacent(Direction.DOWN); }
+        while (minBlock.minZ() > min.getZ()) { minBlock = minBlock.getAdjacent(Direction.NORTH); }
+
+        ASIBeegBlock maxBlock = this;
+        while (maxBlock.maxX() <= max.getX()) { maxBlock = maxBlock.getAdjacent(Direction.EAST); }
+        while (maxBlock.maxY() <= max.getY()) { maxBlock = maxBlock.getAdjacent(Direction.UP); }
+        while (maxBlock.maxZ() <= max.getZ()) { maxBlock = maxBlock.getAdjacent(Direction.SOUTH); }
+
+        // Fill the blocks as needed
+        ArrayList<ASIBeegBlock> ret = new ArrayList<>();
+        for (int x = minBlock.getBeegPos().getX(); x <= maxBlock.getBeegPos().getX(); x++) {
+            for (int y = minBlock.getBeegPos().getY(); y <= maxBlock.getBeegPos().getY(); y++) {
+                for (int z = minBlock.getBeegPos().getZ(); z <= maxBlock.getBeegPos().getZ(); z++) {
+                ret.add(new ASIBeegBlock(getScale(), new Vec3i(x, y, z)).withBias(getBias()));
+
+        }   }   }
+
+        return ret;
+    }
+
+    /**
      * @param dir The direction in which to move
      *
      * @return The beeg block adjacent to this
@@ -438,7 +482,7 @@ public class ASIBeegBlock {
 
     /**
      * This will send out a proper event and cancel if cancelable,
-     * as well as testing each individual block for a break event
+     * as well as testing each individual block for a break event.
      *
      * @param original The block break that triggered the Beeg Break
      * @param player Player that beeg broke this beeg block
@@ -447,12 +491,34 @@ public class ASIBeegBlock {
      * @since 1.0.0
      * @author Actually Portals
      */
-    public void tryBeegBreak(@Nullable ASIWorldBlock original, @NotNull ServerPlayer player, @NotNull ServerLevel world) {
+    public boolean tryBeegBreak(@Nullable ASIWorldBlock original, @NotNull ServerPlayer player, @NotNull ServerLevel world) {
+
+        // Run Beeg Break Event, cancel if cancelled
+        ASIBeegBreakEvent event = prepareBeegBreak(original, player, world);
+        if (event.isCancelable() && event.isCanceled()) { return false; }
+
+        // Execute event
+        executeBeegBreak(event);
+        return true;
+    }
+
+    /**
+     * This builds the ASIBeegBreakEvent event and
+     * fires it to the Minecraft Forge bus. It will
+     * return the event after this, and you can
+     * then check if it was cancelled or use it
+     *
+     * @param original The block break that triggered the Beeg Break
+     * @param player Player that beeg broke this beeg block
+     * @param world The world where it happened
+     *
+     * @since 1.0.0
+     * @author Actually Portals
+     */
+    @NotNull public ASIBeegBreakEvent prepareBeegBreak(@Nullable ASIWorldBlock original, @NotNull ServerPlayer player, @NotNull ServerLevel world) {
 
         // Delegate to half
-        if (isHalved() && original != null) {
-            getHalf(original.getPos().getCenter()).tryBeegBreak(original, player, world);
-            return; }
+        if (isHalved() && original != null) { return getHalf(original.getPos().getCenter()).prepareBeegBreak(original, player, world); }
 
         // Identify original block position
         BlockPos input = original == null ? null : original.getPos();
@@ -498,7 +564,19 @@ public class ASIBeegBlock {
 
         // Run Beeg Break Event, cancel if cancelled
         ASIBeegBreakEvent event = new ASIBeegBreakEvent(this, toDestroy, original, player, nonInstantMines);
-        if (MinecraftForge.EVENT_BUS.post(event)) { return; }
+        MinecraftForge.EVENT_BUS.post(event);
+        return event;
+    }
+
+    /**
+     * @param event A beeg break event to force to execute,
+     *                      even if it was cancelled.
+     *
+     * @since 1.0.0
+     * @author Actually Portals
+     */
+    public void executeBeegBreak(@NotNull ASIBeegBreakEvent event) {
+        ServerPlayer player = event.getPlayer();
 
         // Begin beeg breaking
         ItemStack beeg = event.getTool();
@@ -507,7 +585,7 @@ public class ASIBeegBlock {
             breaker.actuallysize$setBeegBreaking(true);
 
             // Break those blocks
-            for (ASIWorldBlock des : toDestroy) { player.gameMode.destroyBlock(des.getPos()); }
+            for (ASIWorldBlock des : event.getToDestroy()) { player.gameMode.destroyBlock(des.getPos()); }
         } finally { breaker.actuallysize$setBeegBreaking(false); }
 
         // Finalize beeg breaking

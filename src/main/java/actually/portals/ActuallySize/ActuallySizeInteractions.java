@@ -127,8 +127,6 @@ public class ActuallySizeInteractions {
     }
 
     /**
-     * For now, it only registers netcode.
-     *
      * @param event The common setup event call
      *
      * @since 1.0.0
@@ -143,7 +141,7 @@ public class ActuallySizeInteractions {
 
         event.enqueueWork(() -> {
             ASINetworkManager.register();
-            ASIWorldSystemManager.StandardBeegItems();
+            getWorldSystem().onCommonSetup();
         });
     }
 

@@ -1,5 +1,6 @@
 package actually.portals.ActuallySize.mixin.world.building;
 
+import actually.portals.ActuallySize.ActuallySizeInteractions;
 import actually.portals.ActuallySize.world.ASIWorldSystemManager;
 import actually.portals.ActuallySize.world.mixininterfaces.JustDoIt;
 import net.minecraft.data.recipes.FinishedRecipe;
@@ -31,10 +32,10 @@ public abstract class RecipeProviderMixin implements JustDoIt {
         if (pCategory == RecipeCategory.BUILDING_BLOCKS && pPacked instanceof Block) {
 
             // If the packed version is a block
-            if (ASIWorldSystemManager.CanBeBeegBlock((Block) pPacked)) {
+            if (ActuallySizeInteractions.WORLD_SYSTEM.canBeBeegBlock((Block) pPacked)) {
 
                 // Register this beeg item
-                ASIWorldSystemManager.RegisterBeegItem(pUnpacked.asItem());
+                ActuallySizeInteractions.WORLD_SYSTEM.RegisterBeegItem(pUnpacked.asItem());
             }
         }
     }
@@ -50,10 +51,10 @@ public abstract class RecipeProviderMixin implements JustDoIt {
         if (pCategory == RecipeCategory.BUILDING_BLOCKS && pPacked instanceof Block) {
 
             // If the packed version is a block
-            if (ASIWorldSystemManager.CanBeBeegBlock((Block) pPacked)) {
+            if (ActuallySizeInteractions.WORLD_SYSTEM.canBeBeegBlock((Block) pPacked)) {
 
                 // Register this beeg item
-                ASIWorldSystemManager.RegisterBeegItem(pUnpacked.asItem());
+                ActuallySizeInteractions.WORLD_SYSTEM.RegisterBeegItem(pUnpacked.asItem());
             }
         }
     }
