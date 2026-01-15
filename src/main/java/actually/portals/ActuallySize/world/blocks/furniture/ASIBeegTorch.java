@@ -220,29 +220,22 @@ public class ASIBeegTorch extends ASIBeegFurnishing {
      */
     @NotNull Vec3i getFreeOffsetAsWallTorch(@NotNull ServerPlayer player, @NotNull ASIBeegBlock beegBlock, @NotNull ASIWorldBlock at, @NotNull Direction faceClicked, @NotNull StructureTemplate structure, @NotNull Rotation structureRotation) {
 
-        // Centered and standing? That means to put it in the center of the grid.
-        Vec3i structureSize = structure.getSize(structureRotation);
-        int fOff = (faceClicked.getAxis() == Direction.Axis.X ? structureSize.getX() : structureSize.getZ()) - 1;
-        int l = (faceClicked.getAxisDirection() == Direction.AxisDirection.POSITIVE ? 0 : (beegBlock.getEffectiveScale() - fOff));
+        // Identify
+        Vec3i structureSize = structure.getSize();
+        int scale = beegBlock.getScale();
+
+        // Centered? Calculate the center of the face
+        int sOff = faceClicked.getAxis() == Direction.Axis.X ? at.getPos().getZ() - beegBlock.minZ() : at.getPos().getX() - beegBlock.minX();
+
+        // Raised to be centered on the wall vertically
         int y = OotilityNumbers.ceil(0.5D * (beegBlock.getEffectiveScale() - structureSize.getY()));
 
-        int x, z;
-        switch (structureRotation) {
-            case CLOCKWISE_90:
-            case COUNTERCLOCKWISE_90:
-                x = l;
-                z = at.getPos().getZ() - beegBlock.minZ();
-                break;
-
-            case NONE:
-            case CLOCKWISE_180:
-            default:
-                x = at.getPos().getX() - beegBlock.minX();
-                z = l;
-        }
+        // On wall? Calculate distance to wall. Only affects negative facing directions
+        int fOff = 0;
+        if (faceClicked.getAxisDirection().getStep() < 0) { fOff = scale - structureSize.getZ(); }
 
         // That's it
-        return new Vec3i(x, y, z);
+        return relativeToAbsoluteOffsets(sOff, y, fOff, structureRotation, structureSize);
     }
 
     /**
@@ -260,32 +253,25 @@ public class ASIBeegTorch extends ASIBeegFurnishing {
      */
     @NotNull Vec3i getCenteredOffsetAsWallTorch(@NotNull ServerPlayer player, @NotNull ASIBeegBlock beegBlock, @NotNull ASIWorldBlock at, @NotNull Direction faceClicked, @NotNull StructureTemplate structure, @NotNull Rotation structureRotation) {
 
-        // Centered and standing? That means to put it in the center of the grid.
-        Vec3i structureSize = structure.getSize(structureRotation);
-        int sOff = (faceClicked.getAxis() == Direction.Axis.X ? structureSize.getZ() : structureSize.getX());
-        if ((faceClicked == Direction.EAST || faceClicked == Direction.NORTH) && (sOff % 2 == 0)) { sOff--; }
-        int s = OotilityNumbers.ceil(0.5D * (beegBlock.getEffectiveScale() - sOff));
-        int fOff = (faceClicked.getAxis() == Direction.Axis.X ? structureSize.getZ() : structureSize.getX()) - 1;
-        int l = (faceClicked.getAxisDirection() == Direction.AxisDirection.POSITIVE ? 0 : (beegBlock.getEffectiveScale() - fOff));
+        // Identify
+        Vec3i structureSize = structure.getSize();
+        int scale = beegBlock.getScale();
+
+        // Centered? Calculate the center of the face
+        double sOffRaw = 0.5D * (scale - structureSize.getX());
+        int sOff = OotilityNumbers.floor(sOffRaw);
+        double sOffDiff = sOffRaw - sOff;
+        if (sOffDiff > 0 && OotilityNumbers.rollSuccess(sOffDiff)) { sOff++; }
+
+        // Raised to be centered on the wall vertically
         int y = OotilityNumbers.ceil(0.5D * (beegBlock.getEffectiveScale() - structureSize.getY()));
 
-        int x, z;
-        switch (structureRotation) {
-            case CLOCKWISE_90:
-            case COUNTERCLOCKWISE_90:
-                x = l;
-                z = s;
-                break;
-
-            case NONE:
-            case CLOCKWISE_180:
-            default:
-                x = s;
-                z = l;
-        }
+        // On wall? Calculate distance to wall. Only affects negative facing directions
+        int fOff = 0;
+        if (faceClicked.getAxisDirection().getStep() < 0) { fOff = scale - structureSize.getZ(); }
 
         // That's it
-        return new Vec3i(x, y, z);
+        return relativeToAbsoluteOffsets(sOff, y, fOff, structureRotation, structureSize);
     }
 
     /**
@@ -327,12 +313,19 @@ public class ASIBeegTorch extends ASIBeegFurnishing {
      */
     @NotNull Vec3i getCenteredOffsetAsStandingTorch(@NotNull ServerPlayer player, @NotNull ASIBeegBlock beegBlock, @NotNull ASIWorldBlock at, @NotNull Direction faceClicked, @NotNull StructureTemplate structure, @NotNull Rotation structureRotation) {
 
-        // Centered and standing? That means to put it in the center of the grid.
-        int x = OotilityNumbers.ceil(beegBlock.getEffectiveScale() * 0.5D);
-        int y = 0;
-        int z = x;
+        // Identify
+        Vec3i structureSize = structure.getSize();
+        int scale = beegBlock.getScale();
+
+        // Centered? Calculate the center of the face
+        double sOffRaw = 0.5D * (scale - structureSize.getX());
+        int sOff = OotilityNumbers.floor(sOffRaw);
+        double sOffDiff = sOffRaw - sOff;
+        int fOff = sOff;
+        if (sOffDiff > 0 && OotilityNumbers.rollSuccess(sOffDiff)) { sOff++; }
+        if (sOffDiff > 0 && OotilityNumbers.rollSuccess(sOffDiff)) { fOff++; }
 
         // That's it
-        return new Vec3i(x, y, z);
+        return relativeToAbsoluteOffsets(sOff, 0, fOff, structureRotation, structureSize);
     }
 }

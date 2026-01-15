@@ -547,4 +547,61 @@ public abstract class ASIBeegFurnishing {
         prep.getStructure().placeInWorld(prep.getWorld(), cookedPos, cookedPos, settings, StructureBlockEntity.createRandom(0), Block.UPDATE_CLIENTS);
         return true;
     }
+
+    /**
+     * @param sOff Side offset in unrotated structure coordinates (+X)
+     * @param vOff Vertical offset in unrotated structure coordinates (+Y)
+     * @param fOff Forward offset in unrotated structure coordinates (+Z)
+     *
+     * @param structureRotation Rotation that will be applied to the structure
+     *
+     * @param structureSize Size of the structure in unrotated structure coordinates
+     *
+     * @return The correct offset to apply to this structure
+     *
+     * @author Actually Portals
+     * @since 1.0.0
+     */
+    @NotNull Vec3i relativeToAbsoluteOffsets(int sOff, int vOff, int fOff, @NotNull Rotation structureRotation, @NotNull Vec3i structureSize) {
+
+        // Fix rotation
+        switch (structureRotation) {
+            case CLOCKWISE_180:
+                sOff += structureSize.getX() - 1;
+                fOff += structureSize.getZ() - 1;
+                break;
+
+            case CLOCKWISE_90:
+                fOff += structureSize.getZ() - 1;
+                break;
+
+            case COUNTERCLOCKWISE_90:
+                sOff += structureSize.getX() - 1;
+                break;
+
+            case NONE:
+            default:
+                break;
+        }
+
+        // Apply
+        int x, z;
+        switch (structureRotation) {
+            case CLOCKWISE_90:
+            case COUNTERCLOCKWISE_90:
+                x = fOff;
+                z = sOff;
+                break;
+
+            case NONE:
+            case CLOCKWISE_180:
+            default:
+                x = sOff;
+                z = fOff;
+                break;
+        }
+
+        // That's it
+        return new Vec3i(x, vOff, z);
+    }
 }
