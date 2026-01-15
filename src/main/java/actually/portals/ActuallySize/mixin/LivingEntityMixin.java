@@ -48,16 +48,17 @@ public abstract class LivingEntityMixin extends Entity implements Edacious, Atta
 
     public LivingEntityMixin(EntityType<?> pEntityType, Level pLevel) { super(pEntityType, pLevel); }
 
+    /*  // The javadoc on pickability is misleading. Pickability is actually being able to click it!
     @WrapMethod(method = "isPickable")
     public boolean onPickEntities(Operation<Boolean> original) {
 
-        // If held, not pushable
+        // If held, not pickable
         EntityDualityCounterpart dualityEntity = (EntityDualityCounterpart) this;
-        if (dualityEntity.actuallysize$isHeld()) {return false;}
+        if (dualityEntity.actuallysize$isHeld()) { return false; }
 
         // Not held not our business
         return original.call();
-    }
+    }   //*/
 
     @WrapMethod(method = "isPushable")
     public boolean onPushEntities(Operation<Boolean> original) {

@@ -307,7 +307,8 @@ public class ASIUtilities {
                                       );
 
         // Use that range
-        return OotilityVectors.inRange(caster.position(), target.position(), polishedRange);
+        return OotilityVectors.inRange(caster.position(), target.position(), polishedRange) ||
+                OotilityVectors.inRange(caster.getEyePosition(), target.position(), polishedRange);
     }
 
     /**
