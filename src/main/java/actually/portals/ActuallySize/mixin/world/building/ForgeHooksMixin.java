@@ -6,6 +6,7 @@ import actually.portals.ActuallySize.world.blocks.furniture.ASIBeegFurnishing;
 import actually.portals.ActuallySize.world.grid.ASIBeegBlock;
 import actually.portals.ActuallySize.world.grid.ASIWorldBlock;
 import actually.portals.ActuallySize.world.grid.events.ASIBeegFurniturePlaceEvent;
+import actually.portals.ActuallySize.world.mixininterfaces.ForceSlotSynchronization;
 import com.google.common.collect.Lists;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
@@ -14,6 +15,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
@@ -41,7 +43,7 @@ public class ForgeHooksMixin {
     @Unique @Nullable private static List<BlockSnapshot> actuallysize$snaps;
     @Unique private static int actuallysize$originalCount;
     @Unique private static int actuallysize$totalConsume;
-    @Unique @Nullable private static Player actuallysize$placer;
+    @Unique @Nullable private static ServerPlayer actuallysize$placer;
     @Unique @Nullable private static Level actuallysize$level;
 
     @Inject(method = "onPlaceItemIntoWorld", at = @At("HEAD"))
@@ -56,8 +58,8 @@ public class ForgeHooksMixin {
         actuallysize$originalCount = context.getItemInHand().getCount();
 
         actuallysize$totalConsume = -1;
-        actuallysize$placer = context.getPlayer();
-        if (!(actuallysize$placer instanceof ServerPlayer)) { return; }
+        if (!(context.getPlayer() instanceof ServerPlayer)) { return; }
+        actuallysize$placer = (ServerPlayer) context.getPlayer();
 
         // Approved preconditions
         int scale = OotilityNumbers.ceil(ASIUtilities.getEntityScale(actuallysize$placer));
@@ -237,6 +239,12 @@ public class ForgeHooksMixin {
 
     @Inject(method = "onPlaceItemIntoWorld", at = @At("RETURN"))
     private static void OnPlaceBlockEnd(UseOnContext context, CallbackInfoReturnable<InteractionResult> cir) {
+
+        // Sent update
+        if (actuallysize$placer != null && (actuallysize$furnishingPlacement != null || actuallysize$placingGrid != null)) {
+            ForceSlotSynchronization sync = (ForceSlotSynchronization) actuallysize$placer.inventoryMenu;
+            sync.actuallysize$synchronizeSlotToRemote(context.getHand() == InteractionHand.OFF_HAND ? 45 : actuallysize$placer.getInventory().selected + 36);
+        }
 
         // Reset
         actuallysize$furnishingPlacement = null;
