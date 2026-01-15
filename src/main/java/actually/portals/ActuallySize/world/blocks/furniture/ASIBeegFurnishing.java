@@ -462,7 +462,7 @@ public abstract class ASIBeegFurnishing {
         for (ASIBeegBlock block : affected) {
 
             // A single non-empty block can cancel this whole operation
-            if (isRequiresEmptyArea() && !block.isEmpty(world, true, null, 0)) { return null; }
+            if (isRequiresEmptyArea() && !block.isEmptyForPlayerPlace(world, player)) { return null; }
 
             // A single cancelled block break can prevent the entire operation
             if (isClearsArea()) {

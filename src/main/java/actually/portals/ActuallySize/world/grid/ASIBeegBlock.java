@@ -20,6 +20,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.Fluids;
@@ -297,12 +298,24 @@ public class ASIBeegBlock {
     /**
      * @param world The world to check this Beeg Block in
      *
-     * @return true if there are no solid blocks, with block placing in mind
+     * @return true if there are no blocks other than AIR in this Beeg Block
      *
      * @since 1.0.0
      * @author Actually Portals
      */
-    public boolean isEmpty(@NotNull ServerLevel world) { return isEmpty(world, false, null, 0); }
+    public boolean isEmpty(@NotNull ServerLevel world) { return isEmpty(world, false, false, null, 0); }
+
+    /**
+     * @param world The world to check this Beeg Block in
+     *
+     * @return true if there are no solid blocks, with survival block placing in mind
+     *
+     * @since 1.0.0
+     * @author Actually Portals
+     */
+    public boolean isEmptyForPlayerPlace(@NotNull ServerLevel world, @NotNull ServerPlayer player) {
+        return isEmpty(world, true, !player.getAbilities().instabuild, null, 0);
+    }
 
     /**
      * @param world The world to check this Beeg Block in
@@ -310,6 +323,9 @@ public class ASIBeegBlock {
      * @param acceptReplace When true, liquids and grass and other
      *                      blocks you can replace while building will
      *                      be considered empty.
+     *
+     * @param ignoreUnbreakable If unbreakable blocks should be ignored (allowing
+     *                          you to build around them or whatever)
      *
      * @param ignored If there is one block that we may skip to check if it is empty
      *
@@ -321,9 +337,35 @@ public class ASIBeegBlock {
      * @since 1.0.0
      * @author Actually Portals
      */
-    public boolean isEmpty(@NotNull ServerLevel world, boolean acceptReplace, @Nullable BlockSnapshot ignored, int sameIgnored) {
+    public boolean isEmpty(@NotNull ServerLevel world, boolean acceptReplace, boolean ignoreUnbreakable, @Nullable BlockSnapshot ignored, int sameIgnored) {
+        return countUnbreakable(world, acceptReplace, ignoreUnbreakable, ignored, sameIgnored) >= 0;
+    }
+
+    /**
+     * @param world The world to check this Beeg Block in
+     *
+     * @param acceptReplace When true, liquids and grass and other
+     *                      blocks you can replace while building will
+     *                      be considered empty.
+     *
+     * @param ignoreUnbreakable If unbreakable blocks should be ignored (allowing
+     *                          you to build around them or whatever)
+     *
+     * @param ignored If there is one block that we may skip to check if it is empty
+     *
+     * @param sameIgnored The number of blocks similar to the ignored block that we may skip
+     *                    and still consider this beeg block empty.
+     *
+     * @return -1 if a real obstruction was found, otherwise, the number of ignored
+     *         unbreakable blocks that are still here but we considered "empty"
+     *
+     * @since 1.0.0
+     * @author Actually Portals
+     */
+    public int countUnbreakable(@NotNull ServerLevel world, boolean acceptReplace, boolean ignoreUnbreakable, @Nullable BlockSnapshot ignored, int sameIgnored) {
         boolean ign = ignored != null;
         int sms = sameIgnored;
+        int ret = 0;
 
         // First failure ends method
         for (int x = minX(); x < maxX(); x++) {
@@ -334,17 +376,18 @@ public class ASIBeegBlock {
                     // Find block at this coordinate
                     BlockState at = world.getBlockState(BlockPos.containing(x + 0.2D, y + 0.2D, z + 0.2D));
                     if (at.isAir()) { continue; }
+                    if (ignoreUnbreakable && at.getBlock().defaultDestroyTime() < 0) { ret++; continue; }
                     if (acceptReplace && at.canBeReplaced()) { continue; }
                     if (sms > 0 && ign) { if (at.is(ignored.getCurrentBlock().getBlock())) { sms--; continue; } }
 
                     // Obstruction found
-                    return false;
+                    return -1;
                 }
             }
         }
 
         // No obstruction found
-        return true;
+        return ret;
     }
 
     /**
@@ -429,22 +472,27 @@ public class ASIBeegBlock {
 
         // Delegate to half
         if (isHalved()) { return getHalf(input.getPos().getCenter()).tryBeegBuild(results, input, block, against, placer, world, counts);  }
+        boolean creative = (placer instanceof ServerPlayer) && ((ServerPlayer) placer).getAbilities().instabuild;
+        int emptiness = countUnbreakable(world, true, !creative, input, getEffectiveScale() * getEffectiveScale() * 3);
 
         // When empty, use this chunk
-        if (isEmpty(world, true, input, getEffectiveScale() * getEffectiveScale() * 3)) {
+        if (emptiness >= 0) {
 
             // Get limit from player inventory
             int limit;
-            if (counts < 1) { limit = 2048; } else { limit = counts * getScale() * getScale(); }
+            if (counts < 1) { limit = getScale() * getScale() * getScale(); } else { limit = counts * getScale() * getScale(); }
 
             // Prepare indices
             ASIGConstructor constructor = getConstructor();
-            ArrayList<Vec3> indices = constructor.elaborate(0, limit);
+            ArrayList<Vec3> indices = constructor.elaborate(0, limit + (emptiness * 2));
 
             // Track changes
             world.captureBlockSnapshots = true;
             for (Vec3 index : indices) {
-                world.setBlock(BlockPos.containing(index), block, 3); }
+                BlockPos pos = BlockPos.containing(index);
+                if (!creative && world.getBlockState(pos).getBlock().defaultDestroyTime() < 0) { continue; }
+                world.setBlock(pos, block, Block.UPDATE_CLIENTS);
+                limit--; if (limit < 0) { break; } }
             world.captureBlockSnapshots = false;
 
             // Compound results
@@ -529,6 +577,7 @@ public class ASIBeegBlock {
         boolean ditz = withHeld.getItem() instanceof DitzDestroyer;
         boolean tool = withHeld.isDamageableItem();
         int nonInstantMines = 0;
+        boolean creative = player.getAbilities().instabuild;
 
         // Build list of mined blocks
         ArrayList<ASIWorldBlock> toDestroy = new ArrayList<>();
@@ -543,6 +592,9 @@ public class ASIBeegBlock {
                     BlockPos target = BlockPos.containing(x + 0.2D, y + 0.2D, z + 0.2D);
                     BlockState state = world.getBlockState(target);
                     if (state.isAir()) { continue; }
+
+                    // Cant break unbreakable blocks when in survival
+                    if (!creative) { if (state.getBlock().defaultDestroyTime() < 0) { continue; } }
 
                     // Check tool to be the correct one
                     if (ditz) { if (!((DitzDestroyer) withHeld.getItem()).actuallysize$canDitzDestroy(withHeld, state)) { continue; } }
