@@ -50,6 +50,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
+import java.util.ArrayList;
 import java.util.Map;
 
 @Mixin(Player.class)
@@ -350,6 +351,20 @@ public abstract class PlayerMixin extends LivingEntity implements HoldPointConfi
     public boolean actuallysize$isBeegBreaking() { return actuallysize$isBeegBreaking; }
 
     @Override
-    public void actuallysize$setBeegBreaking(boolean is) { actuallysize$isBeegBreaking = is; }
+    public void actuallysize$setBeegBreaking(boolean is) { actuallysize$isBeegBreaking = is; if (!is) { actuallysize$beegBreakingDrops.clear(); } }
 
+    @Unique
+    @NotNull ArrayList<ItemStack> actuallysize$beegBreakingDrops = new ArrayList<>();
+
+    @Override
+    public void actuallysize$addBeegBreakingDrop(@NotNull ItemStack drop) { actuallysize$beegBreakingDrops.add(drop); }
+
+    @Override
+    public @NotNull ArrayList<ItemStack> actuallysize$getBeegBreakingDrops() { return actuallysize$beegBreakingDrops; }
+
+    @Override
+    public void actuallysize$setBeegBreaker(@Nullable ServerPlayer beeg) { }
+
+    @Override
+    public @Nullable ServerPlayer actuallysize$getBeegBreaker() { return null; }
 }

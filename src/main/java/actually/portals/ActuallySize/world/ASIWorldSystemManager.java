@@ -25,6 +25,7 @@ import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.IntegerProperty;
 import net.minecraft.world.level.material.MapColor;
+import net.minecraft.world.level.material.PushReaction;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import net.minecraftforge.common.MinecraftForge;
@@ -95,7 +96,8 @@ public class ASIWorldSystemManager {
     public static final BlockItemRegistry BEEG_TORCH_BLOCK = new BlockItemRegistry("beeg_torch_block", () ->
             new BeegLightSource(
                     BlockBehaviour.Properties.copy(Blocks.OAK_LOG)
-                    .mapColor(MapColor.COLOR_YELLOW), 15));
+                    .mapColor(MapColor.COLOR_YELLOW)
+                    .instabreak(), 15));
 
     /**
      * You cannot simply give a light block a tremendous light amount,
@@ -106,7 +108,7 @@ public class ASIWorldSystemManager {
      * @since 1.0.0
      */
     public static final BlockItemRegistry BEEG_LIGHT_BLOCK = new BlockItemRegistry("beeg_light_block", () ->
-            new BeegLightBlock(BlockBehaviour.Properties.copy(Blocks.LIGHT)));
+            new BeegLightBlock(BlockBehaviour.Properties.copy(Blocks.LIGHT).instabreak().pushReaction(PushReaction.DESTROY)));
 
     /**
      * A block that represents wood in beeg furniture, will

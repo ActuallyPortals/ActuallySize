@@ -4,11 +4,13 @@ import actually.portals.ActuallySize.pickup.mixininterfaces.*;
 import actually.portals.ActuallySize.pickup.ASIPickupSystemManager;
 import actually.portals.ActuallySize.pickup.item.ASIPSHeldEntityItem;
 import actually.portals.ActuallySize.world.mixininterfaces.BeegBreaker;
+import actually.portals.ActuallySize.world.mixininterfaces.BeegPicker;
 import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import gunging.ootilities.GungingOotilitiesMod.exploring.ItemStackLocation;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.item.Item;
@@ -21,18 +23,22 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
+import java.util.ArrayList;
 import java.util.UUID;
 
 @Mixin(ItemStack.class)
-public abstract class ItemStackMixin extends net.minecraftforge.common.capabilities.CapabilityProvider<ItemStack> implements net.minecraftforge.common.extensions.IForgeItemStack, ItemDualityCounterpart, Edacious, UseTimed, BeegBreaker {
+public abstract class ItemStackMixin extends net.minecraftforge.common.capabilities.CapabilityProvider<ItemStack> implements net.minecraftforge.common.extensions.IForgeItemStack, ItemDualityCounterpart, Edacious, UseTimed, BeegBreaker, BeegPicker {
 
     @Shadow public abstract Item getItem();
 
     @Shadow @javax.annotation.Nullable public abstract CompoundTag getTag();
 
     @Shadow @javax.annotation.Nullable private CompoundTag tag;
+
+    @Shadow public abstract int getCount();
 
     protected ItemStackMixin(Class<ItemStack> baseClass) { super(baseClass); }
 
@@ -303,5 +309,44 @@ public abstract class ItemStackMixin extends net.minecraftforge.common.capabilit
             tag.remove(ASIPSHeldEntityItem.TAG_ENTITY_NAME);
             tag.remove(ASIPSHeldEntityItem.TAG_ENTITY_ID);
         }
+    }
+
+    @Override
+    public void actuallysize$addBeegBreakingDrop(@NotNull ItemStack drop) { }
+
+    @Override
+    public @NotNull ArrayList<ItemStack> actuallysize$getBeegBreakingDrops() { return new ArrayList<>(); }
+
+    @Override
+    public void actuallysize$setBeegBreaker(@Nullable ServerPlayer beeg) { }
+
+    @Override
+    public @Nullable ServerPlayer actuallysize$getBeegBreaker() { return null; }
+
+    @Unique
+    @Nullable Integer actuallysize$originalCount;
+    @Unique int actuallysize$sizedCount;
+
+    @Override
+    public int actuallysize$getSizedCount() {
+        return actuallysize$sizedCount;
+    }
+
+    @Override
+    public void actuallysize$setSizedCount(int count) {
+        actuallysize$sizedCount = count;
+    }
+
+    @Override
+    public int actuallysize$getOriginalCount() {
+        if (actuallysize$originalCount == null) { actuallysize$originalCount = getCount(); }
+        return actuallysize$originalCount;
+    }
+
+    @Inject(method = "setCount", at = @At("HEAD"))
+    public void onSetCount(int pCount, CallbackInfo ci) {
+
+        // Clear original count once it is restored
+        if (actuallysize$originalCount != null) { if (pCount == actuallysize$originalCount) { actuallysize$originalCount = null; actuallysize$sizedCount = -1; }}
     }
 }

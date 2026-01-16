@@ -16,10 +16,7 @@ import actually.portals.ActuallySize.pickup.mixininterfaces.*;
 import actually.portals.ActuallySize.world.ASIWorldSystemManager;
 import actually.portals.ActuallySize.world.grid.ASIBeegBlock;
 import actually.portals.ActuallySize.world.grid.ASIWorldBlock;
-import actually.portals.ActuallySize.world.mixininterfaces.AmountMatters;
-import actually.portals.ActuallySize.world.mixininterfaces.BeegBreaker;
-import actually.portals.ActuallySize.world.mixininterfaces.Directed;
-import actually.portals.ActuallySize.world.mixininterfaces.PreferentialOptionable;
+import actually.portals.ActuallySize.world.mixininterfaces.*;
 import gunging.ootilities.GungingOotilitiesMod.events.extension.ServersideEntityEquipmentChangeEvent;
 import gunging.ootilities.GungingOotilitiesMod.exploring.players.ISPExplorerStatements;
 import gunging.ootilities.GungingOotilitiesMod.ootilityception.OotilityNumbers;
@@ -41,6 +38,7 @@ import net.minecraft.world.entity.boss.wither.WitherBoss;
 import net.minecraft.world.entity.monster.*;
 import net.minecraft.world.entity.monster.warden.Warden;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.EntityTeleportEvent;
@@ -663,9 +661,15 @@ public class ASIEventExecutionListener {
         // Must only catch serverside singe block place events
         if (!ActuallyServerConfig.beegBuilding) {return;}
         if (!ActuallyServerConfig.beegBuildingDropRate) {return;}
+        ItemStack beegItem = event.getItem().getItem();
 
         // Not a participant block? I sleep
-        if (!ActuallySizeInteractions.WORLD_SYSTEM.canBeBeegBlock(event.getItem().getItem())) {return;}
+        if (!ActuallySizeInteractions.WORLD_SYSTEM.canBeBeegBlock(beegItem)) { return; }
+
+        // Prevent infinity sand
+        BeegPicker infinitySand = ((BeegPicker) (Object) beegItem);
+        beegItem.setCount(infinitySand.actuallysize$getOriginalCount());
+        infinitySand.actuallysize$getOriginalCount();
 
         // Read their scale, tinies don't participate in this
         double scale = ASIUtilities.getEntityScale(event.getEntity());
@@ -675,7 +679,7 @@ public class ASIEventExecutionListener {
 
         // No point in adjusting if the system is not engaged
         if (scale == 1 && itemScale == 1) { return; }
-        int virtualCount = event.getItem().getItem().getCount();
+        int virtualCount = beegItem.getCount();
 
         // Calculate nerfing factor
         scale = scale / itemScale;
@@ -685,7 +689,8 @@ public class ASIEventExecutionListener {
         if (flooredCount < 1 && OotilityNumbers.rollSuccess(nerfedCount * 1.1)) { flooredCount = 1; }
 
         // Set that count
-        event.getItem().getItem().setCount(flooredCount);
+        beegItem.setCount(flooredCount);
+        infinitySand.actuallysize$setSizedCount(flooredCount);
     }
 
     /*

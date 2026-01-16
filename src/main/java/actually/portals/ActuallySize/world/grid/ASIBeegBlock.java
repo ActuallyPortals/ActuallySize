@@ -1,6 +1,7 @@
 package actually.portals.ActuallySize.world.grid;
 
 import actually.portals.ActuallySize.ASIUtilities;
+import actually.portals.ActuallySize.ActuallySizeInteractions;
 import actually.portals.ActuallySize.world.grid.construction.ASIGConstructor;
 import actually.portals.ActuallySize.world.grid.construction.cube.ASIGCShelled;
 import actually.portals.ActuallySize.world.grid.events.ASIBeegBreakEvent;
@@ -20,7 +21,9 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.Fluids;
@@ -32,7 +35,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * This refers to a block that belongs to a beeg grid,
@@ -237,6 +242,17 @@ public class ASIBeegBlock {
     }
 
     /**
+     * @return The center of the Beeg Block
+     *
+     * @since 1.0.0
+     * @author Actually Portals
+     */
+    @NotNull Vec3 getCenter() {
+        double half = getScale() * 0.5D;
+        return new Vec3(minX() + half, minY() + half, minZ() + half);
+    }
+
+    /**
      * @return The maximum world X encompassed by this beeg block, exclusive.
      *         Essentially, it encloses up to this number minus 0.00000000001
      *
@@ -376,9 +392,9 @@ public class ASIBeegBlock {
                     // Find block at this coordinate
                     BlockState at = world.getBlockState(BlockPos.containing(x + 0.2D, y + 0.2D, z + 0.2D));
                     if (at.isAir()) { continue; }
-                    if (ignoreUnbreakable && at.getBlock().defaultDestroyTime() < 0) { ret++; continue; }
                     if (acceptReplace && at.canBeReplaced()) { continue; }
                     if (sms > 0 && ign) { if (at.is(ignored.getCurrentBlock().getBlock())) { sms--; continue; } }
+                    if (ignoreUnbreakable && at.getBlock().defaultDestroyTime() < 0) { ret++; continue; }
 
                     // Obstruction found
                     return -1;
@@ -490,7 +506,8 @@ public class ASIBeegBlock {
             world.captureBlockSnapshots = true;
             for (Vec3 index : indices) {
                 BlockPos pos = BlockPos.containing(index);
-                if (!creative && world.getBlockState(pos).getBlock().defaultDestroyTime() < 0) { continue; }
+                BlockState state = world.getBlockState(pos);
+                if (!creative && !state.canBeReplaced() && state.getBlock().defaultDestroyTime() < 0 && !state.is(input.getCurrentBlock().getBlock())) { continue; }
                 world.setBlock(pos, block, Block.UPDATE_CLIENTS);
                 limit--; if (limit < 0) { break; } }
             world.captureBlockSnapshots = false;
@@ -594,7 +611,7 @@ public class ASIBeegBlock {
                     if (state.isAir()) { continue; }
 
                     // Cant break unbreakable blocks when in survival
-                    if (!creative) { if (state.getBlock().defaultDestroyTime() < 0) { continue; } }
+                    if (!creative) { if (!state.canBeReplaced() && state.getBlock().defaultDestroyTime() < 0) { continue; } }
 
                     // Check tool to be the correct one
                     if (ditz) { if (!((DitzDestroyer) withHeld.getItem()).actuallysize$canDitzDestroy(withHeld, state)) { continue; } }
@@ -638,7 +655,55 @@ public class ASIBeegBlock {
 
             // Break those blocks
             for (ASIWorldBlock des : event.getToDestroy()) { player.gameMode.destroyBlock(des.getPos()); }
-        } finally { breaker.actuallysize$setBeegBreaking(false); }
+
+            ArrayList<ItemStack> drops = ((BeegBreaker) player).actuallysize$getBeegBreakingDrops();
+            ArrayList<ItemStack> consolidated = new ArrayList<>();
+            ItemStack mainDrop = Items.AIR.getDefaultInstance();
+            for (ItemStack drop : drops) {
+
+                boolean beegBlock = ActuallySizeInteractions.WORLD_SYSTEM.canBeBeegBlock(drop);
+
+                // Check against every consolidated stack
+                boolean found = false;
+                for (ItemStack cons : consolidated) {
+                    if (ItemStack.isSameItemSameTags(cons, drop)) {
+                        cons.setCount(cons.getCount() + drop.getCount());
+                        found = true;
+
+                        // Consider as main drop
+                        if (beegBlock && cons.getCount() > mainDrop.getCount()) { mainDrop = cons; }
+                        break;
+                    }
+                }
+
+                // If not consolidated, include
+                if (!found) {
+                    consolidated.add(drop);
+                    if (beegBlock && drop.getCount() > mainDrop.getCount()) { mainDrop = drop; }
+                }
+            }
+
+            // Bonus drop for the main drop
+            int bonusCount = OotilityNumbers.ceil(mainDrop.getCount() * (1 + (getEffectiveScale() * 0.02D)));
+            int beegScale = OotilityNumbers.ceil(ASIUtilities.getEntityScale(player));
+            int idealCount = beegScale * beegScale * beegScale;
+            if (bonusCount > idealCount) { bonusCount = idealCount; }
+            mainDrop.setCount(bonusCount);
+
+            BeegBreaker blockRep = (BeegBreaker) Blocks.BEDROCK;
+            blockRep.actuallysize$setBeegBreaking(true);
+            blockRep.actuallysize$setBeegBreaker(player);
+
+            // At the end, we drop those items normally
+            for (ItemStack drip : consolidated) {
+                Block.popResource(player.level(), BlockPos.containing(getCenter()), drip);
+            }
+
+        } finally {
+            BeegBreaker blockRep = (BeegBreaker) Blocks.BEDROCK;
+            blockRep.actuallysize$setBeegBreaking(false);
+            breaker.actuallysize$setBeegBreaking(false);
+        }
 
         // Finalize beeg breaking
         beeg.hurtAndBreak(event.getExpectedDurabilityDamage(), player, who -> who.broadcastBreakEvent(EquipmentSlot.MAINHAND));
