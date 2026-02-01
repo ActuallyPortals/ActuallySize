@@ -15,7 +15,10 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.LightBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.IntegerProperty;
+import net.minecraft.world.level.material.Fluid;
+import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
@@ -210,7 +213,7 @@ public class BeegLightBlock extends LightBlock implements SimpleBeegBlock {
     public static boolean canSpreadTo(@NotNull BlockState state, int myLightLevel, int mySpread, int mySpreading, int myScale, boolean isSource) {
 
         // Air blocks are immediately spread onto
-        if (state.isAir()) { return true; }
+        if (isAirForReal(state)) { return true; }
 
         // The only other block we can spread into, is Light Blocks. Read their light level.
         if (!(state.getBlock() instanceof LightBlock)) { return false; }
@@ -236,6 +239,15 @@ public class BeegLightBlock extends LightBlock implements SimpleBeegBlock {
         // Okay now read its spread value
         return state.getValue(SPREAD) < mySpread;
     }
+
+    /**
+     * @param state The block state you are testing
+     *
+     * @return If this is air, other than a Beeg Light Block.
+     *         For the purposes of Beeg Light Blocks, Beeg
+     *         Light Blocks are NOT air.
+     */
+    public static boolean isAirForReal(@NotNull BlockState state) { return !(state.getBlock() instanceof BeegLightBlock) && state.isAir(); }
 
     /**
      * Removes this light if there is no source feeding it
@@ -383,7 +395,7 @@ public class BeegLightBlock extends LightBlock implements SimpleBeegBlock {
             // Check this adjacent block
             BlockPos blockpos = tickBlock.getPos().relative(direction);
             BlockState state = world.getBlockState(blockpos);
-            if (state.isAir()) { continue; }
+            if (isAirForReal(state)) { continue; }
 
             // Is this my source? Done
             if (isMySource(state, myLightLevel, mySpread, mySpreading, myScale)) {
@@ -416,7 +428,7 @@ public class BeegLightBlock extends LightBlock implements SimpleBeegBlock {
             // Check this adjacent block
             BlockPos blockpos = tickBlock.getPos().relative(direction);
             BlockState state = world.getBlockState(blockpos);
-            if (state.isAir()) { continue; }
+            if (isAirForReal(state)) { continue; }
 
             // Is this my spill? Collect
             if (isMySpill(state, myLightLevel, mySpread, mySpreading, myScale)) {
@@ -469,6 +481,24 @@ public class BeegLightBlock extends LightBlock implements SimpleBeegBlock {
         if (OotilityNumbers.rollSuccess(0.2)) { return LIGHT_PROPAGATION_TICK; }
         if (OotilityNumbers.rollSuccess(0.6)) { return LIGHT_PROPAGATION_TICK * 2; }
         return LIGHT_PROPAGATION_TICK * 3;
+    }
+
+    /**
+     * @author Actually Portals
+     * @since 1.0.0
+     */
+    @Override
+    public boolean canPlaceLiquid(@NotNull BlockGetter pLevel, @NotNull BlockPos pPos, @NotNull BlockState pState, @NotNull Fluid pFluid) {
+
+        // All liquids may flow into this block
+        return true;
+    }
+
+    @Override
+    public boolean placeLiquid(@NotNull LevelAccessor pLevel, @NotNull BlockPos pPos, @NotNull BlockState pState, @NotNull FluidState pFluidState) {
+        pLevel.setBlock(pPos, pFluidState.createLegacyBlock(), Block.UPDATE_ALL);
+        pLevel.scheduleTick(pPos, pFluidState.getType(), pFluidState.getType().getTickDelay(pLevel));
+        return true;
     }
 
     /**

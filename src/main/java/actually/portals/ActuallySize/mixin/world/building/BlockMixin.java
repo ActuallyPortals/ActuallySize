@@ -2,6 +2,7 @@ package actually.portals.ActuallySize.mixin.world.building;
 
 import actually.portals.ActuallySize.ASIUtilities;
 import actually.portals.ActuallySize.ActuallySizeInteractions;
+import actually.portals.ActuallySize.world.blocks.BeegLightBlock;
 import actually.portals.ActuallySize.world.mixininterfaces.BeegBreaker;
 import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
@@ -12,7 +13,6 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.item.ItemEntity;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
@@ -21,7 +21,6 @@ import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 
@@ -30,7 +29,6 @@ import java.util.List;
 
 @Mixin(Block.class)
 public abstract class BlockMixin implements BeegBreaker {
-
 
     @WrapMethod(method = "getDrops(Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/entity/BlockEntity;Lnet/minecraft/world/entity/Entity;Lnet/minecraft/world/item/ItemStack;)Ljava/util/List;")
     private static List<ItemStack> OnTileDrop(BlockState pState, ServerLevel pLevel, BlockPos pPos, BlockEntity pBlockEntity, Entity pEntity, ItemStack pTool, Operation<List<ItemStack>> original) {
@@ -96,4 +94,9 @@ public abstract class BlockMixin implements BeegBreaker {
 
     @Override
     public @Nullable ServerPlayer actuallysize$getBeegBreaker() { return actuallysize$beeg; }
+
+    @WrapOperation(method = "updateOrDestroy(Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/LevelAccessor;Lnet/minecraft/core/BlockPos;II)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/block/state/BlockState;isAir()Z"))
+    private static boolean voidOnUpdatingBeegLightBlocks(BlockState instance, Operation<Boolean> original) {
+        return !(instance.getBlock() instanceof BeegLightBlock) && original.call(instance);
+    }
 }
