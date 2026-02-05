@@ -367,4 +367,19 @@ public abstract class PlayerMixin extends LivingEntity implements HoldPointConfi
 
     @Override
     public @Nullable ServerPlayer actuallysize$getBeegBreaker() { return null; }
+
+    @WrapOperation(method = "checkMovementStatistics", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/player/Player;causeFoodExhaustion(F)V"))
+    public void OnTravelFoodExhaust(Player instance, float pExhaustion, Operation<Void> original) {
+
+        // Giants get reduced travel hunger, they are traveling much more easily after all
+        double size = ASIUtilities.getEffectiveSize(instance);
+        if (size > 1) {
+            size = 1D / size;
+            pExhaustion *= (float) (size);
+            original.call(instance, pExhaustion);
+            return; }
+
+        // Otherwise, normal breaking
+        original.call(instance, pExhaustion);
+    }
 }

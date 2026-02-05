@@ -13,6 +13,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
@@ -98,5 +99,21 @@ public abstract class BlockMixin implements BeegBreaker {
     @WrapOperation(method = "updateOrDestroy(Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/LevelAccessor;Lnet/minecraft/core/BlockPos;II)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/block/state/BlockState;isAir()Z"))
     private static boolean voidOnUpdatingBeegLightBlocks(BlockState instance, Operation<Boolean> original) {
         return !(instance.getBlock() instanceof BeegLightBlock) && original.call(instance);
+    }
+
+    @WrapOperation(method = "playerDestroy", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/player/Player;causeFoodExhaustion(F)V"))
+    public void OnMiningFoodExhaust(Player instance, float pExhaustion, Operation<Void> original) {
+
+        // Giants get reduced block mining hunger, they are mining a volume of blocks after all
+        double size = ASIUtilities.getEffectiveSize(instance);
+        if (size > 1) {
+            size = 1D / OotilityNumbers.ceil(size);
+            pExhaustion *= (float) (size * size * size);
+            original.call(instance, pExhaustion);
+            return;
+        }
+
+        // Otherwise, normal breaking
+        original.call(instance, pExhaustion);
     }
 }
