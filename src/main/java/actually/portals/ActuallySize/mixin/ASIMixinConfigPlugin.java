@@ -1,5 +1,6 @@
 package actually.portals.ActuallySize.mixin;
 
+import actually.portals.ActuallySize.compatibilities.create.ASICreateCompatibility;
 import gunging.ootilities.GungingOotilitiesMod.ootilityception.OotilityNumbers;
 import net.minecraftforge.versions.forge.ForgeVersion;
 import org.jetbrains.annotations.NotNull;
@@ -65,6 +66,11 @@ public class ASIMixinConfigPlugin implements IMixinConfigPlugin {
             );
         }
 
+        // Redirect to checking for third-parties
+        if (isThirdPartyCompatibilityMixin(mixinClassName)) {
+            return shouldApplyThirdParty(mixinClassName);
+        }
+
         // Check if it should be applied
         return shouldApplyCompatibilityMixin(mixinClassName);
     }
@@ -92,6 +98,38 @@ public class ASIMixinConfigPlugin implements IMixinConfigPlugin {
      * @author Actually Portals
      */
     @Override public void postApply(String targetClassName, ClassNode targetClass, String mixinClassName, IMixinInfo mixinInfo) { }
+
+    /**
+     * Checks the package name of this mixin to see if it is a third party compat type
+     *
+     * @since 1.0.0
+     * @author Actually Portals
+     */
+    public static boolean isThirdPartyCompatibilityMixin(@NotNull String mixinClassName) {
+        return mixinClassName.contains(".third.");
+    }
+
+    /**
+     * Checks the package name of this mixin to see if applying it
+     *
+     * @since 1.0.0
+     * @author Actually Portals
+     */
+    public static boolean shouldApplyThirdParty(@NotNull String mixinClassName) {
+        boolean wasCompatibilityFound = false;
+
+        // Check for CREATE
+        boolean isCreate = mixinClassName.contains(".create.");
+        if (isCreate) {
+
+            try {
+                wasCompatibilityFound = ASICreateCompatibility.TestIfCreatePresent();
+                wasCompatibilityFound = true;
+            } catch (Error ignored) { }
+        }
+
+        return wasCompatibilityFound;
+    }
 
     /**
      * Checks the package name of this mixin to decide if it is good to be applied

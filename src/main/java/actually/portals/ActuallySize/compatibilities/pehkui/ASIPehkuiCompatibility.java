@@ -1,4 +1,4 @@
-package actually.portals.ActuallySize.pehkui;
+package actually.portals.ActuallySize.compatibilities.pehkui;
 
 import net.minecraft.world.entity.Entity;
 import org.jetbrains.annotations.NotNull;

@@ -1,7 +1,7 @@
 package actually.portals.ActuallySize;
 
 import actually.portals.ActuallySize.pickup.mixininterfaces.RenderNormalizable;
-import actually.portals.ActuallySize.pehkui.ASIPehkuiCompatibility;
+import actually.portals.ActuallySize.compatibilities.pehkui.ASIPehkuiCompatibility;
 import gunging.ootilities.GungingOotilitiesMod.ootilityception.OotilityNumbers;
 import gunging.ootilities.GungingOotilitiesMod.ootilityception.OotilityVectors;
 import net.minecraft.core.particles.ParticleTypes;

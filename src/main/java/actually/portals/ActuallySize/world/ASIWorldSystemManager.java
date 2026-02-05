@@ -3,6 +3,7 @@ package actually.portals.ActuallySize.world;
 import actually.portals.ActuallySize.ASIUtilities;
 import actually.portals.ActuallySize.ActuallyServerConfig;
 import actually.portals.ActuallySize.ActuallySizeInteractions;
+import actually.portals.ActuallySize.compatibilities.create.ASICreateCompatibility;
 import actually.portals.ActuallySize.world.blocks.BeegLightBlock;
 import actually.portals.ActuallySize.world.blocks.BeegLightSource;
 import actually.portals.ActuallySize.world.blocks.BlockItemRegistry;
@@ -45,6 +46,21 @@ import java.util.HashMap;
  */
 public class ASIWorldSystemManager {
 
+    //region Compatibility Checking
+    /**
+     * The result of checking if Create mod is present upon mod init
+     *
+     * @since 1.0.0
+     */
+    boolean createPresent = false;
+
+    /**
+     * @since 1.0.0
+     * @author Actually Portals
+     */
+    public boolean isCreatePresent() { return createPresent; }
+    //endregion
+
     /**
      * Load this system onto the mod during mod loading initialization
      *
@@ -55,6 +71,12 @@ public class ASIWorldSystemManager {
      */
     public void OnModLoadInitialize(FMLJavaModLoadingContext context) {
 
+        // It will either generate the error or succeed.
+        try {
+            createPresent = ASICreateCompatibility.TestIfCreatePresent();
+        } catch (Error ignored) {
+            createPresent = false;
+        }
     }
 
     /**
@@ -108,7 +130,7 @@ public class ASIWorldSystemManager {
      * @since 1.0.0
      */
     public static final BlockItemRegistry BEEG_LIGHT_BLOCK = new BlockItemRegistry("beeg_light_block", () ->
-            new BeegLightBlock(BlockBehaviour.Properties.copy(Blocks.LIGHT).instabreak().pushReaction(PushReaction.DESTROY)));
+            new BeegLightBlock(BlockBehaviour.Properties.copy(Blocks.LIGHT).instabreak().air().pushReaction(PushReaction.DESTROY)));
 
     /**
      * A block that represents wood in beeg furniture, will
@@ -269,10 +291,9 @@ public class ASIWorldSystemManager {
 
         // Read shape potentially generating a null pointer exception
         VoxelShape shape = null;
-        try {
-            shape = block.getShape(state, null, null, CollisionContext.empty());
-        } catch (NullPointerException ignored) { }
+        try { shape = block.getShape(state, null, null, CollisionContext.empty()); } catch (NullPointerException ignored) { }
         if (shape == null) { return false; }
+        if (isCreatePresent()) { if (ASICreateCompatibility.IsCreateFunctionalBlock(block)) { return false; } }
 
         // It must be full-size
         return Block.isShapeFullBlock(shape);

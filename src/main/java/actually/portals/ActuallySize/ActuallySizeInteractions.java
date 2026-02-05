@@ -197,6 +197,7 @@ public class ActuallySizeInteractions {
 
         // Specific chat target? Send
         if (who != null) { who.sendSystemMessage(Component.literal(baked == null ? "null" : baked)); }
+        FORGE_LOGGER.warn("ASI {}", baked);
     }
 
     /**

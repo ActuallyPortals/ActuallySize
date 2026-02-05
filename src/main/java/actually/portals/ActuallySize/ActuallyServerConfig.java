@@ -260,6 +260,50 @@ public class ActuallyServerConfig {
             .define("beegBuildingDropRate", true);
 
     /**
+     * Whether the "Pickup Entity" system is enabled at all
+     *
+     * @since 1.0.0
+     */
+    @NotNull private static final ForgeConfigSpec.DoubleValue TINIEST_CRANKER = CONFIG_BUILDER
+            .comment(" ")
+            .comment(" #### --------------------------------------------------")
+            .comment(" #### Create ASI Compatibility")
+            .comment(" #### --------------------------------------------------")
+            .comment(" ")
+            .comment(" #### ----|    Tiniest Hand-Cranker    |----")
+            .comment(" The smallest size you can be and still be able to use")
+            .comment(" the hand crank to produce power. The power output and")
+            .comment(" speed will be reduced the tinier you are. ")
+            .defineInRange("tiniestCranker", 0.4, 0, 1);
+
+    /**
+     * Whether the "Pickup Entity" system is enabled at all
+     *
+     * @since 1.0.0
+     */
+    @NotNull private static final ForgeConfigSpec.DoubleValue LARGEST_CRANKER = CONFIG_BUILDER
+            .comment(" ")
+            .comment(" #### ----|    Largest Hand-Cranker    |----")
+            .comment(" The biggest size at which the hand crank can be used,")
+            .comment(" after which, you may accidentally break it because you")
+            .comment(" are too strong to rotate the tiny thing. The power output")
+            .comment(" will still be increased the bigger you are. ")
+            .defineInRange("largestCranker", 6, 1, Double.MAX_VALUE);
+
+    /**
+     * Whether the "Pickup Entity" system is enabled at all
+     *
+     * @since 1.0.0
+     */
+    @NotNull private static final ForgeConfigSpec.DoubleValue WATER_WHEEL_CRANKER = CONFIG_BUILDER
+            .comment(" ")
+            .comment(" #### ----|    Waterwheel Hand-Cranker    |----")
+            .comment(" At what size is a waterwheel a normal hand crank to you?")
+            .comment(" From then, it will use the minimum and maximum crankshaft limits above")
+            .comment(" to decide how it gets buffed or nerfed based on your size.")
+            .defineInRange("waterwheelCranker", 5, 1, Double.MAX_VALUE);
+
+    /**
      * The config builder itself
      *
      * @since 1.0.0
@@ -283,6 +327,7 @@ public class ActuallyServerConfig {
     public static double beegSize, tinySize;
     public static double foodDuration, foodFrequency;
     public static double fearThreshold;
+    public static double largestCranker, tiniestCranker, waterwheelCranker;
 
     /**
      * Reads the values specified in the config and loads them
@@ -318,6 +363,10 @@ public class ActuallyServerConfig {
         enableFreeSize = FREE_SIZE.get();
         beegSize = BEEG_SIZE.get();
         tinySize = TINY_SIZE.get();
+
+        largestCranker = LARGEST_CRANKER.get();
+        tiniestCranker = TINIEST_CRANKER.get();
+        waterwheelCranker = WATER_WHEEL_CRANKER.get();
     }
     //endregion
 }
