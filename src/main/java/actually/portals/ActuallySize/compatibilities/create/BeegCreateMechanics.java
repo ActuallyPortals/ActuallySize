@@ -158,6 +158,10 @@ public class BeegCreateMechanics {
         double added = getAddedSpeed();
         if (added == 0) { return (float) multiplicity; }
 
+        // Add normally to choose rotation direction
+        int sign = 1;
+        if (multiplicity + added < 0) { sign = -1; }
+
         // When they have the same sign, they add through the sum of their roots
         if (multiplicity * added > 0) {
             return (float) Math.sqrt(multiplicity*multiplicity + added*added);
@@ -165,14 +169,12 @@ public class BeegCreateMechanics {
         // When their signs oppose, decrease the greatest in similar fashion
         } else {
 
-            int sign = 1;
             if (multiplicity > added) {
                 if (multiplicity < 0) { sign = -1; }
                 return (float) (sign * Math.sqrt(multiplicity*multiplicity - added*added));
 
             } else {
-                if (added < 0) { sign = -1; }
-                return (float) (sign * Math.sqrt(added*added - multiplicity*multiplicity));
+                return (float) (sign * Math.sqrt(Math.abs(added*added - multiplicity*multiplicity)));
             }
         }
     }
