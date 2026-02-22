@@ -164,18 +164,11 @@ public class BeegCreateMechanics {
 
         // When they have the same sign, they add through the sum of their roots
         if (multiplicity * added > 0) {
-            return (float) Math.sqrt(multiplicity*multiplicity + added*added);
+            return (float) (sign * Math.sqrt(multiplicity*multiplicity + added*added));
 
         // When their signs oppose, decrease the greatest in similar fashion
         } else {
-
-            if (multiplicity > added) {
-                if (multiplicity < 0) { sign = -1; }
-                return (float) (sign * Math.sqrt(multiplicity*multiplicity - added*added));
-
-            } else {
-                return (float) (sign * Math.sqrt(Math.abs(added*added - multiplicity*multiplicity)));
-            }
+            return (float) (sign * Math.sqrt(Math.abs(added*added - multiplicity*multiplicity)));
         }
     }
 
