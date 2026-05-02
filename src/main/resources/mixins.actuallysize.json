@@ -34,6 +34,7 @@
     "ServerPlayerMixin",
     "compat1201plus.forge0470402plus.IForgePlayerMixin",
     "compat1201plus.forge0470402plus.LivingEntityReachMixin",
+    "compat1201plus.forge0470414minus.EntityFluidPushMixin",
     "holding.activation.AbstractContainerMenuMixin",
     "holding.activation.ContainerSynchronizerMixin",
     "holding.activation.PersistentEntitySectionManagerMixin",
