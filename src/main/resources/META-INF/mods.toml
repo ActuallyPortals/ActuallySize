@@ -39,6 +39,14 @@ Wiki: https://sites.google.com/view/actuallysize/home
 Mod Source: https://github.com/ActuallyPortals/actuallysize
 Bug Reports: https://github.com/ActuallyPortals/ActuallySize/issues'''
 
+# Soft Dependency - Figura
+[[dependencies.${mod_id}]]
+modId="figura"
+mandatory=false
+versionRange="[0.1.5,)"
+ordering="NONE"
+side="CLIENT"
+
 # Dependency - Forge
 [[dependencies.${mod_id}]]
 modId="forge"

@@ -1,4 +1,4 @@
-package actually.portals.ActuallySize.mixin.holding.pose;
+package actually.portals.ActuallySize.mixin.compat1201plus.forge0470415plus;
 
 import actually.portals.ActuallySize.pickup.mixininterfaces.EntityDualityCounterpart;
 import actually.portals.ActuallySize.pickup.mixininterfaces.ItemEntityDualityHolder;
@@ -12,23 +12,23 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 
 import java.util.ArrayList;
 
 @Mixin(GuiGraphics.class)
-public class GuiGraphicsMixin {
+public abstract class GuiGraphicsMixin {
 
-    @Shadow @Final private PoseStack pose;
+    @Shadow
+    public abstract PoseStack pose();
 
     @WrapMethod(method = "renderItem(Lnet/minecraft/world/entity/LivingEntity;Lnet/minecraft/world/level/Level;Lnet/minecraft/world/item/ItemStack;IIII)V")
     public void onRenderItem(LivingEntity pEntity, Level pLevel, ItemStack pStack, int pX, int pY, int pSeed, int pGuiOffset, Operation<Void> original) {
 
         // Set parent
         ItemEntityDualityHolder dualityHolder = (ItemEntityDualityHolder) pEntity;
-        VASIPoseStack asDeque = (VASIPoseStack) this.pose;
+        VASIPoseStack asDeque = (VASIPoseStack) pose();
 
         // Nested calls will be annoying
         ItemEntityDualityHolder concurrent = asDeque.actuallysize$getPoseParent();

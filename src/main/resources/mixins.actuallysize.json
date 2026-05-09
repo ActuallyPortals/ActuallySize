@@ -20,7 +20,9 @@
     "holding.pose.LivingEntityRendererMixin",
     "holding.pose.ModelPartMixin",
     "holding.pose.PoseStackMixin",
-    "holding.pose.PoseStackPoseMixin"
+    "holding.pose.PoseStackPoseMixin",
+    "third.figura.FiguraInventoryScreenMixin",
+    "third.figura.FiguraScissorFixMixin"
   ],
   "mixins": [
     "DamageSourceMixin",
@@ -57,12 +59,13 @@
     "holding.food.MobEffectInstanceMixin",
     "holding.food.SlimeMixin",
     "holding.food.SwellGoalMixin",
-    "holding.pose.GuiGraphicsMixin",
+    "compat1201plus.forge0470414minus.GuiGraphicsMixin",
     "third.create.HandCrankBlockEntityMixin",
     "third.create.HandCrankBlockMixin",
     "third.create.KineticBlockEntityMixin",
     "third.create.LargeWaterWheelBlockMixin",
     "third.create.WaterWheelBlockEntityMixin",
+    "third.figura.FiguraUIHelperMixin",
     "world.StepHeightOverride$Pehkui",
     "world.building.BlockMixin",
     "world.building.BucketItemMixin",

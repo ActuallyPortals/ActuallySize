@@ -1,6 +1,7 @@
 package actually.portals.ActuallySize.mixin;
 
 import actually.portals.ActuallySize.compatibilities.create.ASICreateCompatibility;
+import actually.portals.ActuallySize.compatibilities.figura.ASIFiguraCompatibility;
 import gunging.ootilities.GungingOotilitiesMod.ootilityception.OotilityNumbers;
 import net.minecraftforge.versions.forge.ForgeVersion;
 import org.jetbrains.annotations.NotNull;
@@ -124,6 +125,15 @@ public class ASIMixinConfigPlugin implements IMixinConfigPlugin {
 
             try {
                 wasCompatibilityFound = ASICreateCompatibility.TestIfCreatePresent();
+                wasCompatibilityFound = true;
+            } catch (Error ignored) { }
+        }
+
+        boolean isFigura = mixinClassName.contains(".figura.");
+        if (isFigura) {
+
+            try {
+                wasCompatibilityFound = ASIFiguraCompatibility.TestIfFiguraPresent();
                 wasCompatibilityFound = true;
             } catch (Error ignored) { }
         }

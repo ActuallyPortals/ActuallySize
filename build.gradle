@@ -97,6 +97,19 @@ repositories {
     }
     maven { url = "https://maven.createmod.net" } // Create, Ponder, Flywheel
     maven { url = "https://maven.tterrag.com" } // Registrate
+
+    exclusiveContent {
+        forRepository {
+            maven {
+                name = "Modrinth"
+                url = "https://api.modrinth.com/maven"
+            }
+        }
+        forRepositories(fg.repository) // Only add this if you're using ForgeGradle, otherwise remove this line
+        filter {
+            includeGroup "maven.modrinth"
+        }
+    }
 }
 
 dependencies {
@@ -112,6 +125,7 @@ dependencies {
 
     implementation fg.deobf("com.github.Virtuoel:Pehkui:${pehkui_version}")
     implementation fg.deobf("io.github.gunging:gungingoom:${goom_version}")
+    implementation fg.deobf("maven.modrinth:figura:${figura_version}")
 
     implementation(annotationProcessor("io.github.llamalad7:mixinextras-common:0.5.0-rc.2"))
     implementation(jarJar("io.github.llamalad7:mixinextras-forge:0.5.0-rc.2")) {
