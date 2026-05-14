@@ -22,7 +22,8 @@
     "holding.pose.PoseStackMixin",
     "holding.pose.PoseStackPoseMixin",
     "third.figura.FiguraInventoryScreenMixin",
-    "third.figura.FiguraScissorFixMixin"
+    "third.figura.FiguraScissorFixMixin",
+    "world.SoundEngineMixin"
   ],
   "mixins": [
     "DamageSourceMixin",
@@ -37,6 +38,7 @@
     "compat1201plus.forge0470402plus.IForgePlayerMixin",
     "compat1201plus.forge0470402plus.LivingEntityReachMixin",
     "compat1201plus.forge0470414minus.EntityFluidPushMixin",
+    "compat1201plus.forge0470414minus.GuiGraphicsMixin",
     "holding.activation.AbstractContainerMenuMixin",
     "holding.activation.ContainerSynchronizerMixin",
     "holding.activation.PersistentEntitySectionManagerMixin",
@@ -59,7 +61,6 @@
     "holding.food.MobEffectInstanceMixin",
     "holding.food.SlimeMixin",
     "holding.food.SwellGoalMixin",
-    "compat1201plus.forge0470414minus.GuiGraphicsMixin",
     "third.create.HandCrankBlockEntityMixin",
     "third.create.HandCrankBlockMixin",
     "third.create.KineticBlockEntityMixin",
