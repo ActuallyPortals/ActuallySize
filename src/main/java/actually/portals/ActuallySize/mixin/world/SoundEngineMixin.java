@@ -26,7 +26,7 @@ public class SoundEngineMixin {
         Player localPlayer = Minecraft.getInstance().player;
         if (localPlayer != null) {
             double scale = ASIUtilities.getEntityScale(localPlayer);
-            if (scale > 1) { usual = OotilityNumbers.ceil(scale * usual); } }
+            if (scale > 2) { usual = OotilityNumbers.ceil(scale * usual); } }
 
         // Attenuate properly
         return usual;
