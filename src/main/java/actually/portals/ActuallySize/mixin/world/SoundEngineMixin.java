@@ -24,7 +24,9 @@ public class SoundEngineMixin {
 
         // Giants have better hearing
         Player localPlayer = Minecraft.getInstance().player;
-        if (localPlayer != null) { usual = OotilityNumbers.ceil(ASIUtilities.getEntityScale(localPlayer) * usual);}
+        if (localPlayer != null) {
+            double scale = ASIUtilities.getEntityScale(localPlayer);
+            if (scale > 1) { usual = OotilityNumbers.ceil(scale * usual); } }
 
         // Attenuate properly
         return usual;
