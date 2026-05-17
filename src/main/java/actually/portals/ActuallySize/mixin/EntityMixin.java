@@ -10,6 +10,7 @@ import actually.portals.ActuallySize.pickup.holding.model.ASIPSModelPartInfo;
 import actually.portals.ActuallySize.pickup.holding.points.ASIPSHoldPointRegistry;
 import actually.portals.ActuallySize.pickup.holding.points.ASIPSRegisterableHoldPoint;
 import actually.portals.ActuallySize.pickup.holding.pose.ASIPSTinyPosedHold;
+import actually.portals.ActuallySize.pickup.item.ASIPSHeldEntityItem;
 import actually.portals.ActuallySize.pickup.mixininterfaces.*;
 import actually.portals.ActuallySize.world.mixininterfaces.AmountMatters;
 import com.llamalad7.mixinextras.expression.Definition;
@@ -338,6 +339,54 @@ public abstract class EntityMixin extends net.minecraftforge.common.capabilities
     @Override
     public boolean actuallysize$isActive() {
         return actuallysize$getItemCounterpart() != null && actuallysize$getHoldPoint() != null;
+    }
+
+    @Override
+    public boolean actuallysize$isValid() {
+
+        // Must be linked to an Item Stack. This also requires it to be active thus.
+        ItemStack itemCounterpart = actuallysize$getItemCounterpart();
+        if (itemCounterpart == null) {
+            //VDY//ActuallySizeInteractions.Log("EMIXIN [{0}] &c NO ITEM", getScoreboardName());
+            return false; }
+        ItemStackLocation<? extends Entity> stackLocation = actuallysize$getItemStackLocation();
+        if (stackLocation == null) {
+            //VDY//ActuallySizeInteractions.Log("EMIXIN [{0}] &c NO LOCATION", getScoreboardName());
+            return false; }
+
+        // The item stack must encode for this entity.
+        if (!(itemCounterpart.getItem() instanceof ASIPSHeldEntityItem)) {
+            //VDY//ActuallySizeInteractions.Log("EMIXIN [{0}] &c ITEM NOT ASI", getScoreboardName());
+            return false; }
+        ItemDualityCounterpart dualityItem = (ItemDualityCounterpart) (Object) itemCounterpart;
+
+        // Must match the item in the location pointed to by the Stack Location
+        ItemStack locationCounterpart = stackLocation.getItemStack();
+        if (locationCounterpart == null) {
+            //VDY//ActuallySizeInteractions.Log("EMIXIN [{0}] &c NO SOURCE", getScoreboardName());
+            return false; }
+        //VDY//ActuallySizeInteractions.Log("EMIXIN [{0}] Validating {1} VS {2}", getScoreboardName(), locationCounterpart.getDisplayName().getString(), itemCounterpart.getDisplayName().getString());
+        if (!ItemStack.isSameItemSameTags(locationCounterpart, itemCounterpart)) {
+            //VDY//ActuallySizeInteractions.Log("EMIXIN [{0}] &c BAD SOURCE", getScoreboardName());
+            return false; }
+
+        // Special case for players
+        if (((ASIPSHeldEntityItem)itemCounterpart.getItem()).isPlayer()) {
+            if (!(((Object) this) instanceof Player)) {
+                //VDY//ActuallySizeInteractions.Log("EMIXIN [{0}] &c ENTITY IN HELD PLAYER", getScoreboardName());
+                return false; }
+
+            Player me = (Player) (Object) this;
+            String playerName = me.getGameProfile().getName();
+            String itemName = itemCounterpart.getTag().getString(ASIPSHeldEntityItem.TAG_ENTITY_NAME);
+            //VDY//ActuallySizeInteractions.Log("EMIXIN [{0}] P Comparing {1} VS {2}", getScoreboardName(), itemName, playerName);
+            return itemName.equals(playerName);
+        } else {
+
+            // Verify by enclosed UUID
+            //VDY//ActuallySizeInteractions.Log("EMIXIN [{0}] E Comparing {1} VS {2}", getScoreboardName(), getUUID(), dualityItem.actuallysize$getEnclosedEntityUUID());
+            return getUUID().equals(dualityItem.actuallysize$getEnclosedEntityUUID());
+        }
     }
 
     @Unique

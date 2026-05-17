@@ -153,4 +153,16 @@ public interface EntityDualityCounterpart {
      * @author Actually Portals
      */
     boolean actuallysize$isActive();
+
+    /**
+     * Checks if this is a valid active Entity Counterpart. If not, ASI will
+     * deactivate it when it checks for validity.
+     *
+     * @return If this Entity counterpart is linked to an item that exists, encodes
+     *         for this entity, and matches the item in the item stack location.
+     *
+     * @since 1.0.0
+     * @author Actually Portals
+     */
+    boolean actuallysize$isValid();
 }

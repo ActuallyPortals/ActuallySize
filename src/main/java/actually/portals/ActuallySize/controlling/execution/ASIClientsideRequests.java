@@ -237,6 +237,6 @@ public class ASIClientsideRequests {
      */
     public static void Log(@Nullable String baked) {
         Player local = Minecraft.getInstance().player;
-        if (local != null) { local.sendSystemMessage(Component.literal("[ASI] " + baked)); }
+        if (local != null) { try { local.sendSystemMessage(Component.literal("[ASI] " + baked)); } catch (Throwable ignored) {} }
     }
 }

@@ -191,13 +191,13 @@ public class ActuallySizeInteractions {
         // Display in console
         if (IS_CLIENT_DEV) {
             System.out.println("GREP [CHAT] <Dev> " + baked);
-            ASIClientsideRequests.Log(baked);
+            if (PRODUCTION_LOGGING) { ASIClientsideRequests.Log(baked); }
 
         } else { System.out.println("GREP [Not Secure] <Dev> " + baked); }
 
         // Specific chat target? Send
         if (who != null) { who.sendSystemMessage(Component.literal(baked == null ? "null" : baked)); }
-        FORGE_LOGGER.warn("ASI {}", baked);
+        if (PRODUCTION_LOGGING) { FORGE_LOGGER.warn("ASI {}", baked); }
     }
 
     /**
@@ -207,6 +207,15 @@ public class ActuallySizeInteractions {
      * @since 1.0.0
      */
     static final boolean HDA_LOGGING = false;
+
+    /**
+     * In my IDE the console is fire but in production it is best to print
+     * stuff to the local player chat if possible and other more accessible
+     * places.
+     *
+     * @since 1.0.0
+     */
+    static final boolean PRODUCTION_LOGGING = false;
 
     /**
      * Logs specifically a line for the Holding System

@@ -9,6 +9,7 @@ import actually.portals.ActuallySize.netcode.packets.clientbound.ASINCItemEntity
 import actually.portals.ActuallySize.netcode.packets.serverbound.ASINSPreferredSize;
 import actually.portals.ActuallySize.pickup.actions.ASIPSDualityAction;
 import actually.portals.ActuallySize.pickup.actions.ASIPSDualityActivationAction;
+import actually.portals.ActuallySize.pickup.actions.ASIPSDualityDeactivationAction;
 import actually.portals.ActuallySize.pickup.actions.ASIPSDualityEscapeAction;
 import actually.portals.ActuallySize.pickup.events.ASIHoldPointRegistryEvent;
 import actually.portals.ActuallySize.pickup.events.ASIPSBuildLocalPlayerHoldPointsEvent;
@@ -32,6 +33,7 @@ import gunging.ootilities.GungingOotilitiesMod.instants.GOOMPlayerMomentumSync;
 import gunging.ootilities.GungingOotilitiesMod.ootilityception.IntegerNumberRange;
 import net.minecraft.nbt.*;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
@@ -216,6 +218,8 @@ public class ASIPickupSystemManager {
      * For every active entity-item duality, notifies all the players that
      * are tracking them that they are indeed held at the moment (real).
      *
+     * This must only happen in the SERVER SIDE.
+     *
      * @since 1.0.0
      * @author Actually Portals
      */
@@ -223,6 +227,7 @@ public class ASIPickupSystemManager {
 
         // Cancel if empty
         if (activeEntityDualityCounterparts.isEmpty()) { return; }
+        /*HDA*/ActuallySizeInteractions.LogHDA(true, ASIPickupSystemManager.class, "RAD", "Active Duality Tick");
 
         /*
          * Iterate all the active entity counterpart and save them into their item
@@ -234,7 +239,7 @@ public class ASIPickupSystemManager {
             Entity target = (Entity) dualityEntity;
 
             // If it doesn't have an item, it is invalid
-            if (dualityItem == null) { continue; }
+            if (!dualityEntity.actuallysize$isValid()) { probableDualityFlux(new ASIPSDualityDeactivationAction(dualityEntity)); continue; }
 
             // If it is somehow removed or dead, it is also invalid
             if (!entityCounterpart.isAlive()) { continue; }
@@ -245,12 +250,14 @@ public class ASIPickupSystemManager {
 
                 // Move the entity to the holder just 1 tick rq
                 Entity holder = dualityItem.actuallysize$getItemStackLocation().getHolder();
-                target.moveTo(holder.getX(), 0.5 * (holder.getEyeY() + holder.getY()), holder.getZ());
+                if ((holder.level() != target.level()) || holder.distanceToSqr(target.position()) > 2500) {
+                    target.teleportTo((ServerLevel) holder.level(), holder.getX(), 0.5 * (holder.getEyeY() + holder.getY()), holder.getZ(), new HashSet<>(), target.getYRot(), target.getXRot());
 
-                // If player, they must be momentum-notified
-                if (dualityEntity instanceof Player) {
-                    GOOMPlayerMomentumSync sync = new GOOMPlayerMomentumSync((Player) dualityEntity);
-                    sync.tryResolve(); }
+                    // If player, they must be momentum-notified
+                    if (dualityEntity instanceof Player) {
+                        GOOMPlayerMomentumSync sync = new GOOMPlayerMomentumSync((Player) dualityEntity);
+                        sync.tryResolve(); }
+                }
             }
 
             // Re-send activation packet
@@ -258,6 +265,7 @@ public class ASIPickupSystemManager {
             ASINCItemEntityActivationPacket packet = new ASINCItemEntityActivationPacket(dualityItem.actuallysize$getItemStackLocation(), target, dualityEntity.actuallysize$getHoldPoint());
             ASINetworkManager.broadcastEntityUpdate(target, packet);
         }
+        /*HDA*/ActuallySizeInteractions.LogHDA(false, ASIPickupSystemManager.class, "RAD", "Active Duality Tick");
     }
 
     /**
@@ -458,7 +466,7 @@ public class ASIPickupSystemManager {
             return tag.getUUID(ASIPSHeldEntityItem.TAG_ENTITY_UUID);
 
         // Failure
-        } catch (IllegalArgumentException ignored) { return null; }
+        } catch (IllegalArgumentException|NullPointerException ignored) { return null; }
     }
 
     /**

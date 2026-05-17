@@ -214,6 +214,16 @@ public class ASIPSHeldEntityItem extends Item {
         return rebuilt;
     }
 
+    @Override
+    public @Nullable EquipmentSlot getEquipmentSlot(ItemStack stack) {
+
+        // Players are equipped to the legs pocket
+        if (isPlayer()) { return EquipmentSlot.LEGS; }
+
+        // Everything else goes to the stash
+        return super.getEquipmentSlot(stack);
+    }
+
     /**
      * Attempts to place down this mob at the location you are looking at
      *
