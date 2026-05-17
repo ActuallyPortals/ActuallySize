@@ -295,7 +295,7 @@ public abstract class ASIPSImplementedHoldPoint extends ASIPSRegisterableHoldPoi
      *
      * @since 1.0.0
      */
-    double canSustainScale = 0.25;
+    double canSustainScale = 0.2625;
 
     /**
      * @param sustain The relative scale from holder to tiny that can be held in this slot,

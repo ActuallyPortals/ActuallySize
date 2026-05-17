@@ -32,7 +32,7 @@ public class ASIPSHoldPoints {
             new SVFLBit(0D/16D, 5.8D/16D, -1D/16D),
             new SVFLBit(0, 0, 0, 0.1, 0, 1.8, 0),
             new ASIMPLForwardNZVerticalNY("head"))
-            .withElytraDismount(true).withSustainScale(0.5).withStruggleThreshold(1).withRidingDismount(true);
+            .withElytraDismount(true).withSustainScale(0.51).withStruggleThreshold(1).withRidingDismount(true);
     /**
      * @since 1.0.0
      */
@@ -170,7 +170,7 @@ public class ASIPSHoldPoints {
             new SVFLBit(0D/16D, 5.8D/16D, 3D/16D),
             new SVFLBit(0, 0, 0, 0.1, 0, 1.8, 0),
             new ASIMPLForwardNZVerticalNY("head"))
-            .withElytraDismount(true).withSustainScale(0.5).withStruggleThreshold(1).withRidingDismount(true);
+            .withElytraDismount(true).withSustainScale(0.51).withStruggleThreshold(1).withRidingDismount(true);
     /**
      * A hold point that positions the held entity in the right shoulder of the player model.
      *
