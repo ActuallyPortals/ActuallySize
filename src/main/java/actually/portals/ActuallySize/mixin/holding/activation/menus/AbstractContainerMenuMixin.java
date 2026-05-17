@@ -1,6 +1,7 @@
 package actually.portals.ActuallySize.mixin.holding.activation.menus;
 
 import actually.portals.ActuallySize.ActuallySizeInteractions;
+import actually.portals.ActuallySize.pickup.ASIPickupSystemManager;
 import actually.portals.ActuallySize.pickup.actions.ASIPSDualityActivationAction;
 import actually.portals.ActuallySize.pickup.actions.ASIPSDualityDeactivationAction;
 import actually.portals.ActuallySize.pickup.actions.ASIPSDualityFluxAction;
@@ -15,9 +16,11 @@ import gunging.ootilities.GungingOotilitiesMod.exploring.ItemStackLocation;
 import gunging.ootilities.GungingOotilitiesMod.exploring.players.ISPExplorerStatements;
 import gunging.ootilities.GungingOotilitiesMod.exploring.players.ISPPlayerLocation;
 import gunging.ootilities.GungingOotilitiesMod.exploring.players.ISPPlayerStatement;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.ClickType;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
@@ -25,6 +28,8 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(AbstractContainerMenu.class)
 public abstract class AbstractContainerMenuMixin {
@@ -114,5 +119,13 @@ public abstract class AbstractContainerMenuMixin {
                 flux.tryResolve();
             }
         }
+    }
+
+    @Inject(method = "doClick", at = @At("RETURN"))
+    void OnHotbarHotkeySwap(int pSlotId, int pButton, ClickType pClickType, Player pPlayer, CallbackInfo ci) {
+
+        // Hotbar swaps trigger Hotbar Fluxes
+        if (pClickType == ClickType.SWAP && (pPlayer instanceof ServerPlayer)) {
+            ASIPickupSystemManager.processHotbarSlots((ServerPlayer) pPlayer, false); }
     }
 }
