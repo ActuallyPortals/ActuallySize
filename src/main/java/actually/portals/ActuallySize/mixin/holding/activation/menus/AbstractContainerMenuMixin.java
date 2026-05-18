@@ -128,4 +128,18 @@ public abstract class AbstractContainerMenuMixin {
         if (pClickType == ClickType.SWAP && (pPlayer instanceof ServerPlayer)) {
             ASIPickupSystemManager.processHotbarSlots((ServerPlayer) pPlayer, false); }
     }
+
+    /*
+    @WrapMethod(method = "addSlot")
+    Slot WhenSlotAdded(Slot pSlot, Operation<Slot> original) {
+
+        // Somewhy, opening a chests is unbinding player held entities which is crazy
+
+        int originalIndex = pSlot.index;
+        Slot ret = original.call(pSlot);
+        ItemStack itemStack = ret.getItem();
+        ActuallySizeInteractions.Log("WSA Added [X={2}, Y={3}] #{0} (originally {1}): {4} ({5})", ret.index, originalIndex, ret.x, ret.y, itemStack.getDisplayName().getString(), (((ItemDualityCounterpart) (Object) itemStack).actuallysize$getEntityCounterpart() == null ? "null" : ((ItemDualityCounterpart) (Object) itemStack).actuallysize$getEntityCounterpart().getScoreboardName() + " CLIENTSIDE=" + ((ItemDualityCounterpart) (Object) itemStack).actuallysize$getEntityCounterpart().level().isClientSide));
+        return ret;
+    }
+    //*/
 }
