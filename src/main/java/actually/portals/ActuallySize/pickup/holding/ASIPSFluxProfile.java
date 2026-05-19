@@ -23,6 +23,15 @@ import java.util.Collection;
 public class ASIPSFluxProfile {
 
     /**
+     * The number of ticks an action remains open to
+     * becoming a flux packet if a matching action is
+     * logged.
+     *
+     * @since 1.0.0
+     */
+    public static final int FLUX_COLLECTION_TICKS = 10;
+
+    /**
      * Entity that is or will be the entity counterpart of the duality flux
      *
      * @since 1.0.0
@@ -174,7 +183,7 @@ public class ASIPSFluxProfile {
             if (from != null) {
 
                 // Give it one more pass and then let it resolve
-                if (from.getAttempts() < 1) {
+                if (from.getAttempts() < FLUX_COLLECTION_TICKS) {
                     /*HDA*/ActuallySizeInteractions.LogHDA(ASIPickupSystemManager.class, "RDF", "Deferred [FROM] &f {0}", (from == null ? "null" : (from.getStackLocation() == null ? "UNKNOWN" : from.getStackLocation().getStatement())));
                     flex.add(from);
                     from.logAttempt();
@@ -207,7 +216,7 @@ public class ASIPSFluxProfile {
             if (from == null) {
 
                 // Give it one more pass and then let it resolve
-                if (to.getAttempts() < 1) {
+                if (to.getAttempts() < FLUX_COLLECTION_TICKS) {
                     /*HDA*/ActuallySizeInteractions.LogHDA(ASIPickupSystemManager.class, "RDF", "Deferred [TO] &f {0}", (to == null ? "null" : (to.getStackLocation() == null ? "UNKNOWN" : to.getStackLocation().getStatement())));
                     flex.add(to);
                     to.logAttempt();
