@@ -44,7 +44,6 @@
     "holding.activation.PersistentEntitySectionManagerMixin",
     "holding.activation.PlayerListMixin",
     "holding.activation.ServerEntityMixin",
-    "holding.activation.menus.AbstractContainerMenuMixin",
     "holding.activation.menus.AbstractFurnaceMenuMixin",
     "holding.activation.menus.BeaconMenuMixin",
     "holding.activation.menus.BrewingStandMenuMixin",

@@ -206,7 +206,7 @@ public class ActuallySizeInteractions {
      *
      * @since 1.0.0
      */
-    static final boolean HDA_LOGGING = true;
+    static final boolean HDA_LOGGING = false;
 
     /**
      * In my IDE the console is fire but in production it is best to print
