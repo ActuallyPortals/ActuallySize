@@ -121,6 +121,11 @@ public class ASINetworkManager {
                 .encoder(ASINSStrugglePacket::encode)
                 .decoder(ASINSStrugglePacket::new)
                 .consumerMainThread(ASINSStrugglePacket::handle).add();
+
+        MAIN_CHANNEL.messageBuilder(ASINCItemEntityPutDown.class, i++, NetworkDirection.PLAY_TO_CLIENT)
+                .encoder(ASINCItemEntityPutDown::encode)
+                .decoder(ASINCItemEntityPutDown::new)
+                .consumerMainThread(ASINCItemEntityPutDown::handle).add();
     }
 
     /**

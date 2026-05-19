@@ -8,6 +8,7 @@ import actually.portals.ActuallySize.pickup.ASIPickupSystemManager;
 import actually.portals.ActuallySize.pickup.actions.*;
 import actually.portals.ActuallySize.pickup.holding.model.ASIPSModelPartInfo;
 import actually.portals.ActuallySize.pickup.holding.points.ASIPSHoldPointRegistry;
+import actually.portals.ActuallySize.pickup.mixininterfaces.EntityDualityCounterpart;
 import actually.portals.ActuallySize.pickup.mixininterfaces.HoldPointConfigurable;
 import actually.portals.ActuallySize.pickup.mixininterfaces.ModelPartHoldable;
 import gunging.ootilities.GungingOotilitiesMod.ootilityception.APIFriendlyProcess;
@@ -188,7 +189,7 @@ public class ASIClientsidePacketHandler {
     static @NotNull HashMap<UUID, ArrayList<APIFriendlyProcess>> enqueuedDualityActivations = new HashMap<>();
 
     /**
-     * A class that saves duality activation packets until the entity spawn
+     * A queue that saves duality activation packets until the entity spawn
      * packet arrives, inventory updates settle, or after the holder themselves
      * has spawned if these are sent during world loading lol.
      *
@@ -208,6 +209,63 @@ public class ASIClientsidePacketHandler {
         for (UUID uuid : enqueued) { resolveEnqueuedDualityActivationsFor(uuid); }
 
         /*HDA*/ActuallySizeInteractions.LogHDA(false, ASIClientsidePacketHandler.class, "CPH", "{0}x Holders Enqueue Retry", enqueuedDualityActivations.size());
+    }
+
+    /**
+     * Clears the queued packets that target a specific held entity
+     * (among all holders with enqueued packets).
+     *
+     * @see #enqueuedDualityActivations
+     *
+     * @since 1.0.0
+     * @author Actually Portals
+     */
+    public static void clearQueueForHeldEntity(@NotNull Entity held) {
+        if (enqueuedDualityActivations.isEmpty()) { return; }
+        /*HDA*/ActuallySizeInteractions.LogHDA(true, ASIClientsidePacketHandler.class, "QHE", "{0}x Holders Enqueue Clear ", enqueuedDualityActivations.size());
+
+        // Make a copy to avoid editing something while iterating it
+        ArrayList<UUID> enqueued = new ArrayList<>(enqueuedDualityActivations.keySet());
+
+        // Enqueue
+        for (UUID who : enqueued) {
+            ArrayList<APIFriendlyProcess> perPlayer = enqueuedDualityActivations.get(who);
+            if (perPlayer == null) { return; }
+            if (perPlayer.isEmpty()) { return; }
+
+            // Store remainder
+            ArrayList<APIFriendlyProcess> kept = new ArrayList<>();
+
+            /*HDA*/ActuallySizeInteractions.LogHDA(ASIClientsidePacketHandler.class, "QHE", "Clearing queue of {2} within holder &7 {0} &f x{1}", who, perPlayer.size(), held.getScoreboardName());
+
+            // Retry resolving them
+            for (APIFriendlyProcess action : perPlayer) {
+
+                // We only skip those that have the UUID we are removing
+                if (action instanceof ASIPSDualityAction) {
+                    ASIPSDualityAction asASI = (ASIPSDualityAction) action;
+                    if (asASI.getEntityCounterpart() != null) {
+                        if (asASI.getEntityCounterpart().getUUID().equals(held.getUUID())) {
+                            /*HDA*/ActuallySizeInteractions.LogHDA(ASIClientsidePacketHandler.class, "QHE", "- &3{0}", action.getClass().getSimpleName());
+                            continue; } } }
+
+                // Okay add this one that did not match ID
+                kept.add(action);
+                //HDA//ActuallySizeInteractions.LogHDA(ASIClientsidePacketHandler.class, "QHE", "+ &3{0}", action.getClass().getSimpleName());
+            }
+            /*HDA*/ActuallySizeInteractions.LogHDA(ASIClientsidePacketHandler.class, "QHE", "Remainder &f x{0}", kept.size());
+
+            // Clear key when done
+            if (kept.isEmpty()) {
+                enqueuedDualityActivations.remove(who);
+
+                // Remember those that are yet to be resolved
+            } else {
+                enqueuedDualityActivations.put(who, kept);
+            }
+        }
+
+        /*HDA*/ActuallySizeInteractions.LogHDA(false, ASIClientsidePacketHandler.class, "QHE", "{0}x Holders Enqueue Retry", enqueuedDualityActivations.size());
     }
 
     /**
@@ -291,5 +349,21 @@ public class ASIClientsidePacketHandler {
         // Register update
         if (info.serversideUpdateModelPart(packet.getOrigin(), packet.getPitch(), packet.getYaw(), packet.getRoll())) {
             ((ModelPartHoldable) found).actuallysize$setModelPartTime(SchedulingManager.getClientTicks()); }
+    }
+
+    public static void handlePlaceDown(@NotNull ASINCItemEntityPutDown packet, @NotNull Supplier<NetworkEvent.Context> contextSupplier) {
+
+        // Identify the world
+        Level world = getDualityActionWorld(contextSupplier);
+        if (world == null) { return; }
+
+        // Identify the sender
+        Entity found = world.getEntity(packet.getID());
+        if (found == null) { return; }
+
+        // Apply to this entity
+        packet.apply(found);
+        clearQueueForHeldEntity(found);
+        ((EntityDualityCounterpart) found).actuallysize$escapeDuality();
     }
 }

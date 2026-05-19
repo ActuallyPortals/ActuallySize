@@ -8,6 +8,7 @@ import actually.portals.ActuallySize.pickup.ASIPickupSystemManager;
 import actually.portals.ActuallySize.pickup.events.ASIPSPickupToInventoryEvent;
 import actually.portals.ActuallySize.pickup.holding.ASIPSHoldPoint;
 import actually.portals.ActuallySize.pickup.mixininterfaces.EntityDualityCounterpart;
+import actually.portals.ActuallySize.pickup.mixininterfaces.GracePickupable;
 import actually.portals.ActuallySize.pickup.mixininterfaces.ItemDualityCounterpart;
 import actually.portals.ActuallySize.pickup.mixininterfaces.ItemEntityDualityHolder;
 import gunging.ootilities.GungingOotilitiesMod.exploring.ItemStackLocation;
@@ -234,6 +235,9 @@ public class ASIPSPickupAction implements APIFriendlyProcess {
         // Check against the event
         if (!isEventAllowed()) { return false; }
 
+        // The tiny may be in grace period of not being pickup-able
+        if (((GracePickupable) getTiny()).actuallysize$isInGracePickup()) { return false; }
+
         //double relativeScale = ASIUtilities.inverseRelativeScale(caster, victim);
         //ActuallySizeInteractions.Log("&b&l Relativity: x" + (0.01 * Math.round((relativeScale * 100))));
         ItemEntityDualityHolder holder = (ItemEntityDualityHolder) beeg;
@@ -307,7 +311,7 @@ public class ASIPSPickupAction implements APIFriendlyProcess {
         // Create item and pop to slot
         ItemStack drop = ASIPickupSystemManager.generateHeldItem(tinyCast);
         stackLocation.setItemStack(drop);
-        drop.setPopTime(5);
+        drop.setPopTime(15);
         ItemDualityCounterpart itemDuality = (ItemDualityCounterpart) (Object) drop;
         itemDuality.actuallysize$setInvalidityPopped(true);
         //HDA//ActuallySizeInteractions.Log("ASI &b HDP &7 Given player item");

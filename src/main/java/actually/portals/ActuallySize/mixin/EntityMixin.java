@@ -37,6 +37,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.entity.EntityAccess;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.fluids.FluidType;
@@ -57,7 +58,7 @@ import java.util.Map;
 import java.util.UUID;
 
 @Mixin(Entity.class)
-public abstract class EntityMixin extends net.minecraftforge.common.capabilities.CapabilityProvider<Entity> implements Nameable, EntityAccess, CommandSource, net.minecraftforge.common.extensions.IForgeEntity, ItemEntityDualityHolder, EntityDualityCounterpart, SetLevelExt, RenderNormalizable, HoldTickable, ModelPartHoldable {
+public abstract class EntityMixin extends net.minecraftforge.common.capabilities.CapabilityProvider<Entity> implements Nameable, GracePickupable, EntityAccess, CommandSource, net.minecraftforge.common.extensions.IForgeEntity, ItemEntityDualityHolder, EntityDualityCounterpart, GraceLanding, SetLevelExt, RenderNormalizable, HoldTickable, ModelPartHoldable {
 
     @Shadow private Level level;
 
@@ -98,6 +99,8 @@ public abstract class EntityMixin extends net.minecraftforge.common.capabilities
     @Shadow private float xRot;
 
     @Shadow public abstract Vec3 getDeltaMovement();
+
+    @Shadow public float fallDistance;
 
     protected EntityMixin(Class<Entity> baseClass) { super(baseClass); }
 
@@ -335,6 +338,37 @@ public abstract class EntityMixin extends net.minecraftforge.common.capabilities
             holdPoint.serversidePositionHeldEntity(holder, this);
         }
     }
+
+    @Unique int actuallysize$graceLandingTicks = 0;
+    @Unique int actuallysize$gracePickupTicks = 0;
+
+    @Inject(method = "tick", at = @At("HEAD"))
+    public void onTick(CallbackInfo ci) {
+        if (actuallysize$graceLandingTicks > 0) { actuallysize$graceLandingTicks--; }
+        if (actuallysize$gracePickupTicks > 0) { actuallysize$gracePickupTicks--; }
+    }
+
+    @WrapMethod(method = "checkFallDamage")
+    public void onFallDamage(double pY, boolean pOnGround, BlockState pState, BlockPos pPos, Operation<Void> original) {
+
+        // During grace landing, fall damage is disabled
+        GraceLanding asGrace = this;
+        if (asGrace.actuallysize$isInGraceLanding()) { fallDistance = 0; return; }
+
+        original.call(pY, pOnGround, pState, pPos);
+    }
+
+    @Override
+    public boolean actuallysize$isInGraceLanding() { return actuallysize$graceLandingTicks > 0; }
+
+    @Override
+    public void actuallysize$addGraceLanding(int ticks) { actuallysize$graceLandingTicks += ticks; }
+
+    @Override
+    public boolean actuallysize$isInGracePickup() { return actuallysize$gracePickupTicks > 0; }
+
+    @Override
+    public void actuallysize$addGracePickup(int ticks) { actuallysize$gracePickupTicks += ticks; }
 
     @Override
     public boolean actuallysize$isActive() {

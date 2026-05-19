@@ -1,22 +1,14 @@
 package actually.portals.ActuallySize.netcode.packets.clientbound;
 
-import actually.portals.ActuallySize.ActuallySizeInteractions;
 import actually.portals.ActuallySize.netcode.ASIClientsidePacketHandler;
 import actually.portals.ActuallySize.pickup.ASIPickupSystemManager;
 import actually.portals.ActuallySize.pickup.actions.ASIPSDualityActivationAction;
 import actually.portals.ActuallySize.pickup.holding.ASIPSHoldPoint;
 import actually.portals.ActuallySize.pickup.holding.points.ASIPSRegisterableHoldPoint;
 import gunging.ootilities.GungingOotilitiesMod.exploring.*;
-import gunging.ootilities.GungingOotilitiesMod.exploring.entities.ISEEntityLocation;
-import gunging.ootilities.GungingOotilitiesMod.exploring.entities.ISEEntityStatement;
-import gunging.ootilities.GungingOotilitiesMod.exploring.entities.ISEEquipmentSlotted;
-import gunging.ootilities.GungingOotilitiesMod.exploring.entities.ISEExplorerStatements;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.network.NetworkEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

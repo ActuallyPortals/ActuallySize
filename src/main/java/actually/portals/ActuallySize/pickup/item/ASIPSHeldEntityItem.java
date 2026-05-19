@@ -1,15 +1,19 @@
 package actually.portals.ActuallySize.pickup.item;
 
 import actually.portals.ActuallySize.ASIUtilities;
+import actually.portals.ActuallySize.netcode.ASINetworkManager;
+import actually.portals.ActuallySize.netcode.packets.clientbound.ASINCItemEntityPutDown;
 import actually.portals.ActuallySize.pickup.ASIPickupSystemManager;
 import actually.portals.ActuallySize.pickup.actions.ASIPSDualityEscapeAction;
 import actually.portals.ActuallySize.pickup.events.ASIPSFoodPropertiesEvent;
 import actually.portals.ActuallySize.pickup.mixininterfaces.*;
 import gunging.ootilities.GungingOotilitiesMod.instants.GOOMPlayerMomentumSync;
+import gunging.ootilities.GungingOotilitiesMod.ootilityception.OotilityNumbers;
 import gunging.ootilities.GungingOotilitiesMod.scheduling.SchedulingManager;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.InteractionResult;
@@ -239,6 +243,10 @@ public class ASIPSHeldEntityItem extends Item {
         // Need to have a count
         if (useContext.getItemInHand().getCount() < 1) { return InteractionResult.PASS; }
 
+        // Must be out of grab cooldown
+        ItemStack itemCounterpart = useContext.getItemInHand();
+        if (itemCounterpart.getPopTime() > 0) { return InteractionResult.PASS; }
+
         // Only works server side
         if (useContext.getLevel().isClientSide) {
 
@@ -253,13 +261,10 @@ public class ASIPSHeldEntityItem extends Item {
                 Vec3 sim = entityPlaceOn(entityCounterpart, useContext.getClickedFace(), useContext.getClickLocation());
                 entityCounterpart.setPos(sim);
                 entityCounterpart.setOldPosAndRot();
+                entityCounterpart.resetFallDistance();
             }
 
             return InteractionResult.PASS; }
-
-        // Must be out of grab cooldown
-        ItemStack itemCounterpart = useContext.getItemInHand();
-        if (itemCounterpart.getPopTime() > 0) { return InteractionResult.PASS; }
 
         // Only makes sense when used by a player
         Player holderPlayer = useContext.getPlayer();
@@ -283,25 +288,25 @@ public class ASIPSHeldEntityItem extends Item {
                 Entity rebuilt = counterpartOrRebuild(level, itemCounterpart, true, true);
                 if (rebuilt != null) {
                     //PUT//ActuallySizeInteractions.Log("HEI Forced rebuilding to " + rebuilt.getScoreboardName());
-                    entityDuality = (EntityDualityCounterpart) rebuilt; }
+                    entityDuality = (EntityDualityCounterpart) rebuilt;
+                }
             }
 
             entityCounterpart = (Entity) entityDuality;
 
-            // Set position, and nullify momentum, and escape
-            entityCounterpart.setDeltaMovement(Vec3.ZERO);
-            entityCounterpart.setPos(entityPlaceOn(entityCounterpart, useContext.getClickedFace(), useContext.getClickLocation()));
-            entityCounterpart.fallDistance = 0;
+            // Set position, and nullify momentum
+            Vec3 put = entityPlaceOn(entityCounterpart, useContext.getClickedFace(), useContext.getClickLocation());
+            int grace = OotilityNumbers.ceil(10 * ASIUtilities.beegBalanceEnhance(ASIUtilities.getEntityScale(entityCounterpart), 10, 1));
+            ASINCItemEntityPutDown packet = new ASINCItemEntityPutDown(entityCounterpart, put, grace);
+            packet.apply(entityCounterpart);
+
+            // Revive tech, and escape
             entityDuality.actuallysize$escapeDuality();
             ((Entity) entityDuality).revive();
-            if (!entityCounterpart.isAddedToWorld()) { holderPlayer.level().addFreshEntity(entityCounterpart); }
+            if (!entityCounterpart.isAddedToWorld()) {holderPlayer.level().addFreshEntity(entityCounterpart);}
 
-            if (entityDuality instanceof Player) {
-
-                // If player, they must be momentum-notified
-                GOOMPlayerMomentumSync sync = new GOOMPlayerMomentumSync((Player) entityDuality);
-                sync.tryResolve();
-            }
+            // Broadcast the put down of this entity
+            ASINetworkManager.broadcastEntityUpdate(entityCounterpart, packet);
 
         // Rebuild entity and throw
         } else {
@@ -314,15 +319,19 @@ public class ASIPSHeldEntityItem extends Item {
                 return InteractionResult.PASS; }
 
             // Set position, and nullify momentum
-            rebuilt.setDeltaMovement(Vec3.ZERO);
-            rebuilt.setPos(entityPlaceOn(rebuilt, useContext.getClickedFace(), useContext.getClickLocation()));
-            rebuilt.fallDistance = 0;
+            Vec3 put = entityPlaceOn(rebuilt, useContext.getClickedFace(), useContext.getClickLocation());
+            int grace = OotilityNumbers.ceil(10 * ASIUtilities.beegBalanceEnhance(ASIUtilities.getEntityScale(rebuilt), 10, 1));
+            ASINCItemEntityPutDown packet = new ASINCItemEntityPutDown(rebuilt, put, grace);
+            packet.apply(rebuilt);
 
             // Deploy (added to world before slot adjusts position)
             if (!rebuilt.isAddedToWorld()) { level.addFreshEntity(rebuilt); }
             //PUT//ActuallySizeInteractions.Log("HEI Found enclosed " + rebuilt.getScoreboardName());
             entityCounterpart = rebuilt;
         }
+
+        // Placing down an entity clears its flux queue
+        ASIPickupSystemManager.clearDualityFlux(entityCounterpart);
 
         // Item count decrease
         if (!holderPlayer.getAbilities().instabuild || isPlayer()) { itemCounterpart.shrink(1); }
@@ -525,6 +534,8 @@ public class ASIPSHeldEntityItem extends Item {
         // Entity acquires position and velocity as if dropped
         entityCounterpart.setPos(entity.position());
         entityCounterpart.setDeltaMovement(entity.getDeltaMovement());
+        entityCounterpart.setOldPosAndRot();
+        entityCounterpart.resetFallDistance();
         if (entityCounterpart instanceof Player) {
 
             // Add ticks of grace impulse
